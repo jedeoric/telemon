@@ -2,13 +2,23 @@
 #define FDCCR $0310
 
 #define V1DRB $0300
+#define V1DDRB $0302
 #define V1IER $030e
 #define V1DDRA $0303
 
-
+#define V1PCR $030C
 
 #define ACIASR $031D
 #define ACIACR $031E
+
+
+#define V2DRB $0320
+#define V2DRA $0321
+#define V2DDRB $0322
+#define V2DDRA $0323
+#define V2T1 $0324
+
+#define V2PCR $032C
 
 #define V2IER $032e
 
@@ -205,16 +215,16 @@ c2bb
 	
 	LDA #$F7
 	STA V1DRB
-	STA $0302
+	STA V1DDRB
 	LDA #$17
-	STA $0321
-	STA $0323
+	STA V2DRA
+	STA V2DDRA
 	LDA #$E0
-	STA $0320
-	STA $0322
+	STA V2DRB
+	STA V2DDRB
 	LDA #$CC
-	STA $030C
-	STA $032C
+	STA V1PCR
+	STA V2PCR
 	RTS
 
 
