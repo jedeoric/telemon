@@ -1,14 +1,160 @@
+#define CDRIVE $314
+#define FDCCR $0310
+
 *=$c000
 telemon
-	.byt $78,$d8,$a2,$ff,$9a,$e8,$8e,$18,$04,$20,$a6,$c2,$20,$4f,$da,$20
-	.byt $03,$d9,$a2,$0f,$5e,$ae,$02,$ca,$10,$fa,$a9,$d0,$20,$d1,$c4,$ad
-	.byt $fa,$02,$c9,$4c,$d0,$0f,$ad,$6d,$02,$29,$20,$d0,$08,$ad,$0d,$02
-	.byt $29,$01,$18,$90,$03,$a9,$01,$38,$8d,$0d,$02,$6e,$ee,$02,$30,$03
-	.byt $4c,$ac,$c0,$a2,$2f,$bd,$38,$c8,$9d,$be,$02,$ca,$10,$f7,$a2,$04
-	.byt $bd,$5f,$c4,$9d,$ef,$02,$ca,$10,$f7,$ea,$ea,$a2,$03,$bd,$dc,$c2
-	.byt $8d,$14,$03,$a9,$08,$8d,$10,$03,$a8,$c8,$d0,$fd,$ea,$a0,$40,$86
+	SEI
+	CLD
+	LDX #$FF
+	TXS
+	inx
+	stx $0418
+	jsr $c2a6
+	jsr $da4f
+	jsr $d903
+	LDX #$0F
+	LSR $02AE,X
+	DEX
+	.byt $10,$fa	; bpl next ?
+	LDA #$D0
+	JSR $C4D1
+	LDA $02FA
+	CMP #$4C
+	BNE end_rout
+	LDA $026D
+	AND #$20
+	BNE end_rout
+	LDA $020D
+	AND #$01
+	CLC
+	bcc next2
+end_rout
+	lda #01
+	sec
+next2
+	sta $020D
+	ror $02EE
+	bmi next1
+	jmp $c0ac
+next1
+	LDX #$2F
+	LDA $C838,X
+	STA $02BE,X
+	DEX
+	.byt $10,$f7 ; BPL $c010
+	LDX #$04
+	LDA $C45F,X
+	STA $02EF,X
+	DEX
+	.byt $10,$f7 ;BPL $C01B
+	NOP
+	NOP
+	LDX #$03
+	LDA $C2DC,X
+	STA CDRIVE
+	LDA #$08
+	STA FDCCR
+	TAY
+	INY
+	.byt $d0,$fd ;C035   D0 FD      BNE $C034	
+	NOP
+	LDY #$40
+	STX $00
+	LDA FDCCR
+	LSR
+	.byt $90,$0a ; BCC $C04C
+	INC $00
+	.byt $d0,$f6; C044   D0 F6      BNE $C03C
+	DEY
+	.byt $d0,$f3 ;C047   D0 F3      BNE $C03C
+	TYA
+	.byt $f0,$05
+	LSR $020D
+	LDA #$AA
+	STA $0208,X
+	DEX
+	.byt $10,$d1
+/*	
+C055   10 D1      BPL $C028
+C057   EA         NOP
+C058   E8         INX
+C059   BD 24 C5   LDA $C524,X
+C05C   9D 00 04   STA $0400,X
+C05F   BD 64 C4   LDA $C464,X
+C062   9D 00 B8   STA $B800,X
+C065   BD E0 C2   LDA $C2E0,X
+C068   9D 00 06   STA $0600,X
+C06B   BD EB C5   LDA $C5EB,X
+C06E   9D 00 07   STA $0700,X
+C071   E8         INX
+C072   D0 E5      BNE $C059
+C074   20 03 06   JSR $0603
+C077   A9 00      LDA #$00
+C079   48         PHA
+C07A   AA         TAX
+C07B   20 EA C4   JSR $C4EA
+C07E   68         PLA
+C07F   18         CLC
+C080   69 0C      ADC #$0C
+C082   C9 30      CMP #$30
+C084   D0 F3      BNE $C079
+C086   A9 00      LDA #$00
+C088   8D 0E 02   STA $020E
+C08B   A9 40      LDA #$40
+C08D   8D 0F 02   STA $020F
+C090   A2 07      LDX #$07
+C092   BC 00 02   LDY $0200,X
+C095   98         TYA
+C096   29 10      AND #$10
+C098   D0 1C      BNE $C0B6
+C09A   98         TYA
+C09B   48         PHA
+C09C   29 0F      AND #$0F
+C09E   A8         TAY
+C09F   C8         INY
+C0A0   68         PLA
+C0A1   29 20      AND #$20
+C0A3   18         CLC
+C0A4   F0 09      BEQ $C0AF
+C0A6   98         TYA
+C0A7   6D 0E 02   ADC $020E
+C0AA   8D 0E 02   STA $020E
+C0AD   90 07      BCC $C0B6
+C0AF   98         TYA
+C0B0   6D 0F 02   ADC $020F
+C0B3   8D 0F 02   STA $020F
+C0B6   CA         DEX
+C0B7   D0 D9      BNE $C092
+C0B9   2C EE 02   BIT $02EE
+C0BC   10 0E      BPL $C0CC
+C0BE   A2 0B      LDX #$0B
+C0C0   BD 86 C3   LDA $C386,X
+C0C3   9D F4 02   STA $02F4,X
+C0C6   CA         DEX
+C0C7   10 F7      BPL $C0C0
+C0C9   20 B1 D9   JSR $D9B1
+C0CC   AD 6C 02   LDA $026C
+C0CF   29 90      AND #$90
+C0D1   F0 08      BEQ $C0DB
+C0D3   AD 0D 02   LDA $020D
+C0D6   09 40      ORA #$40
+C0D8   8D 0D 02   STA $020D
+C0DB   20 5B DF   JSR $DF5B
+C0DE   20 56 DA   JSR $DA56
+C0E1   20 BD D5   JSR $D5BD
+C0E4   20 AB DF   JSR $DFAB
+C0E7   20 54 DB   JSR $DB54
+C0EA   AD 75 02   LDA $0275
+C0ED   4A         LSR A
+C0EE   29 03      AND #$03
+	*/
+	
+	/*
+	.byt $ea,$a0,$40,$86 ;
 	.byt $00,$ad,$10,$03,$4a,$90,$0a,$e6,$00,$d0,$f6,$88,$d0,$f3,$98,$f0
-	.byt $05,$4e,$0d,$02,$a9,$aa,$9d,$08,$02,$ca,$10,$d1,$ea,$e8,$bd,$24
+	.byt $05,$4e,$0d,$02,$a9,$aa,$9d,$08,$02,$ca
+	*/
+	.byt $ea,$e8,$bd,$24
 	.byt $c5,$9d,$00,$04,$bd,$64,$c4,$9d,$00,$b8,$bd,$e0,$c2,$9d,$00,$06
 	.byt $bd,$eb,$c5,$9d,$00,$07,$e8,$d0,$e5,$20,$03,$06,$a9,$00,$48,$aa
 	.byt $20,$ea,$c4,$68,$18,$69,$0c,$c9,$30,$d0,$f3,$a9,$00,$8d,$0e,$02
@@ -1044,5 +1190,11 @@ telemon
 	.byt $02,$1e,$22,$1e,$00,$5c,$00,$00,$1e,$20,$20,$20,$1e,$04,$7c,$10
 	.byt $08,$22,$22,$22,$26,$1a,$00,$7e,$1c,$22,$1c,$22,$3e,$20,$1c,$00
 	.byt $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	.byt $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$2f,$00,$c0,$fa,$02
+	.byt $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+NMI:
+	.byt $00,$2f
+RESET:
+	.byt $00,$c0
+BRK_IRQ:	
+	.byt $fa,$02
 
