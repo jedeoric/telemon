@@ -2,7 +2,7 @@
 #define FDCCR $0310
 
 
-/* VIA 1 vectors*/
+/*************************** VIA 1 vectors*/
 
 #define V1DRB $0300
 #define V1DDRB $0302
@@ -11,13 +11,13 @@
 
 #define V1PCR $030C
 
-/* ACIA vectors*/
+/***************************  ACIA vectors*/
 
 
 #define ACIASR $031D
 #define ACIACR $031E
 
-/* VIA 1 vectors*/
+/*************************** VIA 1 vectors*/
 
 
 #define V2DRB $0320
@@ -28,8 +28,9 @@
 #define V2PCR $032C
 #define V2IER $032e
 
-/* TELEMON VECTORS*/
+/*************************** TELEMON VECTORS*/
 
+/* PAGE 2 TELEMON */
 
 #define FLGTEL $020d 
 
@@ -44,6 +45,10 @@
 #define LPRX $0286 ; word cursor in the line
 #define FLGLPR $028a ;; word b7 ready
 
+#define KORAM $020f ; total Max ram Bytes	
+#define BNKST $0200 ; RESB 8 value of bytes $fffb of each bank
+#define KOROM $020E	; Ko ROM total
+
 
 
 *=$c000
@@ -56,10 +61,13 @@ telemon
 	stx $0418
 
 	jsr init_via
+
 	jsr init_printer
-	jsr $d903
-	; init channels loading 15
+
+	jsr init_disk
 	
+	; init channels loading 15
+
 	LDX #$0F
 loop1
 	LSR IOTAB0,X ; init channels (0 to 3)
@@ -88,30 +96,35 @@ next2
 	jmp $c0ac
 next1
 	LDX #$2F
+next8		
 	LDA $C838,X
 	STA ADIOB,X
 	DEX
-	;bpl next8
-	.byt $10,$f7 ; BPL $c010
+	bpl next8
 	LDX #$04
+loop4	
 	LDA $C45F,X
 	STA CSRND,X
 	DEX
+	bpl loop4	
 before2
-	.byt $10,$f7 ;BPL $C01B
+	
 	NOP
 	NOP
+
 	LDX #$03
 
 	LDA $C2DC,X
 	STA CDRIVE
+
 	LDA #$08
 	STA FDCCR
+	
 	TAY
+c034	
+loop6		
 	INY
-	;bne loop2
-	 .byt $d0,$fd ;C035   D0 FD      BNE $C034	
-	;bne before2
+	bne loop6
 	NOP
 
 	LDY #$40
@@ -127,21 +140,25 @@ before2
 	.byt $f0,$05
 	LSR $020D
 	LDA #$AA
-	STA $0208,X
+#define TABDRV $0208 ; Activating lecteur 0 if not connected, b7 equal double side
+	STA TABDRV,X
 	DEX
+c055	
 	.byt $10,$d1 ;C055   10 D1      BPL $C028
 	nop
 	INX
+loop3	
 	LDA $C524,X
 	STA $0400,X
-	LDA $C464,X ; charset ?
+	LDA $C464,X 
 	STA $B800,X
 	LDA $C2E0,X
 	STA $0600,X
 	LDA $C5EB,X
 	STA $0700,X
 	INX
-	.byt $d0,$e5 ; C072   D0 E5      BNE $C059
+c072	
+	bne loop3
 	JSR $0603
 	LDA #$00
 	PHA
@@ -152,12 +169,15 @@ before2
 	ADC #$0C
 	CMP #$30
 	.byt $d0,$f3
-	LDA #$00
-	STA $020E
-	LDA #$40
-	STA $020F
+	
+	LDA #$00 ; INIT VALUE of the rom to 0 bytes
+	STA KOROM
+	LDA #$40 ; INIT VALUE of the RAM to 64 Kbytes
+
+	STA KORAM
+
 	LDX #$07
-	LDY $0200,X
+	LDY BNKST,X
 	TYA
 	AND #$10
 	BNE next3
@@ -171,13 +191,15 @@ before2
 	CLC
 	BEQ next4
 	TYA
-	ADC $020E
-	STA $020E
+
+	ADC KOROM
+	STA KOROM
+c0ad	
 	.byt $90,$07 ;C0AD   90 07      BCC $C0B6
 next4
 	TYA
-	ADC $020F
-	STA $020F
+	ADC KORAM
+	STA KORAM
 next3
 	DEX
 	.byt $d0,$d9 ;C0B7   D0 D9      BNE $C092
@@ -189,7 +211,7 @@ before1
 	STA $02F4,X
 	DEX
 	BPL before1
-JSR $D9B1
+	JSR $D9B1
 next5
 	LDA $026C
 	AND #$90
@@ -321,9 +343,13 @@ init_via
 	.byt $c1,$ac,$04,$c1,$85,$00,$84,$01,$ec,$01,$c1,$d0,$09,$a9,$58,$20
 	.byt $6d,$b8,$a2,$00,$ea,$ea,$e8,$8e,$12,$03,$20,$4f,$b8,$e6,$01,$ce
 	.byt $02,$c1,$d0,$e4,$20,$05,$c1,$ad,$fb,$ff,$8d,$00,$02,$a9,$ef,$8d
-	.byt $21,$03,$60,$a9,$88,$8d,$10,$03,$a0,$04,$88,$d0,$fd,$ad,$10,$03
+	.byt $21,$03,$60,$a9,$88
+	
+	.byt $8d,$10,$03,$a0,$04,$88,$d0,$fd,$ad,$10,$03
 	.byt $4a,$90,$1e,$ad,$18,$03,$30,$f5,$ad,$13,$03,$91,$00,$c8,$4c,$5f
-	.byt $b8,$8d,$10,$03,$a0,$03,$88,$d0,$fd,$ad,$10,$03,$4a,$b0,$fa,$60
+	.byt $b8
+	
+	.byt $8d,$10,$03,$a0,$03,$88,$d0,$fd,$ad,$10,$03,$4a,$b0,$fa,$60
 	.byt $ea,$ad,$10,$03,$29,$1c,$f0,$f7,$d0,$c9,$86,$02,$8a,$a2,$ff,$38
 	.byt $e9,$03,$e8,$b0,$fa,$bd,$af,$c6,$85,$00,$bd,$b0,$c6,$85,$01,$bd
 	.byt $b1,$c6,$bc,$b2,$c6,$a6,$02,$2c,$18,$c5,$50,$08,$a9,$00,$2c,$a9
@@ -390,7 +416,9 @@ init_via
 	.byt $68,$48,$29,$07,$f0,$03,$09,$b0,$24,$8a,$a2,$0c,$20,$1d,$c5,$68
 	.byt $29,$10,$f0,$37,$a2,$18,$20,$0f,$c5,$b0,$16,$ad,$1d,$03,$29,$20
 	.byt $d0,$29,$20,$18,$c5,$8d,$1c,$03,$ad,$1f,$03,$29,$07,$85,$3f,$90
-	.byt $1a,$e6,$20,$d0,$16,$c6,$3f,$d0,$12,$ad,$8a,$02,$4a,$4a,$4a,$ad
+	.byt $1a,$e6,$20
+c903
+	.byt $d0,$16,$c6,$3f,$d0,$12,$ad,$8a,$02,$4a,$4a,$4a,$ad
 	.byt $1e,$03,$29,$f3,$90,$02,$29,$fe,$8d,$1e,$03,$68,$a8,$60,$ce,$15
 	.byt $02,$d0,$50,$a9,$04,$8d,$15,$02,$2c,$8a,$02,$10,$03,$20,$2f,$ca
 	.byt $a5,$44,$d0,$02,$c6,$45,$c6,$44,$38,$ee,$10,$02,$ad,$10,$02,$e9
@@ -647,8 +675,9 @@ init_via
 	.byt $2d,$f0,$15,$c9,$3d,$f0,$14,$68,$09,$40,$48,$ad,$75,$02,$4a,$b0
 	.byt $0f,$b1,$2a,$29,$1f,$09,$80,$2c,$a9,$60,$2c,$a9,$7e,$4c,$82,$d8
 	.byt $6c,$76,$02
-	
-	
+
+init_disk	
+d903	
 	LDY #$07
 	LDA #$7F
 	PHA
