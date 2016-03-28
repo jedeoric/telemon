@@ -83,18 +83,14 @@ telemon
 	.byt $0d,$0a
 
 	.byt $00,$0a
-	.asc "Imprimante"
-	.byt $00,$1b,$3a,$69
+	.asc "Imprimante",0
+	.byt $1b,$3a,$69
 	.byt $43,$11,$00,$1b,$3a,$6a,$43,$14,$00,$8c
-	.asc "Inserez une disquette"
-	
-	.byt $00
+	.asc "Inserez une disquette",0
 	.byt $0d,$18,$00
-	.byt $4c,$6f,$67,$69,$63,$69,$65,$6c,$20,$65,$63,$72,$69
-	.byt $74,$20,$70,$61,$72,$20,$46,$61,$62,$72,$69,$63,$65,$20,$42,$52
-	.byt $4f,$43,$48,$45
-	;.asc "Logiciel ecrit par Fabrice Broche "
-	.byt $00,$42,$4f,$4e,$4a,$4f,$55,$52,$43,$4f,$4d,$80
+	.asc "Logiciel ecrit par Fabrice BROCHE",0
+	.asc "BONJOURCOM"
+	.byt $80
 	.byt $4f,$c7,$52,$58,$a9,$e8,$8d,$21,$03,$a9,$00,$a0,$c1,$85,$00,$84
 	.byt $01,$a2,$01,$8e,$12,$03,$20,$4f,$b8,$ad,$00,$c1,$d0,$2f,$ad,$03
 	.byt $c1,$ac,$04,$c1,$85,$00,$84,$01,$ec,$01,$c1,$d0,$09,$a9,$58,$20
