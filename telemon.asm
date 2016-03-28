@@ -32,8 +32,10 @@
 
 /* PAGE 2 TELEMON */
 
-#define FLGTEL $020d 
+#define RES $00 ; address general usage
 
+#define FLGTEL $020d 
+#define TABDRV $0208 ; Activating drive 0 if not connected, b7 equal double side
 #define IOTAB0 $02ae ; activating channel 1
 
 #define ADIOB $02be ; 48 bytes ? I/O management address
@@ -49,7 +51,7 @@
 #define BNKST $0200 ; RESB 8 value of bytes $fffb of each bank
 #define KOROM $020E	; Ko ROM total
 
-
+#define FLGKBD $0275	;Keyboard flag : b7 majn b6 if sound
 
 *=$c000
 telemon
@@ -75,7 +77,7 @@ loop1
 	bpl loop1
 	
 	LDA #$D0
-	JSR $C4D1
+	JSR routine_to_define_2
 	LDA $02FA
 	CMP #$4C
 	BNE end_rout
@@ -93,12 +95,12 @@ next2
 	sta FLGTEL
 	ror $02EE
 	bmi next1
-	jmp $c0ac
+	jmp routine_to_define_3 
 next1
 	LDX #$2F
 next8		
-	LDA $C838,X
-	STA ADIOB,X
+	LDA data_to_define_1,X
+	STA ADIOB,X 
 	DEX
 	bpl next8
 	LDX #$04
@@ -113,7 +115,8 @@ before2
 	NOP
 
 	LDX #$03
-
+C028
+loop8
 	LDA $C2DC,X
 	STA CDRIVE
 
@@ -128,23 +131,28 @@ loop6
 	NOP
 
 	LDY #$40
-	STX $00
+	
+	STX RES
+c03C
+loop7	
 	LDA FDCCR
 	LSR
-	.byt $90,$0a ; BCC $C04C
-	INC $00
-	.byt $d0,$f6; C044   D0 F6      BNE $C03C
+	bcc next10
+	INC RES
+	bne loop7
 	DEY
-	.byt $d0,$f3 ;C047   D0 F3      BNE $C03C
+	bne loop7
 	TYA
-	.byt $f0,$05
-	LSR $020D
+	beq next9
+next10	
+	LSR FLGTEL
 	LDA #$AA
-#define TABDRV $0208 ; Activating lecteur 0 if not connected, b7 equal double side
+next9	
+
 	STA TABDRV,X
 	DEX
 c055	
-	.byt $10,$d1 ;C055   10 D1      BPL $C028
+	bpl loop8
 	nop
 	INX
 loop3	
@@ -160,7 +168,11 @@ loop3
 c072	
 	bne loop3
 	JSR $0603
+
+routine_to_define_3 	
+c0ac
 	LDA #$00
+loop9	
 	PHA
 	TAX
 	JSR $C4EA
@@ -168,12 +180,11 @@ c072
 	CLC
 	ADC #$0C
 	CMP #$30
-	.byt $d0,$f3
-	
+	bne loop9
 	LDA #$00 ; INIT VALUE of the rom to 0 bytes
 	STA KOROM
+	
 	LDA #$40 ; INIT VALUE of the RAM to 64 Kbytes
-
 	STA KORAM
 
 	LDX #$07
@@ -216,16 +227,16 @@ next5
 	LDA $026C
 	AND #$90
 	BEQ next6
-	LDA $020D
+	LDA FLGTEL
 	ORA #$40
-	STA $020D
+	STA FLGTEL
 next6
 	JSR $DF5B
 	JSR $DA56
 	JSR $D5BD
 	JSR $DFAB
 	JSR $DB54
-	LDA $0275
+	LDA FLGKBD
 	LSR
 	AND #$03
 
@@ -320,8 +331,8 @@ init_via
 	.byt $0d,$0a,$00
 	
 
-	.asc "Drive:"
-	.byt $00,$0d,$0a
+	.asc "Drive:",0
+	.byt $0d,$0a
 	
 	.asc "TELEMON V2.4"
 	
@@ -344,12 +355,25 @@ init_via
 	.byt $6d,$b8,$a2,$00,$ea,$ea,$e8,$8e,$12,$03,$20,$4f,$b8,$e6,$01,$ce
 	.byt $02,$c1,$d0,$e4,$20,$05,$c1,$ad,$fb,$ff,$8d,$00,$02,$a9,$ef,$8d
 	.byt $21,$03,$60,$a9,$88
-	
+
 	.byt $8d,$10,$03,$a0,$04,$88,$d0,$fd,$ad,$10,$03
 	.byt $4a,$90,$1e,$ad,$18,$03,$30,$f5,$ad,$13,$03,$91,$00,$c8,$4c,$5f
 	.byt $b8
+
+routine_to_define_2	
+c4d1
+	STA FDCCR
+	LDY #$03
+loop10
+	DEY
+	BNE loop10
+next11
+	LDA FDCCR
+	LSR
+	BCS next11
+	rts
 	
-	.byt $8d,$10,$03,$a0,$03,$88,$d0,$fd,$ad,$10,$03,$4a,$b0,$fa,$60
+	
 	.byt $ea,$ad,$10,$03,$29,$1c,$f0,$f7,$d0,$c9,$86,$02,$8a,$a2,$ff,$38
 	.byt $e9,$03,$e8,$b0,$fa,$bd,$af,$c6,$85,$00,$bd,$b0,$c6,$85,$01,$bd
 	.byt $b1,$c6,$bc,$b2,$c6,$a6,$02,$2c,$18,$c5,$50,$08,$a9,$00,$2c,$a9
@@ -403,9 +427,31 @@ init_via
 	.byt $a8,$68,$aa,$a5,$1d,$60,$a9,$00,$2c,$a9,$04,$2c,$a9,$08,$2c,$a9
 	.byt $0c,$85,$1b,$a5,$1b,$20,$da,$c7,$b0,$f9,$38,$60,$84,$17,$84,$18
 	.byt $48,$8a,$0a,$aa,$bd,$be,$02,$8d,$f8,$02,$bd,$bf,$02,$8d,$f9,$02
-	.byt $68,$46,$17,$24,$18,$4c,$f7,$02,$5c,$d9,$1a,$c8,$f7,$da,$5d,$db
-	.byt $1a,$c8,$1a,$c8,$1a,$c8,$1a,$c8,$86,$db,$8c,$db,$92,$db,$98,$db
-	.byt $1a,$c8,$1a,$c8,$70,$da,$12,$db,$79,$db,$c6,$d5,$1a,$c8,$1a,$c8
+	.byt $68,$46,$17,$24,$18,$4c,$f7,$02
+	
+data_to_define_1
+	; length must be $30
+	; used to set I/O vectors
+	.byt $5c,$d9 ; 0
+	.byt $1a,$c8 
+	.byt $f7,$da
+	.byt $5d,$db
+	.byt $1a,$c8 ; 
+	.byt $1a,$c8
+	.byt $1a,$c8
+	.byt $1a,$c8
+	.byt $86,$db
+	.byt $8c,$db ;
+	.byt $92,$db
+	.byt $98,$db
+	.byt $1a,$c8
+	.byt $1a,$c8
+	.byt $70,$da ;30
+	.byt $12,$db
+	.byt $79,$db
+	.byt $c6,$d5
+	.byt $1a,$c8
+	.byt $1a,$c8
 	.byt $1a,$c8,$1a,$c8,$1a,$c8,$1a,$c8,$86,$22,$84,$23,$68,$85,$24,$29
 	.byt $10,$f0,$40,$ba,$68,$d0,$03,$de,$02,$01,$38,$e9,$01,$48,$85,$15
 	.byt $bd,$02,$01,$85,$16,$ad,$0f,$04,$8d,$10,$04,$a0,$00,$20,$11,$04
@@ -429,15 +475,78 @@ c903
 	.byt $49,$80,$8d,$17,$02,$2c,$48,$02,$10,$07,$70,$05,$a6,$28,$4c,$2d
 	.byt $de,$60,$ad,$0d,$03,$29,$20,$f0,$20,$ad,$8f,$02,$ac,$90,$02,$8d
 	.byt $08,$03,$8c,$09,$03,$ad,$8c,$02,$4a,$90,$06,$20,$85,$e0,$4c,$b9
-	.byt $c8,$a9,$ff,$8d,$09,$03,$4c,$b9,$c8,$2c,$0d,$03,$30,$0e,$24,$1e
-	.byt $10,$07,$a6,$22,$a4,$23,$4c,$00,$04,$4c,$b6,$c8,$46,$1e,$2c,$0d
-	.byt $03,$50,$4c,$2c,$04,$03,$20,$1e,$c9,$ce,$a6,$02,$d0,$22,$20,$df
-	.byt $d7,$20,$bf,$c8,$2c,$70,$02,$10,$07,$a9,$14,$8d,$a7,$02,$d0,$0b
-	.byt $ad,$a8,$02,$2c,$a7,$02,$30,$05,$ce,$a7,$02,$a9,$01,$8d,$a6,$02
-	.byt $2c,$8c,$02,$10,$06,$20,$fa,$df,$2c,$8c,$02,$50,$03,$20,$fb,$df
-	.byt $ad,$8c,$02,$4a,$90,$03,$20,$e1,$e0,$4c,$b9,$c8,$4c,$92,$c9,$ad
-	.byt $0d,$03,$29,$02,$f0,$f6,$2c,$01,$03,$20,$2f,$ca,$4c,$b9,$c8,$a2
-	.byt $24,$20,$18,$c5,$90,$08,$0e,$8a,$02,$38,$6e,$8a,$02,$60,$8d,$01
+	.byt $c8
+routine_todefine_1:
+C9b1
+	LDA #$FF
+	STA $0309
+	JMP $C8B9
+	BIT $030D
+	BMI $C9CC
+	BIT $1E
+	BPL $C9C9
+	LDX $22
+	LDY $23
+	JMP $0400
+	JMP $C8B6
+	LSR $1E
+	BIT $030D
+	BVC $CA1F
+	BIT $0304
+	JSR $C91E
+	DEC $02A6
+	BNE $CA00
+	JSR $D7DF
+	JSR $C8BF
+	BIT $0270
+	BPL $C9F0
+	LDA #$14
+	STA $02A7
+	BNE $C9FB
+	LDA $02A8
+	BIT $02A7
+	BMI $C9FD
+	DEC $02A7
+	LDA #$01
+	STA $02A6
+	BIT $028C
+	BPL $CA0B
+	JSR $DFFA
+	BIT $028C
+	BVC $CA10
+	JSR $DFFB
+	LDA $028C
+	LSR
+	BCC $CA19
+	JSR $E0E1
+	JMP $C8B9
+	JMP $C992
+	LDA $030D
+	AND #$02
+	BEQ $CA1C
+	BIT $0301
+	JSR $CA2F
+	JMP $C8B9
+	LDX #$24
+	JSR $C518
+	BCC $CA3E
+	ASL $028A
+	SEC
+	ROR $028A
+	RTS
+	/*
+DA3E   8D 01 03   STA $0301
+DA41   AD 00 03   LDA $0300
+DA44   29 EF      AND #$EF
+DA46   8D 00 03   STA $0300
+DA49   09 10      ORA #$10
+DA4B   8D 00 03   STA $0300
+DA4E   0E 8A 02   ASL $028A
+DA51   4E 8A 02   LSR $028A
+	*/
+	
+
+	.byt $8d,$01
 	.byt $03,$ad,$00,$03,$29,$ef,$8d,$00,$03,$09,$10,$8d,$00,$03,$0e,$8a
 	.byt $02,$4e,$8a,$02,$60,$a9,$00,$a2,$04,$9d,$10,$02,$ca,$10,$fa,$a9
 	.byt $01,$8d,$15,$02,$60,$4e,$14,$02,$60,$08,$78,$85,$40,$84,$41,$38
