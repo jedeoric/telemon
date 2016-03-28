@@ -54,6 +54,7 @@ telemon
 	TXS ; init stack
 	inx
 	stx $0418
+
 	jsr init_via
 	jsr init_printer
 	jsr $d903
@@ -90,6 +91,7 @@ next1
 	LDA $C838,X
 	STA ADIOB,X
 	DEX
+	;bpl next8
 	.byt $10,$f7 ; BPL $c010
 	LDX #$04
 	LDA $C45F,X
@@ -132,7 +134,7 @@ before2
 	INX
 	LDA $C524,X
 	STA $0400,X
-	LDA $C464,X
+	LDA $C464,X ; charset ?
 	STA $B800,X
 	LDA $C2E0,X
 	STA $0600,X
@@ -644,15 +646,96 @@ init_via
 	.byt $00,$00,$00,$00,$00,$00,$3e,$10,$00,$00,$1f,$00,$00,$b1,$2a,$c9
 	.byt $2d,$f0,$15,$c9,$3d,$f0,$14,$68,$09,$40,$48,$ad,$75,$02,$4a,$b0
 	.byt $0f,$b1,$2a,$29,$1f,$09,$80,$2c,$a9,$60,$2c,$a9,$7e,$4c,$82,$d8
-	.byt $6c,$76,$02,$a0,$07,$a9,$7f,$48,$aa,$a9,$0e,$20,$1a,$da,$a9,$00
-	.byt $99,$68,$02,$20,$bf,$c8,$ad,$00,$03,$29,$b8,$aa,$18,$69,$08,$85
-	.byt $1f,$8e,$00,$03,$e8,$a9,$08,$2d,$00,$03,$d0,$06,$e4,$1f,$d0,$f1
-	.byt $f0,$14,$ca,$8a,$48,$29,$07,$aa,$bd,$a9,$d9,$19,$68,$02,$99,$68
-	.byt $02,$68,$aa,$e8,$d0,$e6,$68,$38,$6a,$88,$10,$bb,$a0,$08,$b9,$67
-	.byt $02,$d0,$08,$c0,$06,$d0,$01,$88,$88,$d0,$f3,$60,$30,$27,$a9,$01
+	.byt $6c,$76,$02
+	
+	
+	LDY #$07
+	LDA #$7F
+	PHA
+	TAX
+	LDA #$0E
+	JSR $DA1A
+	LDA #$00
+	STA $0268,Y
+	JSR $C8BF
+	LDA $0300
+	AND #$B8
+	TAX
+	CLC
+	ADC #$08
+	STA $1F
+	STX $0300
+	INX
+	LDA #$08
+	AND $0300
+	BNE next7
+	CPX $1F
+	.byt $d0,$f1 ;D92E   D0 F1      BNE $D921
+d930
+	.byt $F0,$14 ;     BEQ $D946
+next7
+	DEX
+	TXA
+	PHA
+	AND #$07
+	TAX
+	LDA $D9A9,X
+	ORA $0268,Y
+	STA $0268,Y
+	PLA
+	TAX
+	INX
+	BNE $D92C
+	PLA
+	SEC
+	ROR
+	DEY
+	.byt $10,$bb ;D94A   10 BB      BPL $D907
+	LDY #$08
+	LDA $0267,Y
+	BNE out1
+	CPY #$06
+	BNE out2
+	DEY
+out2
+	DEY
+	.byt $d0,$f3 ; D959   D0 F3      BNE $D94E
+out1
+	RTS
+	/*
+D95C   30 27      BMI $D985
+D95E   A9 01      LDA #$01
+D960   8D A8 02   STA $02A8
+D963   8D A6 02   STA $02A6
+D966   08         PHP
+D967   78         SEI
+D968   A2 00      LDX #$00
+D96A   20 18 C5   JSR $C518
+D96D   B0 13      BCS $D982
+D96F   8D 79 02   STA $0279
+D972   A2 00      LDX #$00
+D974   20 18 C5   JSR $C518
+D977   B0 09      BCS $D982
+D979   8D 78 02   STA $0278
+D97C   AD 79 02   LDA $0279
+D97F   28         PLP
+D980   18         CLC
+D981   60         RTS
+D982   28         PLP
+D983   38         SEC
+D984   60         RTS
+	*/
+
+	
+	
+
+	.byt $30,$27,$a9,$01
 	.byt $8d,$a8,$02,$8d,$a6,$02,$08,$78,$a2,$00,$20,$18,$c5,$b0,$13,$8d
 	.byt $79,$02,$a2,$00,$20,$18,$c5,$b0,$09,$8d,$78,$02,$ad,$79,$02,$28
-	.byt $18,$60,$28,$38,$60,$90,$06,$a9,$40,$8d,$0e,$03,$60,$ad,$0b,$03
+	.byt $18,$60,$28,$38,$60
+	
+	
+	.byt $90,$06,$a9,$40,$8d,$0e,$03,$60,$ad,$0b,$03
 	.byt $09,$40,$8d,$0b,$03,$a9,$a8,$a0,$61,$8d,$04,$03,$8c,$05,$03,$a9
 	.byt $c0,$8d,$0e,$03,$a2,$00,$4c,$0c,$c5,$01,$02,$04,$08,$10,$20,$40
 	.byt $80,$a9,$ff,$8d,$03,$03,$8d,$a7,$02,$a9,$f7,$8d,$02,$03,$a9,$01
