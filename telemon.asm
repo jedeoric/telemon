@@ -1,6 +1,9 @@
 #define CDRIVE $314
 #define FDCCR $0310
 
+
+/* VIA 1 vectors*/
+
 #define V1DRB $0300
 #define V1DDRB $0302
 #define V1IER $030e
@@ -8,8 +11,13 @@
 
 #define V1PCR $030C
 
+/* ACIA vectors*/
+
+
 #define ACIASR $031D
 #define ACIACR $031E
+
+/* VIA 1 vectors*/
 
 
 #define V2DRB $0320
@@ -17,26 +25,45 @@
 #define V2DDRB $0322
 #define V2DDRA $0323
 #define V2T1 $0324
-
 #define V2PCR $032C
-
 #define V2IER $032e
+
+/* TELEMON VECTORS*/
+
+
+#define FLGTEL $020d 
+
+#define IOTAB0 $02ae ; activating channel 1
+
+#define ADIOB $02be ; 48 bytes ? I/O management address
+
+#define CSRND $02EF ; current value of random generator
+
+#define LPRFX $0288 ; print width
+
+#define LPRX $0286 ; word cursor in the line
+#define FLGLPR $028a ;; word b7 ready
+
 
 *=$c000
 telemon
 	SEI
 	CLD
 	LDX #$FF
-	TXS
+	TXS ; init stack
 	inx
 	stx $0418
-	jsr $c2a6
-	jsr $da4f
+	jsr init_via
+	jsr init_printer
 	jsr $d903
+	; init channels loading 15
+	
 	LDX #$0F
-	LSR $02AE,X
+loop1
+	LSR IOTAB0,X ; init channels (0 to 3)
 	DEX
-	.byt $10,$fa	; bpl next ?
+	bpl loop1
+	
 	LDA #$D0
 	JSR $C4D1
 	LDA $02FA
@@ -45,7 +72,7 @@ telemon
 	LDA $026D
 	AND #$20
 	BNE end_rout
-	LDA $020D
+	LDA FLGTEL
 	AND #$01
 	CLC
 	bcc next2
@@ -53,32 +80,34 @@ end_rout
 	lda #01
 	sec
 next2
-	sta $020D
+	sta FLGTEL
 	ror $02EE
 	bmi next1
 	jmp $c0ac
 next1
 	LDX #$2F
 	LDA $C838,X
-	STA $02BE,X
+	STA ADIOB,X
 	DEX
 	.byt $10,$f7 ; BPL $c010
 	LDX #$04
 	LDA $C45F,X
-	STA $02EF,X
+	STA CSRND,X
 	DEX
 before2
 	.byt $10,$f7 ;BPL $C01B
 	NOP
 	NOP
 	LDX #$03
+
 	LDA $C2DC,X
 	STA CDRIVE
 	LDA #$08
 	STA FDCCR
 	TAY
 	INY
-	.byt $d0,$fd ;C035   D0 FD      BNE $C034	
+	;bne loop2
+	 .byt $d0,$fd ;C035   D0 FD      BNE $C034	
 	;bne before2
 	NOP
 
@@ -203,11 +232,12 @@ next6
 	.byt $8f,$00,$05,$60,$00,$10,$00,$0c,$c9,$03,$d0,$03,$20,$00,$90,$c9
 	.byt $01,$d0,$f1,$a9,$00,$a0,$e0,$a2,$00,$f0,$c1,$a0,$00,$a2,$20,$86
 	.byt $14,$a2,$01,$4c,$39,$ce
-c2bb
+init_via
 	lda #$7f 
 	sta V1IER ; Initialize via1
 	sta V2IER ; Initialize via2
 	sta ACIASR ; Init ACIA
+
 	lda #$00
 	sta CDRIVE
 	lda #$ff
@@ -216,15 +246,19 @@ c2bb
 	LDA #$F7
 	STA V1DRB
 	STA V1DDRB
+
 	LDA #$17
 	STA V2DRA
 	STA V2DDRA
+
 	LDA #$E0
 	STA V2DRB
 	STA V2DDRB
+
 	LDA #$CC
 	STA V1PCR
 	STA V2PCR
+
 	RTS
 
 
@@ -233,7 +267,11 @@ c2bb
 	.byt $d0,$f7,$a2,$07,$8e,$21,$03,$a0,$00,$b9,$00,$ff,$48,$69,$04,$90
 	.byt $fc,$68,$d9,$00,$ff,$d0,$14,$c8,$d0,$ef,$8c,$fb,$ff,$ad,$fb,$ff
 	.byt $cc,$fb,$ff,$d0,$08,$c8,$d0,$f2,$a9,$0f,$2c,$a9,$10,$9d,$00,$02
-	.byt $c9,$02,$d0,$03,$6c,$fc,$ff,$ca,$d0,$ca,$a9,$07,$8d,$21,$03,$60
+	.byt $c9,$02,$d0,$03,$6c,$fc,$ff,$ca,$d0,$ca
+	lda #$07
+	sta $0321
+	rts
+	
 	.byt $a2,$00,$20,$5e,$06,$a2,$06,$20,$5e,$06,$ca,$d0,$fa,$60,$bd,$00
 	.byt $02,$10,$22,$8e,$21,$03,$ad,$f8,$ff,$85,$02,$ad,$f9,$ff,$85,$03
 	.byt $a0,$00,$8e,$21,$03,$b1,$02,$48,$a9,$07,$8d,$21,$03,$68,$f0,$05
@@ -625,9 +663,30 @@ c2bb
 	.byt $e8,$28,$68,$85,$15,$68,$85,$16,$28,$60,$48,$8d,$0f,$03,$c9,$07
 	.byt $d0,$04,$8a,$09,$40,$aa,$98,$48,$08,$78,$ad,$0c,$03,$29,$11,$a8
 	.byt $09,$ee,$8d,$0c,$03,$98,$09,$cc,$8d,$0c,$03,$8e,$0f,$03,$98,$09
-	.byt $ec,$8d,$0c,$03,$98,$09,$cc,$8d,$0c,$03,$28,$68,$a8,$68,$60,$a9
-	.byt $07,$a2,$7f,$4c,$1a,$da,$a9,$50,$8d,$88,$02,$a9,$00,$8d,$86,$02
-	.byt $a9,$80,$8d,$8a,$02,$a9,$53,$a0,$e2,$8d,$50,$02,$8c,$51,$02,$60
+	.byt $ec,$8d,$0c,$03,$98,$09,$cc,$8d,$0c,$03,$28,$68,$a8,$68,$60
+	
+init_printer	
+da4f
+	LDA #$07
+	LDX #$7F
+	JMP $DA1A
+	LDA #$50
+	STA LPRFX
+	LDA #$00
+
+
+	STA LPRX
+	LDA #$80
+	STA FLGLPR
+	LDA #$53
+	LDY #$E2
+	STA $0250 ; LPRVEC ?
+	STY $0251 ; LPRVEC ?
+	rts
+	
+	
+	
+	
 	.byt $30,$60,$48,$8a,$48,$a9,$82,$8d,$0e,$03,$ba,$bd,$02,$01,$20,$a5
 	.byt $da,$2c,$8a,$02,$70,$1b,$c9,$20,$b0,$06,$c9,$0d,$d0,$13,$f0,$0c
 	.byt $ae,$86,$02,$e8,$ec,$88,$02,$90,$05,$20,$e4,$da,$a2,$00,$8e,$86
