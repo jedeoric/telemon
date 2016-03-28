@@ -1,6 +1,17 @@
 #define CDRIVE $314
 #define FDCCR $0310
 
+#define V1DRB $0300
+#define V1IER $030e
+#define V1DDRA $0303
+
+
+
+#define ACIASR $031D
+#define ACIACR $031E
+
+#define V2IER $032e
+
 *=$c000
 telemon
 	SEI
@@ -46,6 +57,7 @@ next1
 	LDA $C45F,X
 	STA $02EF,X
 	DEX
+before2
 	.byt $10,$f7 ;BPL $C01B
 	NOP
 	NOP
@@ -57,7 +69,9 @@ next1
 	TAY
 	INY
 	.byt $d0,$fd ;C035   D0 FD      BNE $C034	
+	;bne before2
 	NOP
+
 	LDY #$40
 	STX $00
 	LDA FDCCR
@@ -73,98 +87,88 @@ next1
 	LDA #$AA
 	STA $0208,X
 	DEX
-	.byt $10,$d1
-/*	
-C055   10 D1      BPL $C028
-C057   EA         NOP
-C058   E8         INX
-C059   BD 24 C5   LDA $C524,X
-C05C   9D 00 04   STA $0400,X
-C05F   BD 64 C4   LDA $C464,X
-C062   9D 00 B8   STA $B800,X
-C065   BD E0 C2   LDA $C2E0,X
-C068   9D 00 06   STA $0600,X
-C06B   BD EB C5   LDA $C5EB,X
-C06E   9D 00 07   STA $0700,X
-C071   E8         INX
-C072   D0 E5      BNE $C059
-C074   20 03 06   JSR $0603
-C077   A9 00      LDA #$00
-C079   48         PHA
-C07A   AA         TAX
-C07B   20 EA C4   JSR $C4EA
-C07E   68         PLA
-C07F   18         CLC
-C080   69 0C      ADC #$0C
-C082   C9 30      CMP #$30
-C084   D0 F3      BNE $C079
-C086   A9 00      LDA #$00
-C088   8D 0E 02   STA $020E
-C08B   A9 40      LDA #$40
-C08D   8D 0F 02   STA $020F
-C090   A2 07      LDX #$07
-C092   BC 00 02   LDY $0200,X
-C095   98         TYA
-C096   29 10      AND #$10
-C098   D0 1C      BNE $C0B6
-C09A   98         TYA
-C09B   48         PHA
-C09C   29 0F      AND #$0F
-C09E   A8         TAY
-C09F   C8         INY
-C0A0   68         PLA
-C0A1   29 20      AND #$20
-C0A3   18         CLC
-C0A4   F0 09      BEQ $C0AF
-C0A6   98         TYA
-C0A7   6D 0E 02   ADC $020E
-C0AA   8D 0E 02   STA $020E
-C0AD   90 07      BCC $C0B6
-C0AF   98         TYA
-C0B0   6D 0F 02   ADC $020F
-C0B3   8D 0F 02   STA $020F
-C0B6   CA         DEX
-C0B7   D0 D9      BNE $C092
-C0B9   2C EE 02   BIT $02EE
-C0BC   10 0E      BPL $C0CC
-C0BE   A2 0B      LDX #$0B
-C0C0   BD 86 C3   LDA $C386,X
-C0C3   9D F4 02   STA $02F4,X
-C0C6   CA         DEX
-C0C7   10 F7      BPL $C0C0
-C0C9   20 B1 D9   JSR $D9B1
-C0CC   AD 6C 02   LDA $026C
-C0CF   29 90      AND #$90
-C0D1   F0 08      BEQ $C0DB
-C0D3   AD 0D 02   LDA $020D
-C0D6   09 40      ORA #$40
-C0D8   8D 0D 02   STA $020D
-C0DB   20 5B DF   JSR $DF5B
-C0DE   20 56 DA   JSR $DA56
-C0E1   20 BD D5   JSR $D5BD
-C0E4   20 AB DF   JSR $DFAB
-C0E7   20 54 DB   JSR $DB54
-C0EA   AD 75 02   LDA $0275
-C0ED   4A         LSR A
-C0EE   29 03      AND #$03
-	*/
+	.byt $10,$d1 ;C055   10 D1      BPL $C028
+	nop
+	INX
+	LDA $C524,X
+	STA $0400,X
+	LDA $C464,X
+	STA $B800,X
+	LDA $C2E0,X
+	STA $0600,X
+	LDA $C5EB,X
+	STA $0700,X
+	INX
+	.byt $d0,$e5 ; C072   D0 E5      BNE $C059
+	JSR $0603
+	LDA #$00
+	PHA
+	TAX
+	JSR $C4EA
+	PLA
+	CLC
+	ADC #$0C
+	CMP #$30
+	.byt $d0,$f3
+	LDA #$00
+	STA $020E
+	LDA #$40
+	STA $020F
+	LDX #$07
+	LDY $0200,X
+	TYA
+	AND #$10
+	BNE next3
+	TYA
+	PHA
+	AND #$0F
+	TAY
+	INY
+	PLA
+	AND #$20
+	CLC
+	BEQ next4
+	TYA
+	ADC $020E
+	STA $020E
+	.byt $90,$07 ;C0AD   90 07      BCC $C0B6
+next4
+	TYA
+	ADC $020F
+	STA $020F
+next3
+	DEX
+	.byt $d0,$d9 ;C0B7   D0 D9      BNE $C092
+	BIT $02EE
+	BPL next5
+	LDX #$0B
+before1
+	LDA $C386,X
+	STA $02F4,X
+	DEX
+	BPL before1
+JSR $D9B1
+next5
+	LDA $026C
+	AND #$90
+	BEQ next6
+	LDA $020D
+	ORA #$40
+	STA $020D
+next6
+	JSR $DF5B
+	JSR $DA56
+	JSR $D5BD
+	JSR $DFAB
+	JSR $DB54
+	LDA $0275
+	LSR
+	AND #$03
+
 	
-	/*
-	.byt $ea,$a0,$40,$86 ;
-	.byt $00,$ad,$10,$03,$4a,$90,$0a,$e6,$00,$d0,$f6,$88,$d0,$f3,$98,$f0
-	.byt $05,$4e,$0d,$02,$a9,$aa,$9d,$08,$02,$ca
-	*/
-	.byt $ea,$e8,$bd,$24
-	.byt $c5,$9d,$00,$04,$bd,$64,$c4,$9d,$00,$b8,$bd,$e0,$c2,$9d,$00,$06
-	.byt $bd,$eb,$c5,$9d,$00,$07,$e8,$d0,$e5,$20,$03,$06,$a9,$00,$48,$aa
-	.byt $20,$ea,$c4,$68,$18,$69,$0c,$c9,$30,$d0,$f3,$a9,$00,$8d,$0e,$02
-	.byt $a9,$40,$8d,$0f,$02,$a2,$07,$bc,$00,$02,$98,$29,$10,$d0,$1c,$98
-	.byt $48,$29,$0f,$a8,$c8,$68,$29,$20,$18,$f0,$09,$98,$6d,$0e,$02,$8d
-	.byt $0e,$02,$90,$07,$98,$6d,$0f,$02,$8d,$0f,$02,$ca,$d0,$d9,$2c,$ee
-	.byt $02,$10,$0e,$a2,$0b,$bd,$86,$c3,$9d,$f4,$02,$ca,$10,$f7,$20,$b1
-	.byt $d9,$ad,$6c,$02,$29,$90,$f0,$08,$ad,$0d,$02,$09,$40,$8d,$0d,$02
-	.byt $20,$5b,$df,$20,$56,$da,$20,$bd,$d5,$20,$ab,$df,$20,$54,$db,$ad
-	.byt $75,$02,$4a,$29,$03,$00,$52,$a9,$80,$00,$00,$a9,$88,$00,$00,$00
+
+
+	.byt $00,$52,$a9,$80,$00,$00,$a9,$88,$00,$00,$00
 	.byt $3c,$a9,$8f,$00,$01,$a9,$13,$a0,$c4,$2c,$0d,$02,$50,$08,$a9,$8f
 	.byt $00,$00,$a9,$0d,$a0,$c4,$00,$15,$2c,$ee,$02,$10,$26,$a9,$9b,$a0
 	.byt $c3,$00,$14,$a9,$e1,$a0,$c3,$00,$14,$00,$25,$ad,$0f,$02,$20,$9b
@@ -188,10 +192,33 @@ C0EE   29 03      AND #$03
 	.byt $fc,$a2,$0c,$00,$57,$ad,$1e,$03,$29,$f3,$09,$08,$8d,$1e,$03,$a9
 	.byt $8f,$00,$05,$60,$00,$10,$00,$0c,$c9,$03,$d0,$03,$20,$00,$90,$c9
 	.byt $01,$d0,$f1,$a9,$00,$a0,$e0,$a2,$00,$f0,$c1,$a0,$00,$a2,$20,$86
-	.byt $14,$a2,$01,$4c,$39,$ce,$a9,$7f,$8d,$0e,$03,$8d,$2e,$03,$8d,$1d
-	.byt $03,$a9,$00,$8d,$14,$03,$a9,$ff,$8d,$03,$03,$a9,$f7,$8d,$00,$03
-	.byt $8d,$02,$03,$a9,$17,$8d,$21,$03,$8d,$23,$03,$a9,$e0,$8d,$20,$03
-	.byt $8d,$22,$03,$a9,$cc,$8d,$0c,$03,$8d,$2c,$03,$60,$84,$a4,$c4,$e4
+	.byt $14,$a2,$01,$4c,$39,$ce
+c2bb
+	lda #$7f 
+	sta V1IER ; Initialize via1
+	sta V2IER ; Initialize via2
+	sta ACIASR ; Init ACIA
+	lda #$00
+	sta CDRIVE
+	lda #$ff
+	sta V1DDRA
+	
+	LDA #$F7
+	STA V1DRB
+	STA $0302
+	LDA #$17
+	STA $0321
+	STA $0323
+	LDA #$E0
+	STA $0320
+	STA $0322
+	LDA #$CC
+	STA $030C
+	STA $032C
+	RTS
+
+
+	.byt $84,$a4,$c4,$e4
 	.byt $4c,$50,$06,$a9,$00,$8d,$21,$03,$aa,$bd,$00,$07,$9d,$00,$c5,$e8
 	.byt $d0,$f7,$a2,$07,$8e,$21,$03,$a0,$00,$b9,$00,$ff,$48,$69,$04,$90
 	.byt $fc,$68,$d9,$00,$ff,$d0,$14,$c8,$d0,$ef,$8c,$fb,$ff,$ad,$fb,$ff
@@ -204,7 +231,8 @@ C0EE   29 03      AND #$03
 	.byt $ff,$ac,$fd,$ff,$8d,$fe,$02,$8c,$ff,$02,$8e,$fd,$02,$a9,$07,$8d
 	.byt $21,$03,$60,$4c,$00,$00,$07,$92,$c3,$4c,$00,$00,$4c,$06,$04,$80
 	.byt $00,$00,$a9,$33,$a0,$c4,$00,$14,$4c,$98,$c3,$0c,$97,$96,$95,$94
-	.byt $93,$92,$91,$90,$20
+	.byt $93,$92,$91,$90
+	.byt $20
 	.asc "TELESTRAT"
 	
 	.byt $20
