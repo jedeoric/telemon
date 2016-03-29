@@ -156,15 +156,15 @@ c055
 	nop
 	INX
 loop3	
-	LDA $C524,X
+	LDA loading_vectors_page_4,X ; X should be equal to 0
 	STA $0400,X
-	LDA $C464,X 
+	LDA loading_vectors_b800,X 
 	STA $B800,X
-	LDA $C2E0,X
+	LDA loading_code_to_page_6,X
 	STA $0600,X
 	LDA $C5EB,X
 	STA $0700,X
-	INX
+	INX ; loop until 256 bytes are filled
 c072	
 	bne loop3
 	JSR $0603
@@ -299,8 +299,97 @@ init_via
 
 
 	.byt $84,$a4,$c4,$e4
-	.byt $4c,$50,$06,$a9,$00,$8d,$21,$03,$aa,$bd,$00,$07,$9d,$00,$c5,$e8
-	.byt $d0,$f7,$a2,$07,$8e,$21,$03,$a0,$00,$b9,$00,$ff,$48,$69,$04,$90
+
+
+loading_code_to_page_6
+	
+	.byt $4c,$50,$06 ;jmp $0605 ? 3 bytes
+	
+	lda #$00 ; 2 bytes
+	sta $0321 ; 3 bytes
+	/*	
+	TAX
+loop11	
+	LDA $0700,X
+	STA $C500,X
+	INX
+	BNE loop11
+	
+
+	LDX #$07
+	STX $0321
+	LDY #$00
+loop14
+	LDA $FF00,Y
+	PHA
+loop12
+	ADC #$04
+	BCC loop12
+	PLA
+	CMP $FF00,Y
+	BNE $063B
+	INY
+	BNE $0619
+	STY $FFFB
+	LDA $FFFB
+	CPY $FFFB
+	BNE next13
+	INY
+	BNE next12
+	LDA #$0F
+next12
+	BIT $10A9
+next13
+	STA $0200,X
+	CMP #$02
+	BNE $0647
+	JMP ($FFFC)
+	DEX
+	BNE $0614
+	LDA #$07
+	STA $0321
+	RTS
+	LDX #$00
+	JSR $065E
+	LDX #$06
+	JSR $065E
+	DEX
+	BNE $0657
+	RTS
+	LDA $0200,X
+	BPL $0685
+	STX $0321
+	LDA $FFF8
+	STA $02
+	LDA $FFF9
+	STA $03
+	LDY #$00
+	STX $0321
+	LDA ($02),Y
+	PHA
+	LDA #$07
+	STA $0321
+	PLA
+	BEQ $0685
+	BRK
+	BPL $064B
+	BNE $0672
+	LDA $0200,X
+	ASL A
+	BPL $06A2
+	STX $0321
+	LDA $FFFC
+	LDY $FFFD
+	STA $02FE
+	STY $02FF
+	STX $02FD
+	LDA #$07
+	STA $0321
+	rts
+	*/
+	.byt $aa,$bd,$00,$07,$9d,$00,$c5,$e8
+	.byt $d0,$f7,$a2,$07
+	.byt $8e,$21,$03,$a0,$00,$b9,$00,$ff,$48,$69,$04,$90
 	.byt $fc,$68,$d9,$00,$ff,$d0,$14,$c8,$d0,$ef,$8c,$fb,$ff,$ad,$fb,$ff
 	.byt $cc,$fb,$ff,$d0,$08,$c8,$d0,$f2,$a9,$0f,$2c,$a9,$10,$9d,$00,$02
 	.byt $c9,$02,$d0,$03,$6c,$fc,$ff,$ca,$d0,$ca
@@ -349,7 +438,9 @@ init_via
 	.asc "Logiciel ecrit par Fabrice BROCHE",0
 	.asc "BONJOURCOM"
 	.byt $80
-	.byt $4f,$c7,$52,$58,$a9,$e8,$8d,$21,$03,$a9,$00,$a0,$c1,$85,$00,$84
+	.byt $4f,$c7,$52,$58
+loading_vectors_b800
+	.byt $a9,$e8,$8d,$21,$03,$a9,$00,$a0,$c1,$85,$00,$84
 	.byt $01,$a2,$01,$8e,$12,$03,$20,$4f,$b8,$ad,$00,$c1,$d0,$2f,$ad,$03
 	.byt $c1,$ac,$04,$c1,$85,$00,$84,$01,$ec,$01,$c1,$d0,$09,$a9,$58,$20
 	.byt $6d,$b8,$a2,$00,$ea,$ea,$e8,$8e,$12,$03,$20,$4f,$b8,$e6,$01,$ce
@@ -378,7 +469,9 @@ next11
 	.byt $e9,$03,$e8,$b0,$fa,$bd,$af,$c6,$85,$00,$bd,$b0,$c6,$85,$01,$bd
 	.byt $b1,$c6,$bc,$b2,$c6,$a6,$02,$2c,$18,$c5,$50,$08,$a9,$00,$2c,$a9
 	.byt $01,$2c,$24,$c5,$38,$4c,$09,$04,$2c,$18,$c5,$50,$03,$2c,$24,$c5
-	.byt $18,$4c,$09,$04,$4c,$93,$04,$4c,$a1,$04,$4c,$7e,$04,$4c,$19,$04
+	.byt $18,$4c,$09,$04
+loading_vectors_page_4	
+	.byt $4c,$93,$04,$4c,$a1,$04,$4c,$7e,$04,$4c,$19,$04
 	.byt $4c,$36,$04,$00,$00,$4c,$af,$04,$4c,$00,$00,$00,$00,$08,$78,$48
 	.byt $ad,$21,$03,$29,$f8,$8d,$21,$03,$68,$20,$00,$c5,$a8,$ad,$21,$03
 	.byt $09,$07,$8d,$21,$03,$6a,$28,$0a,$98,$60,$08,$78,$48,$8a,$48,$ad
