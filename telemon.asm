@@ -1,6 +1,9 @@
 #define CDRIVE $314
 #define FDCCR $0310
 
+#define BRK_TELEMON(value)\
+	.byt 00,value;\
+
 /*
 020d FLGTEL
 02be IOVECTORS
@@ -40,7 +43,7 @@ da4f tmAYSilent
 #define V2DDRA $0323
 #define V2T1 $0324
 #define V2PCR $032C
-#define V2IER $032e
+#define V2IER $032E
 
 /*************************** TELEMON VECTORS*/
 
@@ -48,7 +51,7 @@ da4f tmAYSilent
 
 #define RES $00 ; address general usage
 
-#define FLGTEL $020d 
+#define FLGTEL $020D
 #define TABDRV $0208 ; Activating drive 0 if not connected, b7 equal double side
 #define IOTAB0 $02ae ; activating channel 1
 
@@ -75,13 +78,9 @@ telemon
 	TXS ; init stack
 	inx
 	stx $0418
-
 	jsr init_via
-
 	jsr init_printer
-
 	jsr init_disk
-	
 	; init channels loading 15
 
 	LDX #$0F
@@ -119,7 +118,7 @@ next8
 	bpl next8
 	LDX #$04
 loop4	
-	LDA $C45F,X ; FIXME
+	LDA data_to_define_6,X ; FIXME
 	STA CSRND,X
 	DEX
 	bpl loop4	
@@ -189,7 +188,7 @@ c0ac
 loop9	
 	PHA
 	TAX
-	JSR $C4EA
+	JSR routine_to_define_10 ;FIXMEROUT
 	PLA
 	CLC
 	ADC #$0C
@@ -253,11 +252,18 @@ next6
 	LDA FLGKBD
 	LSR
 	AND #$03
+;	#define BRK text
+
+
+	
+	BRK_TELEMON($52) 	;.byt $00,$52
 
 	
 
 
-	.byt $00,$52,$a9,$80,$00,$00,$a9,$88,$00,$00,$00
+
+	
+	.byt $a9,$80,$00,$00,$a9,$88,$00,$00,$00
 	.byt $3c,$a9,$8f,$00,$01,$a9,$13,$a0,$c4,$2c,$0d,$02,$50,$08,$a9,$8f
 	.byt $00,$00,$a9,$0d,$a0,$c4,$00,$15,$2c,$ee,$02,$10,$26,$a9,$9b,$a0
 	.byt $c3,$00,$14,$a9,$e1,$a0,$c3,$00,$14,$00,$25,$ad,$0f,$02,$20,$9b
@@ -456,8 +462,9 @@ data_to_define_5
 	.byt $0d,$18,$00
 	.asc "Logiciel ecrit par Fabrice BROCHE",0
 	.asc "BONJOURCOM"
-	.byt $80
-	.byt $4f,$c7,$52,$58
+data_to_define_6	
+	; FIVE Bbytes to load in CSRND
+	.byt $80,$4f,$c7,$52,$58
 loading_vectors_b800
 	.byt $a9,$e8,$8d,$21,$03,$a9,$00,$a0,$c1,$85,$00,$84
 	.byt $01,$a2,$01,$8e,$12,$03,$20,$4f,$b8,$ad,$00,$c1,$d0,$2f,$ad,$03
@@ -484,11 +491,37 @@ next11
 	rts
 	
 	
-	.byt $ea,$ad,$10,$03,$29,$1c,$f0,$f7,$d0,$c9,$86,$02,$8a,$a2,$ff,$38
-	.byt $e9,$03,$e8,$b0,$fa,$bd,$af,$c6,$85,$00,$bd,$b0,$c6,$85,$01,$bd
-	.byt $b1,$c6,$bc,$b2,$c6,$a6,$02,$2c,$18,$c5,$50,$08,$a9,$00,$2c,$a9
-	.byt $01,$2c,$24,$c5,$38,$4c,$09,$04,$2c,$18,$c5,$50,$03,$2c,$24,$c5
-	.byt $18,$4c,$09,$04
+	.byt $ea,$ad,$10,$03,$29,$1c,$f0,$f7,$d0,$c9
+routine_to_define_10
+	STX $02
+	TXA
+	LDX #$FF
+loop18
+	SEC
+	SBC #$03
+	INX
+	BCS loop18
+	LDA data_to_define_7,X 
+	STA $00
+	LDA $C6B0,X
+	STA $01
+	LDA $C6B1,X
+	LDY $C6B2,X
+	LDX $02
+	BIT $C518
+	BVC next19
+	LDA #$00
+	BIT $01A9
+	BIT $C524
+next19
+	SEC
+	JMP $0409
+	BIT $C518
+	BVC next20
+	BIT $C524
+next20
+	CLC
+	JMP $0409
 loading_vectors_page_4
 
 	JMP $0493
@@ -663,7 +696,9 @@ data_to_define_4
 	.byt $bd,$84,$c0,$bc,$85,$c0,$20,$a6,$c5,$9d,$84,$c0,$98,$9d,$85,$c0
 	.byt $fe,$88,$c0,$d0,$03,$fe,$89,$c0,$a0,$00,$68,$91,$24,$18,$60,$68
 	.byt $60,$18,$69,$01,$90,$01,$c8,$dd,$82,$c0,$85,$24,$98,$fd,$83,$c0
-	.byt $90,$08,$bd,$80,$c0,$bc,$81,$c0,$85,$24,$84,$25,$a5,$24,$60,$c4
+	.byt $90,$08,$bd,$80,$c0,$bc,$81,$c0,$85,$24,$84,$25,$a5,$24,$60
+data_to_define_7
+	.byt $c4
 	.byt $c5,$80,$c6,$80,$c6,$00,$c8,$00,$c8,$00,$ca,$00,$ca,$00,$d2,$a2
 	.byt $00,$8e,$01,$03,$ad,$00,$03,$29,$ef,$8d,$00,$03,$09,$10,$8d,$00
 	.byt $03,$ad,$0d,$03,$29,$02,$d0,$04,$ca,$d0,$f6,$60,$ad,$0d,$02,$09
@@ -718,15 +753,124 @@ data_to_define_1
 	.byt $bd,$02,$01,$85,$16,$ad,$0f,$04,$8d,$10,$04,$a0,$00,$20,$11,$04
 	.byt $0a,$aa,$a9,$04,$48,$a9,$02,$48,$bd,$a5,$ca,$bc,$a4,$ca,$90,$06
 	.byt $bd,$a5,$cb,$bc,$a4,$cb,$48,$98,$48,$a5,$24,$48,$a5,$21,$a4,$23
-	.byt $a6,$22,$40,$a5,$24,$48,$38,$66,$1e,$20,$bf,$c8,$4c,$b9,$c9,$98
-	.byt $48,$ad,$1d,$03,$10,$55,$46,$1e,$48,$29,$08,$f0,$12,$ae,$1c,$03
-	.byt $68,$48,$29,$07,$f0,$03,$09,$b0,$24,$8a,$a2,$0c,$20,$1d,$c5,$68
-	.byt $29,$10,$f0,$37,$a2,$18,$20,$0f,$c5,$b0,$16,$ad,$1d,$03,$29,$20
-	.byt $d0,$29,$20,$18,$c5,$8d,$1c,$03,$ad,$1f,$03,$29,$07,$85,$3f,$90
-	.byt $1a,$e6,$20
-c903
-	.byt $d0,$16,$c6,$3f,$d0,$12,$ad,$8a,$02,$4a,$4a,$4a,$ad
-	.byt $1e,$03,$29,$f3,$90,$02,$29,$fe,$8d,$1e,$03,$68,$a8,$60,$ce,$15
+	.byt $a6,$22,$40,$a5,$24,$48,$38,$66,$1e,$20,$bf,$c8,$4c,$b9,$c9
+routine_to_define_12
+	TYA
+	PHA
+	LDA $031D
+	BPL next23
+	LSR $1E
+	PHA
+	AND #$08
+	BEQ next24
+	LDX $031C
+	PLA
+	PHA
+	AND #$07
+	BEQ next25+1 ; ? Don't know yet
+	ORA #$B0
+next25
+	BIT $8A
+	LDX #$0C
+	JSR $C51D
+
+next24
+
+	PLA
+	AND #$10
+	BEQ next23
+	LDX #$18
+	JSR $C50F
+	BCS next26
+	LDA $031D
+	AND #$20
+	BNE next23
+	JSR $C518
+	STA $031C
+	LDA $031F
+	AND #$07
+	STA $3F
+	BCC next23
+next26
+	INC $20
+	BNE next23
+	DEC $3F
+	BNE next23
+	LDA $028A
+	LSR
+	LSR 
+	LSR
+	LDA $031E
+	AND #$F3
+	BCC next29
+	AND #$FE
+next29
+	STA $031E
+next23
+	PLA
+	TAY
+	RTS
+	/*
+C91E   CE 15 02   DEC $0215
+C921   D0 50      BNE next27
+C923   A9 04      LDA #$04
+C925   8D 15 02   STA $0215
+C928   2C 8A 02   BIT $028A
+C92B   10 03      BPL next28
+C92D   20 2F CA   JSR $CA2F
+next28
+C930   A5 44      LDA $44
+C932   D0 02      BNE next29
+C934   C6 45      DEC $45
+next29
+C936   C6 44      DEC $44
+C938   38         SEC
+C939   EE 10 02   INC $0210
+C93C   AD 10 02   LDA $0210
+C93F   E9 0A      SBC #$0A
+C941   90 30      BCC next27
+C943   8D 10 02   STA $0210
+C946   2C 14 02   BIT $0214
+C949   10 03      BPL next30
+C94B   20 75 CA   JSR $CA75
+next30
+C94E   EE 11 02   INC $0211
+C951   A5 42      LDA $42
+C953   D0 02      BNE next31
+C955   C6 43      DEC $43
+next31
+C957   C6 42      DEC $42
+C959   AD 11 02   LDA $0211
+C95C   E9 3C      SBC #$3C
+C95E   90 13      BCC next27
+C960   8D 11 02   STA $0211
+C963   EE 12 02   INC $0212
+C966   AD 12 02   LDA $0212
+C969   E9 3C      SBC #$3C
+C96B   90 06      BCC next27
+C96D   8D 12 02   STA $0212
+C970   EE 13 02   INC $0213
+next27
+C973   CE 16 02   DEC $0216
+C976   D0 19      BNE end
+C978   A9 0A      LDA #$0A
+C97A   8D 16 02   STA $0216
+C97D   AD 17 02   LDA $0217
+C980   49 80      EOR #$80
+C982   8D 17 02   STA $0217
+C985   2C 48 02   BIT $0248
+C988   10 07      BPL end
+C98A   70 05      BVS end
+C98C   A6 28      LDX $28
+C98E   4C 2D DE   JMP $DE2D
+end
+C991   60         RTS
+*/
+
+
+
+	
+	.byt $ce,$15
 	.byt $02,$d0,$50,$a9,$04,$8d,$15,$02,$2c,$8a,$02,$10,$03,$20,$2f,$ca
 	.byt $a5,$44,$d0,$02,$c6,$45,$c6,$44,$38,$ee,$10,$02,$ad,$10,$02,$e9
 	.byt $0a,$90,$30,$8d,$10,$02,$2c,$14,$02,$10,$03,$20,$75,$ca,$ee,$11
@@ -1062,28 +1206,35 @@ init_disk
 d903	
 	LDY #$07
 	LDA #$7F
+loop21
 	PHA
 	TAX
 	LDA #$0E
-	JSR $DA1A
+	JSR routine_to_define_11
 	LDA #$00
 	STA $0268,Y
-	JSR $C8BF
+	JSR routine_to_define_12 
 	LDA $0300
 	AND #$B8
 	TAX
 	CLC
 	ADC #$08
 	STA $1F
+loop20	; d921
 	STX $0300
+
 	INX
 	LDA #$08
+
 	AND $0300
 	BNE next7
+loop23	
 	CPX $1F
-	.byt $d0,$f1 ;D92E   D0 F1      BNE $D921
+	bne loop20
+	
 d930
-	.byt $F0,$14 ;     BEQ $D946
+	beq next22
+
 next7
 	DEX
 	TXA
@@ -1096,13 +1247,16 @@ next7
 	PLA
 	TAX
 	INX
-	BNE $D92C
+	bne loop23
+next22  ;$D946
 	PLA
 	SEC
 	ROR
 	DEY
-	.byt $10,$bb ;D94A   10 BB      BPL $D907
+	bpl loop21 ; D94A
+
 	LDY #$08
+loop22	
 	LDA $0267,Y
 	BNE out1
 	CPY #$06
@@ -1110,7 +1264,8 @@ next7
 	DEY
 out2
 	DEY
-	.byt $d0,$f3 ; D959   D0 F3      BNE $D94E
+	bne loop22 ; d959
+
 out1
 	RTS
 	/*
@@ -1178,16 +1333,47 @@ routine_to_define_4
 	.byt $18,$24,$38,$08,$78,$a5,$16,$48,$a5
 	.byt $15,$48,$86,$15,$84,$16,$08,$a0,$00,$28,$08,$b0,$04,$b1,$15,$90
 	.byt $03,$20,$11,$04,$aa,$98,$48,$20,$1a,$da,$68,$a8,$c8,$c0,$0e,$d0
-	.byt $e8,$28,$68,$85,$15,$68,$85,$16,$28,$60,$48,$8d,$0f,$03,$c9,$07
-	.byt $d0,$04,$8a,$09,$40,$aa,$98,$48,$08,$78,$ad,$0c,$03,$29,$11,$a8
-	.byt $09,$ee,$8d,$0c,$03,$98,$09,$cc,$8d,$0c,$03,$8e,$0f,$03,$98,$09
-	.byt $ec,$8d,$0c,$03,$98,$09,$cc,$8d,$0c,$03,$28,$68,$a8,$68,$60
+	.byt $e8,$28,$68,$85,$15,$68,$85,$16,$28,$60
 	
+routine_to_define_11
+	PHA
+	STA $030F
+	CMP #$07
+	BNE next21
+	TXA
+	ORA #$40
+	TAX
+next21
+	TYA
+	PHA
+	PHP
+	SEI
+	LDA $030C
+	AND #$11
+	TAY
+	ORA #$EE
+	STA $030C
+	TYA
+	ORA #$CC
+	STA $030C
+	STX $030F
+	TYA
+	ORA #$EC
+	STA $030C
+	TYA
+	ORA #$CC
+	STA $030C
+	PLP
+	PLA
+	TAY
+	PLA
+	rts
+
 init_printer	
 da4f
 	LDA #$07
 	LDX #$7F
-	JMP $DA1A
+	JMP routine_to_define_11 
 routine_to_define_8	
 	LDA #$50
 	STA LPRFX
