@@ -55,14 +55,18 @@ da4f tmAYSilent
 
 /*************************** TELEMON VECTORS*/
 
-/* PAGE 2 TELEMON */
+; Page 0 variables
 
 #define RES $00 ; address general usage
 #define TR4 $10 ; general usage 1 byte
 #define TR5 $11 ; general usage 1 byte
-
-
 #define DEFAFF $14 ; default value for decimal conversion
+
+#define RS232T $59
+#define RS232C $5A
+
+
+/* PAGE 2 TELEMON */
 
 #define FLGTEL $020D
 #define TABDRV $0208 ; Activating drive 0 if not connected, b7 equal double side
@@ -89,8 +93,21 @@ da4f tmAYSilent
 
 
 
+#define VEXBNK $414
+#define BNKCIB $417
 
-; interrupt primitive
+
+; interrupt primitives
+
+; Switch to keyboard, A containts value :
+; 00 Qwerty
+; 02 french
+; 04 accent
+; 01 azerty
+; 03 bwana
+; 05 accent off
+#define XGOKBD $52 
+#define XMDS $8f ; minitel output
 
 #define XTEXT 	$19 ; switch to text
 #define XHIRES 	$1A ; switch to HIRES
@@ -100,17 +117,33 @@ da4f tmAYSilent
 #define XSCR $88 ; Screen window 0
 #define XOP0 $00
 #define XOP1 $01
-#define XWSTR0 $14
-#define XWSTR1 $15
+#define XWSTR0 $14 ; put a str on channel 0
+#define XWSTR1 $15 ; put a str on channel 1
 
 #define XZAP $46
 #define XOUPS $42
 #define XSHOOT $47
 
-#define XWR0 $10
-#define XWR1 $11
-#define XWR1 $12
-#define XWR1 $13
+#define XWR0 $10 ; put a character on channel 0
+#define XWR1 $11 ; put a character on channel 1
+#define XWR1 $12 ; put a character on channel 2
+#define XWR1 $13 ; put a character on channel 3
+
+#define XCRLF $25 ; send on channel 0, RC and LF (Return and line feed)
+
+; XNOMFI : Length in X -> BUFNOM and (A and Y for str)
+; X=0 0length
+; X=1 if RAS C=1 if jokers
+; x=2 ; if drive by default has changed
+; x>127 ; incorrect name
+#define XNOMFI $24
+
+#define XCSSCR $35 ; display cursor (prompt)	, X equal to 0 : No window
+; others
+#define BUFROU $C500 ; Routines for buffers gestion
+
+#define FUFTRV $0100; working Buffer 
+
 
 
 
@@ -303,15 +336,7 @@ next6
 	LSR
 	AND #%00000011
 
-; Switch to keyboard, A containts value :
-; 00 Qwerty
-; 02 french
-; 04 accent
-; 01 azerty
-; 03 bwana
-; 05 accent off
-#define XGOKBD $52 
-#define XMDS $8f ; minitel output
+
 	BRK_TELEMON(XGOKBD) 	
 
 
@@ -343,7 +368,7 @@ next32
 	lda #<str_oric_international
 	ldy #>str_oric_international
 	BRK_TELEMON(XWSTR0) ;display on channel 0
-#define XCRLF $25 ; send on channel 0, RC and LF (Return and line feed)
+
 ; it's similar to lda #10 brk xwr0 lda #13 brk XWR0
 	BRK_TELEMON(XCRLF)
 	; fetch KORAM and display
@@ -374,11 +399,11 @@ next35
 
 	BIT $02EE
 	BMI next49
-	JSR $C268
+	JSR $C268 ; FIXME
 	LDX $02F4
 	LDA $02F5
 	LDY $02F6
-	JMP $C25C
+	JMP $C25C ; FIXME
 next49
 	LDX #$00
 loop49
@@ -429,24 +454,79 @@ next52
 	jmp loop50
 	
 	
-	.byt $ad,$20,$02,$f0
+	.byt $ad,$20,$02,$f0 ; FIXME
 next53	
-	.byt $02
-	.byt  $00,$25
+	.byt $02 ; FIXME
+	.byt  $00,$25 ; FIXME
 	; display TELEMON
 	lda #<str_telemon
 	ldy #>str_telemon
 	BRK_TELEMON(XWSTR0)
+	lda #$00
+	sta $0200
+	LDA $020D
+	LSR
+	BCS next54
+	LDA #<str_insert_disk
+	LDY #>str_insert_disk
+	BRK_TELEMON(XWSTR0)
+	jsr $b800 ; FIXME
+	lda #<str_tofix
+	ldy #>str_tofix
+	BRK_TELEMON(XWSTR0)
 
-	.byt $a9,$00,$8d
-	.byt $00,$02,$ad,$0d,$02,$4a,$b0,$0f,$a9,$19,$a0,$c4,$00,$14,$20,$00
-	.byt $b8,$a9,$30,$a0,$c4,$00,$14,$a2,$02,$bd,$5c,$c4,$9d,$5d,$05,$ca
-	.byt $10,$f7,$20,$00,$06,$20,$68,$c2,$ad,$0d,$02,$4a,$b0,$2f,$a9,$55
-	.byt $a0,$c4,$a2,$07,$00,$24,$a2,$00,$a9,$7d,$a0,$ff,$20,$5c,$c2,$f0
-	.byt $1c,$ad,$0d,$02,$09,$04,$8d,$0d,$02,$a2,$06,$bd,$00,$02,$c9,$ef
-	.byt $f0,$05,$ca,$10,$f6,$30,$06,$a9,$00,$a0,$c0,$d0,$0f,$a2,$00,$00
-	.byt $35,$ae,$fd,$02,$30,$30,$ad,$fe,$02,$ac,$ff,$02,$8d,$15,$04,$8c
-	.byt $16,$04,$8e,$17,$04,$4c,$0c,$04,$58,$a9,$02,$85,$44,$a5,$44,$d0
+next54
+	LDX #$02
+loop55	
+	LDA $C45C,X
+	STA $055D,X
+	DEX
+	BPL loop55
+	JSR $0600
+	JSR $C268
+	LDA FLGTEL ; test if strased is here
+	LSR ; shift FLGTEL value to the right, b0 is in the carry
+	bcs next55 ; Strased is loaded, we display the cursor
+	; trying to load bonjour.com 
+	LDA #<str_loading_bonjour ; strased is not here, load bonjour.com !
+	LDY #>str_loading_bonjour
+	LDX #$07
+	BRK_TELEMON(XNOMFI)
+	ldx #$00
+	lda #$7d
+	LDY #$FF
+	JSR next57
+	beq next55 ; Display cursor
+	LDA $020D ; something is wrong
+	ORA #$04
+	STA $020D
+	LDX #$06
+loop56	
+	LDA $0200,X
+	CMP #$EF
+	BEQ next56
+	DEX
+	bpl loop56
+	BMI next55
+next56
+	LDA #$00
+	LDY #$C0
+	bne next57
+next55
+	LDX #$00
+	BRK_TELEMON(XCSSCR) ; display cursors
+	ldx $02fd
+	.byt $30,$30
+	lda $02FE
+	ldy $02ff
+	
+next57
+	STA $0415
+	STY $0416
+	STX $0417
+	JMP $040C
+
+	.byt $58,$a9,$02,$85,$44,$a5,$44,$d0
 	.byt $fc,$a2,$0c,$00,$57,$ad,$1e,$03,$29,$f3,$09,$08,$8d,$1e,$03,$a9
 	.byt $8f,$00,$05,$60,$00,$10,$00,$0c,$c9,$03,$d0,$03,$20,$00,$90,$c9
 	.byt $01,$d0,$f1,$a9,$00,$a0,$e0,$a2,$00,$f0,$c1
@@ -498,7 +578,7 @@ loading_code_to_page_6
 	sta V2DRA ; 3 bytes ; switch to overlay ram ?
 	TAX
 loop40
-#define BUFROU $C500 ; Routines for buffers gestion
+
 	LDA $0700,X
 	STA BUFROU,X ; store data in c500 
 	INX
@@ -573,10 +653,13 @@ str_printer
 	.asc $0a,"Imprimante",0
 store_str1	
 	.byt $1b,$3a,$69
-	.byt $43,$11,$00,$1b,$3a,$6a,$43,$14,$00,$8c
-.asc "Inserez une disquette",0
-	.byt $0d,$18,$00
+	.byt $43,$11,$00,$1b,$3a,$6a,$43,$14,$00
+str_insert_disk	
+	.asc $8c,"Inserez une disquette",0 ; 8c for blink
+str_tofix
+	.byt	$0d,$18,$00
 	.asc "Logiciel ecrit par Fabrice BROCHE",0
+str_loading_bonjour	
 	.asc "BONJOURCOM"
 data_to_define_6	
 	; FIVE Bbytes to load in CSRND
@@ -871,62 +954,6 @@ next23
 	PLA
 	TAY
 	RTS
-	/*
-C91E   CE 15 02   DEC $0215
-C921   D0 50      BNE next27
-C923   A9 04      LDA #$04
-C925   8D 15 02   STA $0215
-C928   2C 8A 02   BIT $028A
-C92B   10 03      BPL next28
-C92D   20 2F CA   JSR $CA2F
-next28
-C930   A5 44      LDA $44
-C932   D0 02      BNE next29
-C934   C6 45      DEC $45
-next29
-C936   C6 44      DEC $44
-C938   38         SEC
-C939   EE 10 02   INC $0210
-C93C   AD 10 02   LDA $0210
-C93F   E9 0A      SBC #$0A
-C941   90 30      BCC next27
-C943   8D 10 02   STA $0210
-C946   2C 14 02   BIT $0214
-C949   10 03      BPL next30
-C94B   20 75 CA   JSR $CA75
-next30
-C94E   EE 11 02   INC $0211
-C951   A5 42      LDA $42
-C953   D0 02      BNE next31
-C955   C6 43      DEC $43
-next31
-C957   C6 42      DEC $42
-C959   AD 11 02   LDA $0211
-C95C   E9 3C      SBC #$3C
-C95E   90 13      BCC next27
-C960   8D 11 02   STA $0211
-C963   EE 12 02   INC $0212
-C966   AD 12 02   LDA $0212
-C969   E9 3C      SBC #$3C
-C96B   90 06      BCC next27
-C96D   8D 12 02   STA $0212
-C970   EE 13 02   INC $0213
-next27
-C973   CE 16 02   DEC $0216
-C976   D0 19      BNE end
-C978   A9 0A      LDA #$0A
-C97A   8D 16 02   STA $0216
-C97D   AD 17 02   LDA $0217
-C980   49 80      EOR #$80
-C982   8D 17 02   STA $0217
-C985   2C 48 02   BIT $0248
-C988   10 07      BPL end
-C98A   70 05      BVS end
-C98C   A6 28      LDX $28
-C98E   4C 2D DE   JMP $DE2D
-end
-C991   60         RTS
-*/
 
 
 
@@ -1000,16 +1027,7 @@ C9b1
 	SEC
 	ROR $028A
 	RTS
-	/*
-DA3E   8D 01 03   STA $0301
-DA41   AD 00 03   LDA $0300
-DA44   29 EF      AND #$EF
-DA46   8D 00 03   STA $0300
-DA49   09 10      ORA #$10
-DA4B   8D 00 03   STA $0300
-DA4E   0E 8A 02   ASL $028A
-DA51   4E 8A 02   LSR $028A
-	*/
+
 	
 
 	.byt $8d,$01
@@ -1128,7 +1146,7 @@ routine_to_define_14
 	JSR routine_to_define_15
 	LDY #$00
 loop31
-#define FUFTRV $0100; working Buffer 
+
 	LDA FUFTRV,Y
 	jSR routine_to_define_17
 	INY
@@ -1513,8 +1531,7 @@ init_rs232
 	;	b4 : external clock for 0, 1 for internal clock
 	;	b6 - b5 : 00=8 bits, 01=7 bits, 10=6 bits, 11=5 bits
 	;	b7 : 0=stop, 1= 2 or 1.5 stops
-#define RS232T $59
-#define RS232C $5A
+
 	LDA #$1E 
 	STA RS232T
 	LDA #$00
