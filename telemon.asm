@@ -4,28 +4,6 @@
 #define BRK_TELEMON(value)\
 	.byt 00,value;\
 
-
-
-
-
-
-
-
-/*
-020d FLGTEL
-02be IOVECTORS
-02ee FLGRST
-c000 tmEntryPoint
-c05b tmDiskReset
-c05d tmDiskResetLoop
-c2a6 tmHWReset
-c4d1 tmDiskCmd
-c8bf tmSerialIO
-d903 tmSetKeyColumn7f
-da1a tmAYWrite
-da4f tmAYSilent
-*/
-
 /*************************** VIA 1 vectors*/
 
 #define V1DRB $0300
@@ -92,6 +70,9 @@ da4f tmAYSilent
 #define SCRTXT $0256 ; desc scrtxt 6 bytes
 #define SCRHIR $025C ; desc 6 bytes for HIres
 #define SCRTRA $0262 ; desc 6 bytes for trace
+#define VIRQ $02FA
+#define VNMI $02F4
+#define VAPLIC $2FD ; No banque adress
 
 
 
@@ -156,7 +137,7 @@ telemon
 	LDX #$FF
 	TXS ; init stack
 	inx
-	stx $0418 ; Store in BNKCIB ??
+	stx $0418 ; Store in BNKCIB ?? ok but already init with label data_adress_418, when loading_vectors_telemon is executed
 	jsr init_via
 	jsr init_printer
 	jsr init_disk
@@ -170,7 +151,7 @@ loop1
 	
 	LDA #$D0
 	JSR routine_to_define_2
-	LDA $02FA ; testing if VIRQ low byte is $4C ?
+	LDA VIRQ ; testing if VIRQ low byte is $4C ?
 	CMP #$4C
 	BNE end_rout ; non equal to $4C
 	LDA $026D
@@ -185,7 +166,7 @@ end_rout
 	sec
 next2
 	sta FLGTEL ; store that stratsed is missing
-	ror $02EE
+	ror FLGRST
 	bmi next1
 	jmp routine_to_define_3 
 next1
@@ -226,15 +207,17 @@ loop6
 	
 	STX RES
 c03C
-loop7	
+.(
+loop
 	LDA FDCCR
 	LSR
 	bcc next10
 	INC RES
-	bne loop7
+	bne loop
 	DEY
-	bne loop7
+	bne loop
 	TYA
+.)
 	beq next9
 next10	
 	LSR FLGTEL
@@ -247,7 +230,11 @@ c055
 	bpl loop8
 	nop
 	INX
-loop3	
+
+
+loading_vectors_telemon
+.(
+loop
 	LDA loading_vectors_page_4,X ; X should be equal to 0
 	STA $0400,X
 	LDA loading_vectors_b800,X 
@@ -258,13 +245,15 @@ loop3
 	STA $0700,X ; used to copy in Overlay RAM ... see  loop40 label
 	INX ; loop until 256 bytes are filled
 c072	
-	bne loop3
+	bne loop
+.)
 	JSR $0603
 
 routine_to_define_3 	
 c0ac
 	LDA #$00
-loop9	
+.(
+loop
 	PHA
 	TAX
 	JSR routine_to_define_10 
@@ -272,10 +261,10 @@ loop9
 	CLC
 	ADC #$0C
 	CMP #$30
-	bne loop9
+	bne loop
 	LDA #$00 ; INIT VALUE of the rom to 0 bytes
 	STA KOROM
-	
+.)	
 	LDA #$40 ; INIT VALUE of the RAM to 64 Kbytes
 	STA KORAM
 
@@ -311,17 +300,17 @@ next4
 next3
 	DEX
 	bne loop38 ; jump to $c092, adress c0b7
-	BIT $02EE ; FIXME
+	BIT FLGRST; 
 	BPL next5
 	LDX #$0B ; copy to $2F4 12 bytes
 before1
-	LDA data_to_define_5,X ; SETUP VNMI, VIRQ, VAPLIC
-	STA $02F4,X ; FIXME
+	LDA data_vectors_VNMI_VIRQ_VAPLIC,X ; SETUP VNMI, VIRQ, VAPLIC
+	STA VNMI,X ; 
 	DEX
 	BPL before1
 	JSR routine_to_define_4 
 next5
-	LDA $026C ; FIXME
+	LDA $026C ; 
 	AND #$90
 	BEQ next6
 	LDA FLGTEL
@@ -331,7 +320,7 @@ next6
 	JSR routine_to_define_9 ; $DF5B 
 	JSR routine_to_define_8	 ; routine_to_define_8
 	JSR routine_to_define_7 ; 
-	JSR routine_to_define_5 ; $DFAB
+	JSR init_joystick ; $DFAB
 	JSR init_rs232 ; $DB54 
 	; Here we go :  set up keyboard !
 	LDA FLGKBD
@@ -356,7 +345,7 @@ next6
 	ldy #>store_str1
 next32
 	BRK_TELEMON(XWSTR1)
-	BIT $02EE
+	BIT FLGRST
 	.byt $10,$26 ;
 	; display telestrat at the fiest line
 	LDA #<str_telestrat
@@ -386,7 +375,7 @@ next32
 	BRK_TELEMON(XCRLF)
 	JMP next35
 next34	
-	BIT $02EE ; does it test printer ? not a printer
+	BIT FLGRST; does it test printer ? not a printer
 	BPL next35 ; jumps if Negative flag is ok
 	; display printer
 	LDA #<str_printer
@@ -395,7 +384,7 @@ next34
 
 next35	
 
-	BIT $02EE
+	BIT FLGRST
 	BMI next49
 	JSR routine_to_define_19 
 	LDX $02F4
@@ -411,7 +400,7 @@ loop49
 	CPX #$04
 	BNE loop49
 POUET	
-	BEQ next58 ; FIXME POUET
+	BEQ next58 ; 
 ; c11a
 next50
 	TXA
@@ -427,12 +416,10 @@ next51
 	BRK_TELEMON(XWSTR0)  ; display DRIVE:
 	; let's go to display all Drive availables
 	PLA
-
 	PHA
 	TAX
-
 	lda $c2dc,x
-	sta $0314
+	sta CDRIVE
 	STX $020C
 	PLA
 	TAX
@@ -468,13 +455,13 @@ loop58
 	BRK_TELEMON(XWSTR0)
 	lda #$00
 	sta $0200
-	LDA $020D
+	LDA FLGTEL
 	LSR
 	BCS next54
 	LDA #<str_insert_disk
 	LDY #>str_insert_disk
 	BRK_TELEMON(XWSTR0)
-	jsr $b800 ; FIXME POUET
+	jsr $b800 ; FIXME  POUET
 	lda #<str_tofix
 	ldy #>str_tofix
 	BRK_TELEMON(XWSTR0)
@@ -487,7 +474,7 @@ loop55
 	DEX
 	BPL loop55
 	JSR $0600
-	JSR $C268
+	JSR $C268 ; FIXME
 	LDA FLGTEL ; test if strased is here
 	LSR ; shift FLGTEL value to the right, b0 is in the carry
 	bcs display_cursor ; Strased is loaded, we display the cursor
@@ -501,9 +488,9 @@ loop55
 	LDY #$FF
 	JSR next57
 	beq display_cursor ; Display cursor
-	LDA $020D ; something is wrong
+	LDA FLGTEL ; something is wrong
 	ORA #$04
-	STA $020D
+	STA FLGTEL
 	LDX #$06
 loop56	
 	LDA $0200,X
@@ -649,15 +636,26 @@ loop46
 	.byt $00,$10,$c8,$d0,$ed,$bd,$00,$02,$0a,$10,$17,$8e,$21,$03,$ad,$fc
 	.byt $ff,$ac,$fd,$ff,$8d,$fe,$02,$8c,$ff,$02,$8e,$fd,$02,$a9,$07,$8d
 	.byt $21,$03,$60,$4c,$00,$00
-data_to_define_5
+data_vectors_VNMI_VIRQ_VAPLIC
 	; 12 bytes
-	.byt $07,$92,$c3,$4c,$00,$00,$4c,$06,$04,$80,$00,$00
+	.byt $07,<display_developper,>display_developper ; VAPLIC vectors : bank + address ?
+	.byt $4c
+	.byt $00,$00
+VIRQ_CODE
+	jmp $0406 ; stored in $2FA (VIRQ) 
+	.byt $80 ; will be stored in $2fd
+	.byt $00 ; will be stored in $2fE
+	.byt $00 ; will be stored in $2FF
+display_developper	
+; VAPLIC execution
+; VAPLIC Routines
+	LDA #<str_license
+	LDY #>str_license
+	BRK_TELEMON($14)
+	jmp $c398 ; FIXME
 	
-	
-	.byt $a9,$33,$a0,$c4,$00,$14,$4c,$98,$c3
 str_telestrat	
 	.asc $0c,$97,$96,$95,$94,$93,$92,$91,$90," TELESTRAT ",$90,$91,$92,$93,$94,$95,$96,$97,$90,$00
-
 str_KORAM	
 	.asc " Ko RAM,",0
 str_KOROM
@@ -679,6 +677,7 @@ str_insert_disk
 	.asc $8c,"Inserez une disquette",0 ; 8c for blink
 str_tofix
 	.byt	$0d,$18,$00
+str_license	
 	.asc "Logiciel ecrit par Fabrice BROCHE",0
 str_loading_bonjour	
 	.asc "BONJOURCOM"
@@ -686,21 +685,73 @@ data_to_define_6
 	; FIVE Bbytes to load in CSRND
 	.byt $80,$4f,$c7,$52,$58
 loading_vectors_b800
-	.byt $a9,$e8,$8d,$21,$03,$a9,$00,$a0,$c1,$85,$00,$84
-	.byt $01,$a2,$01,$8e,$12,$03,$20,$4f,$b8,$ad,$00,$c1,$d0,$2f,$ad,$03
-	.byt $c1,$ac,$04,$c1,$85,$00,$84,$01,$ec,$01,$c1,$d0,$09,$a9,$58,$20
-	.byt $6d,$b8,$a2,$00,$ea,$ea,$e8,$8e,$12,$03,$20,$4f,$b8,$e6,$01,$ce
-	.byt $02,$c1,$d0,$e4,$20,$05,$c1,$ad,$fb,$ff,$8d,$00,$02,$a9,$ef,$8d
-	.byt $21,$03,$60,$a9,$88
+	LDA #$E8
+	STA $0321
+	LDA #$00
+	LDY #$C1
+	STA $00
+	STY $01
+	LDX #$01
+	STX $0312
+	JSR $B84F ; FIXME
+	LDA $C100
+	bne next100
+	
+	LDA $C103
+	LDY $C104
+	STA $00
+loop101	
+	STY $01
+loop102	
+	CPX $C101
 
-	.byt $8d,$10,$03,$a0,$04,$88,$d0,$fd,$ad,$10,$03
-	.byt $4a,$90,$1e,$ad,$18,$03,$30,$f5,$ad,$13,$03,$91,$00,$c8,$4c,$5f
-	.byt $b8
-
+	BNE next101
+	
+	LDA #$58
+	JSR $B86D ; FIXME
+	LDX #$00
+	NOP
+	NOP
+next101
+	INX
+	STX $0312
+	JSR $B84F ; B84E   60      
+	INC $01
+	DEC $C102
+	BNE loop102
+	JSR $C105
+	LDA $FFFB
+	STA $0200
+next100
+	LDA #$EF
+	STA $0321
+	RTS
+loop105	
+address_b84F
+	LDA #$88
+	STA $0310
+	LDY #$04
+loop100
+	DEY
+	BNE loop100
+loop103
+	LDA $0310
+	LSR
+	bcc end6
+	LDA $0318
+	bmi loop103
+	LDA $0313
+	STA ($00),Y
+	INY
+address_b86a	
+	JMP $B85F ; address_b85f
 routine_to_define_2	
 c4d1
+
 	STA FDCCR
+
 	LDY #$03
+	
 loop10
 	DEY
 	BNE loop10
@@ -708,19 +759,25 @@ next11
 	LDA FDCCR
 	LSR
 	BCS next11
+end7	
 	rts
-	
-	
-	.byt $ea,$ad,$10,$03,$29,$1c,$f0,$f7,$d0,$c9
+	nop
+end6
+	LDA $0310
+	AND #$1C
+	BEQ end7
+	BNE loop105
 routine_to_define_10
 	STX $02
 	TXA
 	LDX #$FF
-loop18
+.(	
+loop
 	SEC
 	SBC #$03
 	INX
-	BCS loop18
+	BCS loop
+.)	
 	LDA data_to_define_7,X 
 	STA $00
 	LDA $C6B0,X
@@ -742,33 +799,129 @@ next19
 next20
 	CLC
 	JMP $0409
+;*********************************************************************************	
+; CODE INSERTED IN PAGE 4	
+;*********************************************************************************	
 loading_vectors_page_4
+code_adress_400
+	JMP $0493 ;code_adress_493
+code_adress_403	
+	JMP $04A1 ;code_adress_4A1
+code_adress_406	
+	JMP $047E ; see code_adress_47E
+code_adress_409	
+	JMP $0419 ; see code_adress_419	
+code_adress_40c
+	JMP $0436 ; 436 see  code_adress_436
+code_adress_40f
+	.byt $00 
+	.byt $00 ; used for 
+	jmp $04af
+	.byt $4c,$00,$00
+data_adress_417 	
+.byt $00 ; Init BNKCIB with 0
+data_adress_418
+.byt $00 ; init also 418 but it already initialized !
+code_adress_419	
+	PHP
+	SEI
+	PHA
+	LDA $0321
+	AND #$F8
+	STA $0321
+	PLA
+	JSR $C500 ; FIXME
+	TAY
+	LDA $0321
+	ORA #$07
+	STA $0321
+	ROR
+	PLP
+	ASL 
+	TYA
+	RTS
+code_adress_436
 
-	JMP $0493
-	JMP $04A1
-	JMP $047E
-	JMP $0419
-	JMP $0436
+	PHP
+	SEI
+	PHA
+	TXA
+	PHA
+	LDA $0321
+	LDX $0418
+	STA $04C8,X
+	INC $0418
+	PLA
+	TAX
+	LDA $0417
+	JSR $046A ; see code_adress_46A	
+	PLA
+	PLP
+	JSR $0414
+	PHP
+	SEI
+	PHA
+	TXA
+	PHA
+	DEC $0418
+	LDX $0418
+	LDA $04C8,X
+	JSR $046A
+	PLA
+	TAX
+	PLA
+	PLP
+	RTS
+code_adress_46A	
+	PHP
+	SEI
+	AND #$07
+	STA $04C7
+	LDA $0321
+	AND #$F8
+	ORA $04C7
+	STA $0321
+	PLP
+	RTS
+code_adress_47E
+	STA $21
+	LDA $0321
+	AND #$07
+	STA $040F
+	LDA $0321
+	ORA #$07
+	STA $0321
+	JMP $C868 ; FIXME
+code_adress_493
+	LDA $0321
+	AND #$F8
+	ORA $040F
+	STA $0321
+	LDA $21
+	RTI
+code_adress_4A1
+	PHA
+	LDA $0321
+	AND #$F8
+	ORA $0410
+	STA $0321
+	PLA
+	RTS
 
+code_adress_4AF	
+	LDA $0321
+	AND #$F8
+	ORA $0410 
+	STA $0321
+	LDA ($15),Y
+	PHA
+	LDA $0321
+	ORA #$07
+	STA $0321
+	PLA
+	RTS	
 
-	.byt $00,$00,$4c,$af,$04,$4c,$00,$00,$00,$00,$08,$78,$48
-	.byt $ad,$21,$03,$29,$f8,$8d,$21,$03,$68,$20,$00,$c5,$a8,$ad,$21,$03
-	.byt $09,$07,$8d,$21,$03,$6a,$28,$0a,$98,$60
-	
-	.byt $08,$78,$48,$8a,$48,$ad
-	.byt $21,$03,$ae,$18,$04,$9d,$c8,$04,$ee,$18,$04,$68,$aa,$ad,$17,$04
-	.byt $20,$6a,$04,$68,$28,$20,$14,$04,$08,$78,$48,$8a,$48,$ce,$18,$04
-	.byt $ae,$18,$04,$bd,$c8,$04,$20,$6a,$04,$68,$aa,$68,$28,$60,$08,$78
-	.byt $29,$07,$8d,$c7,$04,$ad,$21,$03,$29,$f8,$0d,$c7,$04,$8d,$21,$03
-	.byt $28,$60,$85,$21,$ad,$21,$03,$29,$07,$8d,$0f,$04,$ad,$21,$03,$09
-	.byt $07,$8d,$21,$03,$4c,$68,$c8,$ad,$21,$03,$29,$f8,$0d,$0f,$04,$8d
-	.byt $21,$03,$a5,$21,$40,$48,$ad,$21,$03,$29,$f8,$0d,$10,$04,$8d,$21
-	.byt $03,$68,$60
-	
-	
-	.byt $ad,$21,$03,$29,$f8,$0d,$10,$04,$8d,$21,$03,$b1,$15
-	.byt $48,$ad,$21,$03,$09,$07,$8d,$21,$03,$68,$60
-	
+data_adress_04c7	
 data_to_define_4	
 	; should be length 256 bytes ?
 	.byt $90,$4c,$50,$0f,$a8,$f0,$2c,$bd,$88,$c0,$1d,$89,$c0,$f0,$02,$18
@@ -815,9 +968,9 @@ loop48
 	BNE loop48
 	RTS
 next40
-	lda $020D
+	lda FLGTEL
 	ora #$02
-	sta $020D
+	sta FLGTEL
 	rts
 	
 	;.byt $ad,$0d,$02,$09
@@ -866,7 +1019,7 @@ next39
 	STA $02F9
 	LDA $1B
 	BIT $C795
-	JSR $02F7
+	JSR $02F7 ; FIXLME
 next38
 	INC $19
 	DEC $1A
@@ -937,20 +1090,20 @@ routine_to_define_12
 next25
 	BIT $8A
 	LDX #$0C
-	JSR $C51D
+	JSR $C51D ; FIXME
 
 next24
 
 	PLA
 	AND #$10
 	BEQ next23
-	LDX #$18
-	JSR $C50F
+	LDX #$18 
+	JSR $C50F; FIXME
 	BCS next26
 	LDA $031D
 	AND #$20
 	BNE next23
-	JSR $C518
+	JSR $C518 ; FIXME
 	STA $031C
 	LDA $031F
 	AND #$07
@@ -994,7 +1147,7 @@ routine_todefine_1:
 C9b1
 	LDA #$FF
 	STA $0309
-	JMP $C8B9
+	JMP $C8B9 ; FIXME
 	BIT $030D
 	BMI $C9CC
 	BIT $1E
@@ -1002,16 +1155,16 @@ C9b1
 	LDX $22
 	LDY $23
 	JMP $0400
-	JMP $C8B6
+	JMP $C8B6 ; FIXME
 	LSR $1E
 	BIT $030D
 	BVC $CA1F
 	BIT $0304
-	JSR $C91E
+	JSR $C91E ; FIXME
 	DEC $02A6
 	BNE $CA00
-	JSR $D7DF
-	JSR $C8BF
+	JSR $D7DF ; FIXME
+	JSR $C8BF; FIXME
 	BIT $0270
 	BPL $C9F0
 	LDA #$14
@@ -1025,24 +1178,24 @@ C9b1
 	STA $02A6
 	BIT $028C
 	BPL $CA0B
-	JSR $DFFA
+	JSR $DFFA ; FIXME
 	BIT $028C
 	BVC $CA10
-	JSR $DFFB
+	JSR $DFFB ; FIXME
 	LDA $028C
 	LSR
 	BCC $CA19
-	JSR $E0E1
-	JMP $C8B9
-	JMP $C992
+	JSR $E0E1 ; FIXME
+	JMP $C8B9 ; FIXME
+	JMP $C992 ; FIXME
 	LDA $030D
 	AND #$02
 	BEQ $CA1C
 	BIT $0301
-	JSR $CA2F
-	JMP $C8B9
+	JSR $CA2F ; FIXME
+	JMP $C8B9 ; FIXME
 	LDX #$24
-	JSR $C518
+	JSR $C518 ; FIXME
 	BCC $CA3E
 	ASL $028A
 	SEC
@@ -1085,9 +1238,15 @@ C9b1
 	.byt $a4,$61,$a6,$65,$b1,$26,$29,$7f,$91,$26,$c8,$ca,$d0,$f6,$68,$c9
 	.byt $20,$f0,$08,$c9,$1b,$f0,$04,$c9,$0d,$d0,$03,$a6,$60,$60,$c9,$0a
 	.byt $d0,$2b,$a5,$60,$c5,$67,$f0,$05,$e6,$60,$4c,$fd,$cb,$24,$68,$30
-	.byt $ac,$e6,$60,$e6,$67,$e6,$66,$2c,$0d,$02,$70,$8f,$a6,$62,$a4,$63
-	.byt $20,$54,$de,$a4,$63,$a6,$60,$20,$f9,$cc,$4c,$fd,$cb,$c9,$0b,$d0
-	.byt $29,$a5,$60,$c5,$66,$d0,$1b,$a5,$60,$f0,$19,$c6,$66,$c6,$67,$c6
+	.byt $ac
+	.byt 	$e6,$60
+
+	.byt $e6,$67,$e6,$66,$2c,$0d,$02,$70,$8f,$a6,$62,$a4,$63
+	.byt $20,$54,$de,$a4,$63,$a6,$60
+	.byt $20,$f9,$cc,$4c,$fd,$cb,$c9,$0b,$d0
+	.byt $29,$a5,$60,$c5,$66,$d0,$1b,$a5,$60
+
+	.byt $f0,$19,$c6,$66,$c6,$67,$c6
 	.byt $60,$2c,$0d,$02,$70,$11,$a6,$62,$a4,$63,$20,$5c,$de,$a4,$62,$4c
 	.byt $65,$cc,$c6,$60,$4c,$fd,$cb,$4c,$eb,$cb,$c9,$30,$90,$f6,$c9,$3a
 	.byt $b0,$f2,$a6,$60,$e0,$19,$90,$06,$a6,$66,$86,$60,$b0,$e6,$48,$06
@@ -1145,7 +1304,7 @@ loop33
 	LDA $14
 loop34
 	BIT $3009
-	JSR $CE32
+	JSR $CE32 ; FIXME
 	DEX
 	BPL loop35
 	LDA $0D
@@ -1461,7 +1620,7 @@ next71
 next74
 	PLA
 	LDX #$00
-	JSR $C51D ; FIXME
+	JSR $C51D ; FIXME POUET
 	PLA
 	LDX #$00
 	JSR $C51D ; FIXME
@@ -1794,8 +1953,8 @@ next17
 	PHA
 	STX $28
 	LDA #$0C
-	JSR $DBB5
-	PLA
+	JSR $DBB5 ; FIXME
+	PLA 
 	STA $28
 	PLP
 	rts
@@ -1804,7 +1963,7 @@ init_screens
 routine_to_define_9
 	LDA #$1A
 	STA $BFDF ; Switch to text mode
-	JSR $FE49
+	JSR routine_to_define_22 
 	; fill the first line with space characters
 	LDX #$27 ; loop on #$28 caracters
 	LDA #$20
@@ -1819,11 +1978,11 @@ loop17
 	STA SCRTXT,Y ; thise fill also  SCRHIR
 	DEY
 	BPL loop17
-	ASL $020D
-	LSR $020D
+	ASL FLGTEL
+	LSR FLGTEL
 	LDA #$F5
 	LDY #$DE
-	BIT $020D
+	BIT FLGTEL
 	BVS next14
 	LDA #$56
 	LDY #$02
@@ -1844,6 +2003,7 @@ next15
 	rts
 
 	.byt $38,$60
+init_joystick
 routine_to_define_5
 	LDA #$41
 	STA $028C
@@ -2365,16 +2525,117 @@ data_to_define_3
 	.byt $da,$40,$a2,$14,$c8,$40,$62,$6a,$f6,$40,$22,$14,$08,$14,$e2,$40
 	.byt $a2,$1e,$02,$1c,$40,$3e,$04,$08,$10,$fe,$0e,$58,$30,$58,$ce,$88
 	.byt $88,$48,$38,$4c,$06,$4c,$f8,$2a,$15,$2a,$15,$2a,$15,$2a,$15,$40
-	.byt $08,$3c,$3e,$3c,$c8,$00,$38,$07,$3f,$a9,$b9,$2c,$0d,$02,$10,$02
-	.byt $a9,$9d,$a0,$00,$84,$00,$85,$01,$98,$48,$20,$b2,$fe,$68,$18,$69
-	.byt $01,$c9,$40,$d0,$f4,$a5,$01,$e9,$03,$85,$0c,$e9,$04,$85,$01,$a9
-	.byt $8f,$a0,$fb,$85,$02,$84,$03,$a0,$00,$a2,$00,$a1,$02,$aa,$e6,$02
-	.byt $d0,$02,$e6,$03,$20,$9f,$fe,$8a,$29,$c0,$f0,$ed,$c9,$c0,$f0,$08
-	.byt $c9,$40,$f0,$06,$20,$9f,$fe,$2c,$a2,$00,$20,$9f,$fe,$d0,$da,$8a
-	.byt $29,$3f,$91,$00,$c8,$d0,$0a,$e6,$01,$a5,$01,$c5,$0c,$d0,$02,$68
-	.byt $68,$60,$a2,$03,$86,$02,$48,$29,$03,$aa,$bd,$45,$fe,$91,$00,$c8
-	.byt $91,$00,$c8,$a6,$02,$e0,$02,$f0,$07,$91,$00,$c8,$d0,$02,$e6,$01
-	.byt $68,$4a,$4a,$c6,$02,$d0,$df,$60,$a0,$05,$2c,$a0,$0b,$a2,$05,$b9
+	.byt $08,$3c,$3e,$3c,$c8,$00,$38,$07,$3f
+routine_to_define_22
+
+	LDA #$B9
+	BIT FLGTEL
+.(
+	BPL next
+	LDA #$9D
+next
+
+	LDY #$00
+	STY $00
+	STA $01
+	TYA
+.)	
+
+
+
+
+.(
+loop
+	PHA
+	JSR routine_to_define_24 
+	PLA
+	CLC
+	ADC #$01
+	CMP #$40
+	BNE loop
+.)
+
+	LDA $01
+	SBC #$03
+	STA $0C
+	SBC #$04
+	STA $01
+	LDA #$8F
+
+	LDY #$FB
+	STA $02
+	STY $03
+	LDY #$00
+loop70
+	LDX #$00
+	LDA ($02,X)
+	TAX
+	INC $02
+.(
+	BNE next
+	INC $03
+next
+.)
+	JSR routine_to_define_23 
+	TXA
+	AND #$C0
+	BEQ loop70
+	CMP #$C0
+	BEQ loop71+1
+	CMP #$40
+	beq next76
+	JSR routine_to_define_23 
+	
+loop71		
+	.byt $2c ; Is BIT $00A2 when $FE9F return
+	ldx #$00
+next76	
+	JSR routine_to_define_23
+	BNE loop70
+routine_to_define_23	
+	TXA
+	AND #$3F
+	STA ($00),Y
+	INY
+	BNE end4
+	INC $01
+	LDA $01
+	CMP $0C
+	BNE end4
+	PLA
+	PLA
+end4
+	RTS
+		
+routine_to_define_24	
+	LDX #$03
+	STX $02
+next81
+	PHA
+	AND #$03
+	TAX
+	LDA $FE45,X
+	STA ($00),Y
+	INY
+	STA ($00),Y
+	INY
+	LDX $02
+	CPX #$02
+	BEQ next80
+	STA ($00),Y
+	INY
+	BNE next80
+	INC $01
+next80
+	PLA
+	LSR
+	LSR
+	DEC $02
+	BNE next81
+	RTS
+
+
+	.byt $a0,$05,$2c,$a0,$0b,$a2,$05,$b9
 	.byt $eb,$fe,$95,$04,$88,$ca,$10,$f7,$4c,$6c,$cd,$00,$b4,$80,$bb,$00
 
 
@@ -2404,5 +2665,5 @@ RESET:
 	.byt $00,$c0
 ; fffe
 BRK_IRQ:	
-	.byt $fa,$02
+	.byt <VIRQ,>VIRQ
 
