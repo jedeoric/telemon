@@ -68,13 +68,15 @@ da4f tmAYSilent
 
 /* PAGE 2 TELEMON */
 
-#define FLGTEL $020D
+#define FLGTEL $020D ; b0=1 strated is missing
 #define TABDRV $0208 ; Activating drive 0 if not connected, b7 equal double side
 #define IOTAB0 $02ae ; activating channel 1
 
 #define ADIOB $02be ; 48 bytes ? I/O management address
 
 #define CSRND $02EF ; current value of random generator
+
+#define FLGRST $02ee
 
 #define LPRFX $0288 ; print width
 
@@ -175,14 +177,14 @@ loop1
 	AND #$20
 	BNE end_rout
 	LDA FLGTEL
-	AND #$01
+	AND #%00000001 ; Stratsed is here b0=1 strased not here 
 	CLC
 	bcc next2
 end_rout
-	lda #01
+	lda #01 ; store that stratsed is missing
 	sec
 next2
-	sta FLGTEL
+	sta FLGTEL ; store that stratsed is missing
 	ror $02EE
 	bmi next1
 	jmp routine_to_define_3 
@@ -195,7 +197,7 @@ next8
 	bpl next8
 	LDX #$04
 loop4	
-	LDA data_to_define_6,X ; FIXME
+	LDA data_to_define_6,X 
 	STA CSRND,X
 	DEX
 	bpl loop4	
@@ -265,7 +267,7 @@ c0ac
 loop9	
 	PHA
 	TAX
-	JSR routine_to_define_10 ;FIXMEROUT
+	JSR routine_to_define_10 
 	PLA
 	CLC
 	ADC #$0C
@@ -335,11 +337,7 @@ next6
 	LDA FLGKBD
 	LSR
 	AND #%00000011
-
-
 	BRK_TELEMON(XGOKBD) 	
-
-
 	lda #XKBD ; Setup keyboard on channel 0
 	BRK_TELEMON(XOP0)
 	lda #XSCR ; Setup kscreen !  on channel 0
@@ -347,10 +345,10 @@ next6
 	BRK_TELEMON($3C)  ; Don't know this vector
 	lda #XMDS
 	BRK_TELEMON(XOP1)
-	lda #$13
-	
-	ldy #$c4
-	bit $020D
+
+	lda #<store_str2 ; Write attributes on first line (status line)
+	ldy #>store_str2	
+	bit FLGTEL ;
 	bvc next32
 	lda #XMDS
 	BRK_TELEMON(XOP0)
@@ -383,7 +381,7 @@ next32
 	LDA #<str_KOROM
 	LDY #>str_KOROM
 	BRK_TELEMON(XWSTR0)
-	jsr routine_to_define_18 ; POUET
+	jsr routine_to_define_18 
 	bne next34 
 	BRK_TELEMON(XCRLF)
 	JMP next35
@@ -399,11 +397,11 @@ next35
 
 	BIT $02EE
 	BMI next49
-	JSR $C268 ; FIXME
+	JSR routine_to_define_19 
 	LDX $02F4
 	LDA $02F5
 	LDY $02F6
-	JMP $C25C ; FIXME
+	JMP next57 
 next49
 	LDX #$00
 loop49
@@ -412,7 +410,9 @@ loop49
 	INX
 	CPX #$04
 	BNE loop49
-	BEQ $C1E0 ; FIXME
+POUET	
+	BEQ next58 ; FIXME POUET
+; c11a
 next50
 	TXA
 	PHA
@@ -426,9 +426,11 @@ next51
 	ldy #>str_drive
 	BRK_TELEMON(XWSTR0)  ; display DRIVE:
 	; let's go to display all Drive availables
-	PLA 
+	PLA
+
 	PHA
 	TAX
+
 	lda $c2dc,x
 	sta $0314
 	STX $020C
@@ -440,27 +442,29 @@ loop50
 loop51	
 	ADC #$41 ; display A, because it adds to c2dc (drives ) 41 (equal to A in ascii table)
 	BRK_TELEMON(XWR0)
+loop12	
 	inx 
 	CPX #$04
-	;beq next53
-	;beq loop51
-	.byt $f0,$11 ; FIXME
-	LDA $0208,X
-	;beq next52
-	.byt $f0,$f6 ; FIXME
-	lda #"-" ; display - to separate drive
-	BRK_TELEMON(XWR0)
+	beq next61
+	LDA $0208,X ;3 
+	beq loop12	
+	lda #"-" ; display - to separate drive 2
+	BRK_TELEMON(XWR0) ; 2
 next52	
-	jmp loop50
+	jmp loop50 ;3
+next58	
+	lda $220
+	beq loop58
+
+next61	
+	BRK_TELEMON($25)
 	
-	
-	.byt $ad,$20,$02,$f0 ; FIXME
-next53	
-	.byt $02 ; FIXME
-	.byt  $00,$25 ; FIXME
+loop58	
 	; display TELEMON
 	lda #<str_telemon
+
 	ldy #>str_telemon
+	
 	BRK_TELEMON(XWSTR0)
 	lda #$00
 	sta $0200
@@ -470,7 +474,7 @@ next53
 	LDA #<str_insert_disk
 	LDY #>str_insert_disk
 	BRK_TELEMON(XWSTR0)
-	jsr $b800 ; FIXME
+	jsr $b800 ; FIXME POUET
 	lda #<str_tofix
 	ldy #>str_tofix
 	BRK_TELEMON(XWSTR0)
@@ -486,7 +490,7 @@ loop55
 	JSR $C268
 	LDA FLGTEL ; test if strased is here
 	LSR ; shift FLGTEL value to the right, b0 is in the carry
-	bcs next55 ; Strased is loaded, we display the cursor
+	bcs display_cursor ; Strased is loaded, we display the cursor
 	; trying to load bonjour.com 
 	LDA #<str_loading_bonjour ; strased is not here, load bonjour.com !
 	LDY #>str_loading_bonjour
@@ -496,7 +500,7 @@ loop55
 	lda #$7d
 	LDY #$FF
 	JSR next57
-	beq next55 ; Display cursor
+	beq display_cursor ; Display cursor
 	LDA $020D ; something is wrong
 	ORA #$04
 	STA $020D
@@ -507,12 +511,13 @@ loop56
 	BEQ next56
 	DEX
 	bpl loop56
-	BMI next55
+	BMI display_cursor
 next56
 	LDA #$00
 	LDY #$C0
 	bne next57
-next55
+display_cursor	
+
 	LDX #$00
 	BRK_TELEMON(XCSSCR) ; display cursors
 	ldx $02fd
@@ -526,9 +531,24 @@ next57
 	STX $0417
 	JMP $040C
 
-	.byt $58,$a9,$02,$85,$44,$a5,$44,$d0
-	.byt $fc,$a2,$0c,$00,$57,$ad,$1e,$03,$29,$f3,$09,$08,$8d,$1e,$03,$a9
-	.byt $8f,$00,$05,$60,$00,$10,$00,$0c,$c9,$03,$d0,$03,$20,$00,$90,$c9
+	routine_to_define_19
+	CLI
+	LDA #$02
+	STA $44
+loop57
+	LDA $44
+	BNE loop57
+	LDX #$0C
+	BRK_TELEMON($57) 
+	LDA $031E
+	AND #$F3
+	ORA #$08
+	STA $031E
+	LDA #$8F
+	BRK_TELEMON($05) 
+	rts
+
+	.byt $00,$10,$00,$0c,$c9,$03,$d0,$03,$20,$00,$90,$c9
 	.byt $01,$d0,$f1,$a9,$00,$a0,$e0,$a2,$00,$f0,$c1
 routine_to_define_13
 	LDY #$00 ; 00
@@ -646,14 +666,15 @@ str_drive
 	.asc "Drive:",0
 str_telemon
 	.asc $0d,$0a,"TELEMON V2.4"
-	
-str_oric_international
+	str_oric_international
 	.asc $0d,$0a,"(c) 1986 ORIC International",$0d,$0a,$00
 str_printer
 	.asc $0a,"Imprimante",0
 store_str1	
 	.byt $1b,$3a,$69
-	.byt $43,$11,$00,$1b,$3a,$6a,$43,$14,$00
+	.byt $43,$11,$00
+store_str2	
+	.byt $1b,$3a,$6a,$43,$14,$00
 str_insert_disk	
 	.asc $8c,"Inserez une disquette",0 ; 8c for blink
 str_tofix
@@ -1324,22 +1345,140 @@ routine_to_define_7
 	.byt $01,$01,$01,$01,$01,$7e,$3f,$00,$00,$00,$00,$00,$00,$00,$00,$20
 	.byt $03,$d9,$f0,$2e,$ae,$70,$02,$10,$08,$ad,$71,$02,$3d,$e8,$01,$d0
 	.byt $16,$88,$b9,$68,$02,$8d,$71,$02,$98,$09,$80,$8d,$70,$02,$20,$1f
-	.byt $d8,$ad,$72,$02,$4c,$18,$d8,$ce,$74,$02,$d0,$0f,$20,$1f,$d8,$4c
-	.byt $15,$d8,$8d,$70,$02,$ad,$73,$02,$8d,$74,$02,$60,$4c,$dd,$d8,$20
-	.byt $bf,$c8,$a9,$00,$48,$ad,$70,$02,$0a,$0a,$0a,$a8,$ad,$71,$02,$4a
-	.byt $b0,$03,$c8,$90,$fa,$ad,$6c,$02,$aa,$29,$90,$f0,$08,$68,$09,$01
-	.byt $48,$98,$69,$3f,$a8,$98,$c9,$20,$90,$09,$e9,$08,$c9,$58,$90,$02
-	.byt $e9,$08,$a8,$8a,$29,$20,$d0,$c4,$b1,$2a,$2c,$75,$02,$10,$0a,$c9
-	.byt $61,$90,$06,$c9,$7b,$b0,$02,$e9,$1f,$a8,$8a,$29,$04,$f0,$12,$2d
-	.byt $6f,$02,$f0,$05,$a9,$80,$8d,$7e,$02,$68,$09,$80,$48,$98,$29,$1f
-	.byt $a8,$98,$a2,$00,$48,$c9,$06,$d0,$07,$ad,$75,$02,$49,$40,$b0,$23
-	.byt $c9,$14,$f0,$1a,$c9,$17,$d0,$07,$ad,$75,$02,$49,$20,$b0,$14,$c9
-	.byt $1b,$d0,$13,$ad,$75,$02,$29,$20,$f0,$0c,$68,$a9,$00,$48,$ad,$75
-	.byt $02,$49,$80,$8d,$75,$02,$68,$a2,$00,$20,$1d,$c5,$68,$a2,$00,$20
-	.byt $1d,$c5,$2c,$75,$02,$50,$07,$a2,$cf,$a0,$d8,$4c,$e7,$d9,$60,$1f
+routine_to_define_20
+	CLD
+	LDA $0272
+	JMP next60; FIXME
+	DEC $0274
+	BNE end2 
+	JSR routine_to_define_21 ; FIXME
+	JMP $D815 ; FIXME
+	STA $0270 
+	LDA $0273
+next60		
+	STA $0274
+end2
+	RTS
+next75
+	jmp $d8dd ; FIXME
+	routine_to_define_21
+
+
+	JSR $C8BF ; FIXME
+	LDA #$00
+	PHA
+	LDA $0270
+	ASL
+	ASL
+	ASL
+	TAY
+	LDA $0271
+next63
+	LSR 
+	BCS next62
+	INY
+	BCC next63
+next62
+	LDA $026C
+	TAX
+	AND #$90
+	BEQ next64
+	PLA
+	ORA #$01
+	PHA
+	TYA
+	ADC #$3F
+	TAY
+next64
+	TYA
+	CMP #$20
+	BCC next65
+	SBC #$08
+	CMP #$58
+	BCC next66
+	SBC #$08
+next66
+	TAY
+next65
+	TXA
+	AND #$20
+	BNE next75 ; FIXME
+	LDA ($2A),Y
+	BIT $0275
+	BPL next67
+	CMP #$61
+	BCC next67
+	CMP #$7B
+	BCS next67
+	SBC #$1F
+next67
+	TAY
+	TXA
+	AND #$04
+	BEQ next68
+	AND $026F
+	BEQ next69
+	LDA #$80
+	STA $027E
+next69
+	PLA
+	ORA #$80
+	PHA
+	TYA
+	AND #$1F
+	TAY
+next68
+	TYA
+	LDX #$00
+	PHA
+	CMP #$06
+	BNE next70
+	LDA $0275
+	EOR #$40
+	BCS next71
+next70
+	CMP #$14
+	BEQ next72
+	CMP #$17
+	BNE next73
+	LDA $0275
+	EOR #$20
+	BCS next71
+next73
+	CMP #$1B
+	BNE next74
+	LDA $0275
+	AND #$20
+	BEQ next74
+	PLA
+	LDA #$00
+	PHA
+next72
+	LDA $0275
+	EOR #$80
+next71
+	STA $0275
+next74
+	PLA
+	LDX #$00
+	JSR $C51D ; FIXME
+	PLA
+	LDX #$00
+	JSR $C51D ; FIXME
+	BIT $0275
+	BVC end3
+	LDX #$CF
+	LDY #$D8
+	JMP $D9E7 ; FIXME
+end3
+	RTS
+
+
+	.byt $1f
 	.byt $00,$00,$00,$00,$00,$00,$3e,$10,$00,$00,$1f,$00,$00,$b1,$2a,$c9
 	.byt $2d,$f0,$15,$c9,$3d,$f0,$14,$68,$09,$40,$48,$ad,$75,$02,$4a,$b0
-	.byt $0f,$b1,$2a,$29,$1f,$09,$80,$2c,$a9,$60,$2c,$a9,$7e,$4c,$82,$d8
+	.byt $0f,$b1,$2a,$29,$1f,$09,$80,$2c,$a9,$60
+	.byt $2c,$a9,$7e,$4c,$82,$d8
 	.byt $6c,$76,$02
 
 init_disk	
