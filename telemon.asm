@@ -751,7 +751,7 @@ c4d1
 	STA FDCCR
 
 	LDY #$03
-	 
+	  
 loop10
 	DEY
 	BNE loop10
