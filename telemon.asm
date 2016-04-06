@@ -102,7 +102,7 @@
 #define XOP1 $01
 #define XWSTR0 $14 ; put a str on channel 0
 #define XWSTR1 $15 ; put a str on channel 1
-
+ 
 #define XZAP $46
 #define XOUPS $42
 #define XSHOOT $47
