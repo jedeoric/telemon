@@ -1,3 +1,7 @@
+#include "telemon.h"
+
+
+
 #define CDRIVE $314
 #define FDCCR $0310
 
@@ -20,7 +24,7 @@
 #define ACIASR $031D
 #define ACIACR $031E
 
-/*************************** VIA 1 vectors*/
+/*************************** VIA 2 vectors*/
 
 
 #define V2DRB $0320
@@ -92,40 +96,11 @@
 #define XGOKBD $52 
 #define XMDS $8f ; minitel output
 
-#define XTEXT 	$19 ; switch to text
-#define XHIRES 	$1A ; switch to HIRES
-#define XEFFHI 	$1B ; clear HIRES
 
-#define XKBD $80 ; Keyboard
-#define XSCR $88 ; Screen window 0
-#define XOP0 $00
-#define XOP1 $01
-#define XWSTR0 $14 ; put a str on channel 0
-#define XWSTR1 $15 ; put a str on channel 1
- 
-#define XZAP $46
-#define XOUPS $42
-#define XSHOOT $47
 
-#define XWR0 $10 ; put a character on channel 0
-#define XWR1 $11 ; put a character on channel 1
-#define XWR1 $12 ; put a character on channel 2
-#define XWR1 $13 ; put a character on channel 3
 
-#define XCRLF $25 ; send on channel 0, RC and LF (Return and line feed)
 
-; XNOMFI : Length in X -> BUFNOM and (A and Y for str)
-; X=0 0length
-; X=1 if RAS C=1 if jokers
-; x=2 ; if drive by default has changed
-; x>127 ; incorrect name
-#define XNOMFI $24
 
-#define XCSSCR $35 ; display cursor (prompt)	, X equal to 0 : No window
-; others
-#define BUFROU $C500 ; Routines for buffers gestion
-
-#define FUFTRV $0100; working Buffer 
 
 
 
@@ -346,7 +321,7 @@ next6
 next32
 	BRK_TELEMON(XWSTR1)
 	BIT FLGRST
-	.byt $10,$26 ;
+	.byt $10,$26 ; FIXME
 	; display telestrat at the fiest line
 	LDA #<str_telestrat
 	LDY #>str_telestrat
@@ -399,7 +374,7 @@ loop49
 	INX
 	CPX #$04
 	BNE loop49
-POUET	
+
 	BEQ next58 ; 
 ; c11a
 next50
@@ -461,7 +436,7 @@ loop58
 	LDA #<str_insert_disk
 	LDY #>str_insert_disk
 	BRK_TELEMON(XWSTR0)
-	jsr $b800 ; FIXME  POUET
+	jsr $b800 ; FIXME  
 	lda #<str_tofix
 	ldy #>str_tofix
 	BRK_TELEMON(XWSTR0)
@@ -508,7 +483,7 @@ display_cursor
 	LDX #$00
 	BRK_TELEMON(XCSSCR) ; display cursors
 	ldx $02fd
-	.byt $30,$30
+	.byt $30,$30 ; FIXME
 	lda $02FE
 	ldy $02ff
 	
@@ -685,8 +660,8 @@ data_to_define_6
 	; FIVE Bbytes to load in CSRND
 	.byt $80,$4f,$c7,$52,$58
 loading_vectors_b800
-	LDA #$E8
-	STA $0321
+	LDA #%11101000
+	STA V2DRA
 	LDA #$00
 	LDY #$C1
 	STA $00
@@ -719,12 +694,12 @@ next101
 	INC $01
 	DEC $C102
 	BNE loop102
-	JSR $C105
+	JSR $C105 ; FIXMEPOUET
 	LDA $FFFB
 	STA $0200
 next100
 	LDA #$EF
-	STA $0321
+	STA V2DRA
 	RTS
 loop105	
 address_b84F
@@ -826,15 +801,15 @@ code_adress_419
 	PHP
 	SEI
 	PHA
-	LDA $0321
+	LDA V2DRA
 	AND #$F8
-	STA $0321
+	STA V2DRA
 	PLA
 	JSR $C500 ; FIXME
 	TAY
-	LDA $0321
+	LDA V2DRA
 	ORA #$07
-	STA $0321
+	STA V2DRA
 	ROR
 	PLP
 	ASL 
@@ -847,7 +822,7 @@ code_adress_436
 	PHA
 	TXA
 	PHA
-	LDA $0321
+	LDA V2DRA
 	LDX $0418
 	STA $04C8,X
 	INC $0418
@@ -877,47 +852,47 @@ code_adress_46A
 	SEI
 	AND #$07
 	STA $04C7
-	LDA $0321
+	LDA V2DRA
 	AND #$F8
 	ORA $04C7
-	STA $0321
+	STA V2DRA
 	PLP
 	RTS
-code_adress_47E
+code_adress_47E ; brk gestion ?
 	STA $21
-	LDA $0321
+	LDA V2DRA
 	AND #$07
-	STA $040F
-	LDA $0321
+	STA $040F ; store old bank before interrupt ?
+	LDA V2DRA ; Switch to telemon bank and jump
 	ORA #$07
-	STA $0321
+	STA V2DRA
 	JMP $C868 ; FIXME
 code_adress_493
-	LDA $0321
+	LDA V2DRA
 	AND #$F8
 	ORA $040F
-	STA $0321
+	STA V2DRA
 	LDA $21
 	RTI
 code_adress_4A1
 	PHA
-	LDA $0321
+	LDA V2DRA
 	AND #$F8
 	ORA $0410
-	STA $0321
+	STA V2DRA
 	PLA
 	RTS
 
 code_adress_4AF	
-	LDA $0321
-	AND #$F8
+	LDA V2DRA
+	AND #%11111000
 	ORA $0410 
-	STA $0321
+	STA V2DRA
 	LDA ($15),Y
 	PHA
-	LDA $0321
-	ORA #$07
-	STA $0321
+	LDA V2DRA
+	ORA #%00000111
+	STA V2DRA
 	PLA
 	RTS	
 
@@ -1149,33 +1124,38 @@ C9b1
 	STA $0309
 	JMP $C8B9 ; FIXME
 	BIT $030D
-	BMI $C9CC
+	BMI next110
 	BIT $1E
-	BPL $C9C9
+	BPL next111
 	LDX $22
 	LDY $23
 	JMP $0400
+next111	
 	JMP $C8B6 ; FIXME
+next110
 	LSR $1E
 	BIT $030D
-	BVC $CA1F
+	BVC next112
 	BIT $0304
 	JSR $C91E ; FIXME
 	DEC $02A6
-	BNE $CA00
+	BNE next113 ; FIXME
 	JSR $D7DF ; FIXME
 	JSR $C8BF; FIXME
 	BIT $0270
-	BPL $C9F0
+	BPL next114 ; FIXME
 	LDA #$14
 	STA $02A7
-	BNE $C9FB
+	BNE $C9FB ; FIXME
+next114	
 	LDA $02A8
 	BIT $02A7
 	BMI $C9FD
 	DEC $02A7
+next115	
 	LDA #$01
 	STA $02A6
+next113	
 	BIT $028C
 	BPL $CA0B
 	JSR $DFFA ; FIXME
@@ -1184,13 +1164,14 @@ C9b1
 	JSR $DFFB ; FIXME
 	LDA $028C
 	LSR
-	BCC $CA19
+	BCC $CA19 ; FIXME
 	JSR $E0E1 ; FIXME
 	JMP $C8B9 ; FIXME
 	JMP $C992 ; FIXME
+next112	
 	LDA $030D
 	AND #$02
-	BEQ $CA1C
+	BEQ $CA1C ; FIXME
 	BIT $0301
 	JSR $CA2F ; FIXME
 	JMP $C8B9 ; FIXME
@@ -2481,7 +2462,9 @@ data_to_define_3
 	.byt $64,$63,$7c,$09,$60,$7a,$2d,$37,$4a,$3f,$4b,$20,$55,$59,$38,$4e
 	.byt $54,$36,$39,$2e,$49,$48,$4c,$35,$52,$42,$4d,$5d,$4f,$47,$30,$56
 	.byt $46,$34,$27,$0b,$50,$45,$2b,$31,$23,$57,$00,$08,$7f,$51,$0d,$58
-	.byt $41,$32,$3e,$0a,$2a,$53,$00,$33,$44,$43,$25,$09,$5b,$5a,$5e,$1c
+	.byt $41,$32,$3e,$0a,$2a,$53,$00,$33,$44,$43,$25,$09,$5b,$5a,$5e
+
+	.byt $1c
 	.byt $22,$10,$48,$00,$c8,$1c,$22,$1c,$22,$3e,$22,$e2,$08,$10,$3e,$20
 	.byt $3c,$20,$fe,$0e,$90,$3c,$10,$fe,$d4,$3e,$20,$3c,$20,$fe,$1c,$22
 	.byt $a0,$22,$1c,$08,$1c,$22,$1c,$02,$1e,$22,$de,$dc,$1c,$22,$3e,$22
