@@ -102,18 +102,53 @@
 
 #define XCRLF $25 ; send on channel 0, RC and LF (Return and line feed)
 
+#define XDECAY $26 ; AY : decimal, length =X
+
+#define XBINDX $28 ; Convert to decimal : numer un AY 
+
+#define XDECIM $29 ; same as BINDX but displayed on channel 0 return in TR5
+
+#define XHEXA $2A ; convert A in YA in HEX
+
+#define XA1AFF $2b ; display ACC1 on channel 0
+
+#define XMENU $2c ; manage a menu AY
+
+#define XMENU $2d ; edit
+
+#define XINSER $2e ; insert a line
+
+#define XSCELG $2f ; search line
+
 #define XCSSCR $35 ; display cursor (prompt)	, X equal to 0 : No window
+
+
+
+#define XGOKBD $52 
 
 #define XKBD $80 ; Keyboard
 #define XSCR $88 ; Screen window 0
 
+/* PSG Working */
 
- 
-#define XZAP $46
 #define XOUPS $42
+
+#define XSOUND $44 
+#define XMUSIC $45 
+#define XZAP $46
 #define XSHOOT $47
 
-#define XGOKBD $52 
+#define XALLKB $50 ; Get keyboard, --> KBDCOL
+
+#define XA1PA2 $6A ; A1+A2 --> A1
+
+#define XCIRCL $8f ; CIRCLE
+#define XCURSE $90 ; CURSET
+#define XCURMO $91 ; CURMOV
+#define XPAPER $92 ; PAPER : X= no window, 128 if hires
+
+
+
 #define XMDS $8f ; minitel output
 
 
