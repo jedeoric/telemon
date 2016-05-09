@@ -81,6 +81,13 @@
 
 /*VECTORS used with brk */
 
+/// @brief Send a char in channel 0
+/*!
+ lda #"A"
+ 
+ brk XOP0 
+ 
+*/
 #define XOP0 $00
 #define XOP1 $01
 
@@ -126,12 +133,31 @@
  sta DECDEB
  
  sty DECDEB+1
+ 
+ lda #<$bf40
+ 
+ ldy #>$bf40
+ 
+ sta DECFIN 
+
+ sty DECFIN+1
+
+ lda #<$a028
+
+ ldy #>$a028
+ 
+ sta DECCIB 
+ 
+ sty DECCIB+1-2-3
+ 
+ BRK XDECAL
+ 
  */
 
      
 
 
-/// @see xxxxx
+/// @see DECFIN DECDEB
 /// 
 
 #define XDECAL $18 ; COPY mem
@@ -192,11 +218,14 @@
 
 /* PSG Working 1/2 */
 
+/// @brief Send OUPS sound in PSG
 #define XOUPS $42
 
 #define XSOUND $44 
 #define XMUSIC $45 
+/// @brief Send ZAP sound in PSG
 #define XZAP $46
+/// @brief Send SHOOT sound in PSG
 #define XSHOOT $47
 
 #define XALLKB $50 ; Get keyboard, --> KBDCOL
@@ -218,8 +247,11 @@
 
 /*PSG working */
 
-#define XEXPLO $9c ; EXPLODE  
-#define XPING $9d ; ping
+/// @brief Send EXPLODE sound in PSG
+#define XEXPLO $9c 
+
+/// @brief Send PING sound in PSG
+#define XPING $9d
 
 
 ; PAGE 0 ? 
