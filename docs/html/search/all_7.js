@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['koram',['KORAM',['../telemon_8h.html#a924be08895fdacbcf38b0eab8e8c97b1',1,'telemon.h']]],
-  ['korom',['KOROM',['../telemon_8h.html#ad936524431d8afd0777f75821ac4fb84',1,'telemon.h']]]
+  ['lprfx',['LPRFX',['../telemon_8h.html#a4835e7e558bf8a0ca25c24807a591b91',1,'telemon.h']]],
+  ['lprx',['LPRX',['../telemon_8h.html#ab68021ae171b8473c91a8ab5fd4c6495',1,'telemon.h']]]
 ];

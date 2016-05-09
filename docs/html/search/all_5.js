@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['flgkbd',['FLGKBD',['../telemon_8h.html#a53eae309de928b7f5f918423d8902028',1,'telemon.h']]],
-  ['flglpr',['FLGLPR',['../telemon_8h.html#afae6dc0a1d4a5e6955080e2180b8f9a3',1,'telemon.h']]],
-  ['flgrst',['FLGRST',['../telemon_8h.html#a246dc2abd7ccd3eda29efed7e5692cc7',1,'telemon.h']]],
-  ['flgtel',['FLGTEL',['../telemon_8h.html#a95921039683c990c63fdab4ff0672a41',1,'telemon.h']]]
+  ['iotab0',['IOTAB0',['../telemon_8h.html#abef3d0c64f40cd2e4ec5891b03147422',1,'telemon.h']]],
+  ['irqsva',['IRQSVA',['../telemon_8h.html#aae2a304aa45ba2300e9c01e4f9625c3c',1,'telemon.h']]],
+  ['irqsvx',['IRQSVX',['../telemon_8h.html#add55d517feee6c1a7f25372ee14d625b',1,'telemon.h']]],
+  ['irqsvy',['IRQSVY',['../telemon_8h.html#af2dc1382630d109064066c06e6a84157',1,'telemon.h']]]
 ];
