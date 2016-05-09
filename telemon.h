@@ -1,8 +1,24 @@
 ; Page 0 variables
 
 #define RES $00 ; address general usage
+#define RESB $02 ; ???
+
+#define DECDEB $04 ; param/shift
+#define DECFIN $06 ; param/shift
+#define DECCIB $08 ; param/shift
+#define DECTRV $0A ; param/shift
+
+
+#define TR0 $0c ; 
+#define TR1 $0d ; 
+#define TR2 $0e ; 
+#define TR3 $0f ; 
 #define TR4 $10 ; general usage 1 byte
 #define TR5 $11 ; general usage 1 byte
+#define TR6 $12 ; general usage 1 byte
+#define TR7 $13 ; general usage 1 byte
+
+
 #define DEFAFF $14 ; default value for decimal conversion
 
 #define RS232T $59
@@ -124,12 +140,9 @@
 
 
 
-#define XGOKBD $52 
 
-#define XKBD $80 ; Keyboard
-#define XSCR $88 ; Screen window 0
 
-/* PSG Working */
+/* PSG Working 1/2 */
 
 #define XOUPS $42
 
@@ -142,17 +155,34 @@
 
 #define XA1PA2 $6A ; A1+A2 --> A1
 
+/* GRAPHICS WORKING*/
+
 #define XCIRCL $8f ; CIRCLE
 #define XCURSE $90 ; CURSET
 #define XCURMO $91 ; CURMOV
 #define XPAPER $92 ; PAPER : X= no window, 128 if hires
+#define XINK $93 ; A value 0-7 or 16-23
+#define XBOX $94 ; BOX
+#define XABOX $95 ; ABOX
+#define XFILL $96 ; FILL
+#define XCHAR $97 ; XCHAR
+#define XSCHAR $98 ; SCHAR string adress in AY, length in X 
+
+/*PSG working */
+
+#define XEXPLO $9c ; EXPLODE  
+#define XPING $9d ; ping
 
 
+; PAGE 0 ? 
 
 #define XMDS $8f ; minitel output
 
 
+#define XGOKBD $52 
 
+#define XKBD $80 ; Keyboard
+#define XSCR $88 ; Screen window 0
 
 
 
