@@ -35,53 +35,6 @@
 #define V2PCR $032C
 #define V2IER $032E
 
-/*************************** TELEMON VECTORS*/
-
-; Page 0 variables
-
-#define RES $00 ; address general usage
-#define TR4 $10 ; general usage 1 byte
-#define TR5 $11 ; general usage 1 byte
-#define DEFAFF $14 ; default value for decimal conversion
-
-#define RS232T $59
-#define RS232C $5A
-
-
-/* PAGE 2 TELEMON */
-
-#define FLGTEL $020D ; b0=1 strated is missing
-#define TABDRV $0208 ; Activating drive 0 if not connected, b7 equal double side
-#define IOTAB0 $02ae ; activating channel 1
-
-#define ADIOB $02be ; 48 bytes ? I/O management address
-
-#define CSRND $02EF ; current value of random generator
-
-#define FLGRST $02ee
-
-#define LPRFX $0288 ; print width
-
-#define LPRX $0286 ; word cursor in the line
-#define FLGLPR $028a ;; word b7 ready
-
-#define KORAM $020f ; total Max ram Bytes	
-#define BNKST $0200 ; RESB 8 value of bytes $fffb of each bank
-#define KOROM $020E	; Ko ROM total
-
-#define FLGKBD $0275	;Keyboard flag : b7 majn b6 if sound
-
-#define SCRTXT $0256 ; desc scrtxt 6 bytes
-#define SCRHIR $025C ; desc 6 bytes for HIres
-#define SCRTRA $0262 ; desc 6 bytes for trace
-#define VIRQ $02FA
-#define VNMI $02F4
-#define VAPLIC $2FD ; No banque adress
-
-
-
-#define VEXBNK $414
-#define BNKCIB $417
 
 
 ; interrupt primitives
@@ -93,8 +46,7 @@
 ; 01 azerty
 ; 03 bwana
 ; 05 accent off
-#define XGOKBD $52 
-#define XMDS $8f ; minitel output
+
 
 
 
@@ -304,7 +256,7 @@ next6
 	BRK_TELEMON(XGOKBD) 	
 	lda #XKBD ; Setup keyboard on channel 0
 	BRK_TELEMON(XOP0)
-	lda #XSCR ; Setup kscreen !  on channel 0
+	lda #XSCR ; Setup screen !  on channel 0
 	BRK_TELEMON(XOP0) 
 	BRK_TELEMON($3C)  ; Don't know this vector
 	lda #XMDS

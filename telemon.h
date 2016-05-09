@@ -1,3 +1,4 @@
+
 ; Page 0 variables
 
 #define RES $00 ; address general usage
@@ -25,8 +26,11 @@
 #define IRQSVX $22 ; SAVE X when it enters in IRQ
 #define IRQSVY $23 ; SAVE X when it enters in IRQ
 
-; SCRHIR
-#define ADSCR $26 ;
+; SCR
+#define ADSCR $26 ; Adress of begin line display 
+#define SCRNB $28 ; number window screen
+
+#define ADKBD $2a ; ASCII conversion table adress
 
 #define RS232T $59
 #define RS232C $5A
@@ -34,15 +38,19 @@
 
 /* PAGE 2 TELEMON */
 
-#define FLGTEL $020D ; b0=1 strated is missing
 #define TABDRV $0208 ; Activating drive 0 if not connected, b7 equal double side
+
+#define FLGTEL $020D ; b0=1 strated is missing
+
 #define IOTAB0 $02ae ; activating channel 1
 
 #define ADIOB $02be ; 48 bytes ? I/O management address
 
-#define CSRND $02EF ; current value of random generator
 
 #define FLGRST $02ee
+#define CSRND $02EF ; current value of random generator
+
+
 
 #define LPRFX $0288 ; printer width
 
@@ -100,6 +108,32 @@
 #define XWSTR0 $14 ; put a str on channel 0
 #define XWSTR1 $15 ; put a str on channel 1
 
+/// @brief move memory 
+/// This vector move memory 
+/// @param A (accumulator)  [in] The desired low adress of the memory 
+/// @param Y (register)  [in] The desired high adress of the memory
+
+
+ 
+
+/*!
+ Scroll one line in hires to the bottom
+ 
+ lda #<$a000
+ 
+ ldy #>$a000
+ 
+ sta DECDEB
+ 
+ sty DECDEB+1
+ */
+
+     
+
+
+/// @see xxxxx
+/// 
+
 #define XDECAL $18 ; COPY mem
 
 #define XTEXT 	$19 ; switch to text
@@ -115,21 +149,28 @@
 
 #define XDIVIS $23 ; divide RES/AY=RES (RESB reste)
 
-; XNOMFI : Length in X -> BUFNOM and (A and Y for str)
-; X=0 0length
-; X=1 if RAS C=1 if jokers
-; x=2 ; if drive by default has changed
-; x>127 ; incorrect name
+// XNOMFI : Length in X -> BUFNOM and (A and Y for str)
+// X=0 0length
+// X=1 if RAS C=1 if jokers
+//  x=2 ; if drive by default has changed
+//  x>127 ; incorrect name
 #define XNOMFI $24
 
 
+/// @brief Do CRLF
+/// This vector send 0x0a and 0x0d
+
 #define XCRLF $25 ; send on channel 0, RC and LF (Return and line feed)
+
+
 
 #define XDECAY $26 ; AY : decimal, length =X
 
 #define XBINDX $28 ; Convert to decimal : numer un AY 
 
-#define XDECIM $29 ; same as BINDX but displayed on channel 0 return in TR5
+
+
+#define XDECIM $29  ; same as BINDX but displayed on channel 0 return in TR5 
 
 #define XHEXA $2A ; convert A in YA in HEX
 
