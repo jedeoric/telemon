@@ -21,6 +21,13 @@
 
 #define DEFAFF $14 ; default value for decimal conversion
 
+#define IRQSVA $21 ; SAVE A when it enters in IRQ
+#define IRQSVX $22 ; SAVE X when it enters in IRQ
+#define IRQSVY $23 ; SAVE X when it enters in IRQ
+
+; SCRHIR
+#define ADSCR $26 ;
+
 #define RS232T $59
 #define RS232C $5A
 
