@@ -35,6 +35,8 @@ var searchData=
   ['xnomfi',['XNOMFI',['../telemon_8h.html#a24c92d8171a6d29632b0da9252545969',1,'telemon.h']]],
   ['xop0',['XOP0',['../telemon_8h.html#a8eda71399a29e79fd938a568ac4860b2',1,'telemon.h']]],
   ['xop1',['XOP1',['../telemon_8h.html#a60307df12f61b2162e331994413f8148',1,'telemon.h']]],
+  ['xop2',['XOP2',['../telemon_8h.html#aabe32fa6a8dcccd48d67825f2e4431d5',1,'telemon.h']]],
+  ['xop3',['XOP3',['../telemon_8h.html#aff2d9032d01dda664d6bf6026282345b',1,'telemon.h']]],
   ['xoups',['XOUPS',['../telemon_8h.html#a4faf1db4c2d0894498f2d25c4f378a4e',1,'telemon.h']]],
   ['xpaper',['XPAPER',['../telemon_8h.html#ac249616f4f4b25d9a0d8284768a7aae7',1,'telemon.h']]],
   ['xping',['XPING',['../telemon_8h.html#aec1214387448ee1bebe2083666ef1344',1,'telemon.h']]],
