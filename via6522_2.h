@@ -5,3 +5,4 @@
 #define V2T1 $0324
 #define V2PCR $032C
 #define V2IER $032E
+#define V2DRAB $032F

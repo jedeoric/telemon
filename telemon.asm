@@ -616,7 +616,7 @@ next101
 	INC $01
 	DEC $C102
 	BNE loop102
-	JSR $C105 ; FIXMEPOUET
+	JSR $C105 ; FIXME
 	LDA $FFFB
 	STA $0200
 next100
@@ -1029,7 +1029,7 @@ LC8B6
 	ROR $1E
 LC8B9	
 	JSR LC8BF
-	JMP $C9B9  ; FIXME POUET
+	JMP LC9b9  
 
 
 
@@ -1088,23 +1088,74 @@ next26
 	AND #$FE
 next29
 	STA $031E
+Lc91b
 next23
+
 	PLA
+Lc91c
 	TAY
+Lc91d	
+	RTS
+	
+Lc91e
+	DEC $0215
+	BNE Lc973
+	LDA #$04
+	STA $0215
+	BIT FLGLPR
+	BPL Lc930
+	JSR Lca2f 
+Lc930
+	LDA TIMEUD
+	BNE lc936
+	DEC TIMEUD+1
+lc936
+	DEC TIMEUD
+	SEC
+	INC TIMED
+	LDA TIMED
+	SBC #$0A
+	BCC Lc973
+	STA TIMED
+	BIT FLGCLK
+	BPL Lc94e
+	JSR Lca75 
+Lc94e
+	INC TIMES
+	LDA TIMEUS
+	BNE Lc957
+	DEC TIMEUS+1
+Lc957
+	DEC TIMEUS
+	LDA TIMES
+	SBC #$3C
+	BCC Lc973
+	STA TIMES
+	INC TIMEM
+	LDA TIMEM
+	SBC #$3C
+	BCC Lc973
+	STA TIMEM
+	INC $0213
+Lc973
+	DEC $0216
+	BNE Lc991
+	LDA #$0A
+	STA $0216
+	LDA $0217
+	EOR #$80
+	STA $0217
+	BIT FLGSCR
+	BPL Lc991
+	BVS Lc991
+	LDX SCRNB
+	JMP $DE2D ; FIXME
+Lc991
 	RTS
 
 
-
-	
-	.byt $ce,$15
-	.byt $02,$d0,$50,$a9,$04,$8d,$15,$02,$2c,$8a,$02,$10,$03,$20,$2f,$ca
-	.byt $a5,$44,$d0,$02,$c6,$45,$c6,$44,$38,$ee,$10,$02,$ad,$10,$02,$e9
-	.byt $0a,$90,$30,$8d,$10,$02,$2c,$14,$02,$10,$03,$20,$75,$ca,$ee,$11
-	.byt $02,$a5,$42,$d0,$02,$c6,$43,$c6,$42,$ad,$11,$02,$e9,$3c,$90,$13
-	.byt $8d,$11,$02,$ee,$12,$02,$ad,$12,$02,$e9,$3c,$90,$06,$8d,$12,$02
-	.byt $ee,$13,$02,$ce,$16,$02,$d0,$19,$a9,$0a,$8d,$16,$02,$ad,$17,$02
-	.byt $49,$80,$8d,$17,$02,$2c,$48,$02,$10,$07,$70,$05,$a6,$28,$4c,$2d
-	.byt $de,$60,$ad,$0d,$03,$29,$20,$f0,$20,$ad,$8f,$02,$ac,$90,$02,$8d
+Lc992
+	.byt $ad,$0d,$03,$29,$20,$f0,$20,$ad,$8f,$02,$ac,$90,$02,$8d
 	.byt $08,$03,$8c,$09,$03,$ad,$8c,$02,$4a,$90,$06,$20,$85,$e0,$4c,$b9
 	.byt $c8
 routine_todefine_1:
@@ -1128,39 +1179,45 @@ next110
 	BIT V1IFR
 	BVC next112
 	BIT V1T1
-	JSR $C91E ; FIXME
+	JSR Lc91e 
 	DEC $02A6
-	BNE next113 ; FIXME
+	BNE next113 
 	JSR $D7DF ; FIXME
-	JSR $C8BF; FIXME
+	JSR LC8BF 
 	BIT $0270
-	BPL next114 ; FIXME
+	BPL next114 
 	LDA #$14
 	STA $02A7
-	BNE $C9FB ; FIXME
+	BNE LC9FB 
 next114	
 	LDA $02A8
 	BIT $02A7
-	BMI $C9FD ; FIXME
+	BMI lc9fd 
 	DEC $02A7
 LC9FB
 next115	
 	LDA #$01
+lc9fd	
 	STA $02A6
+Lca00
 next113	
 	BIT FLGJCK
-	BPL $CA0B
-	JSR $DFFA ; FIXME
+	BPL Lca0b 
+	JSR Ldffa 
 	BIT FLGJCK
-	BVC $CA10
-	JSR $DFFB ; FIXME
+Lca0b	
+	BVC Lca10
+		
+	JSR Ldffb
+Lca10
 	LDA FLGJCK
 	LSR
-	BCC $CA19 ; FIXME
-	JSR $E0E1 ; FIXME
+	BCC LCA19 
+	JSR Le0e1 
 LCA19	
-	JMP $C8B9 ; FIXME
-	JMP $C992 ; FIXME
+	JMP LC8B9 
+
+	JMP Lc992
 Lca1f	
 next112	
 	LDA V1IFR
@@ -1169,6 +1226,7 @@ next112
 	BIT $0301
 	JSR $CA2F ; FIXME
 	JMP $C8B9 ; FIXME
+Lca2f	
 	LDX #$24
 	JSR $C518 ; FIXME
 	BCC $CA3E
@@ -1176,6 +1234,7 @@ next112
 	SEC
 	ROR $028A
 	RTS
+Lca3e
 
 	
 
@@ -1183,10 +1242,42 @@ next112
 	.byt $03,$ad,$00,$03,$29,$ef,$8d,$00,$03,$09,$10,$8d,$00,$03,$0e,$8a
 	.byt $02,$4e,$8a,$02,$60,$a9,$00,$a2,$04,$9d,$10,$02,$ca,$10,$fa,$a9
 	.byt $01,$8d,$15,$02,$60,$4e,$14,$02,$60,$08,$78,$85,$40,$84,$41,$38
-	.byt $6e,$14,$02,$28,$60,$a0,$00,$ad,$13,$02,$20,$90,$ca,$a9,$3a,$91
-	.byt $40,$c8,$ad,$12,$02,$20,$90,$ca,$a9,$3a,$91,$40,$c8,$ad,$11,$02
-	.byt $a2,$2f,$38,$e9,$0a,$e8,$b0,$fb,$48,$8a,$91,$40,$68,$c8,$69,$3a
-	.byt $91,$40,$c8,$60,$e5,$c6,$e8,$c6,$eb,$c6,$ee,$c6,$20,$c7,$23,$c7
+	.byt $6e,$14,$02,$28,$60
+	
+Lca75
+	LDY #$00
+	LDA TIMEH
+	JSR telemon_display_clock_chars
+	LDA #$3A
+	STA (ADCLK),Y
+	INY
+	LDA TIMEM
+	JSR telemon_display_clock_chars
+	LDA #$3A
+	STA (ADCLK),Y
+	INY
+	LDA $0211
+telemon_display_clock_chars
+; display clock at the adress specified	
+Lca90
+	LDX #$2F
+	SEC
+Lca93
+	SBC #$0A
+	INX
+	BCS Lca93
+	PHA
+	TXA
+	STA (ADCLK),Y
+	PLA
+	INY
+	ADC #$3A
+	STA (ADCLK),Y
+	INY
+	RTS
+
+Lcaa3
+	.byt $e5,$c6,$e8,$c6,$eb,$c6,$ee,$c6,$20,$c7,$23,$c7
 	.byt $26,$c7,$29,$c7,$cf,$c7,$d2,$c7,$d5,$c7,$d8,$c7,$06,$c8,$09,$c8
 	.byt $0c,$c8,$0f,$c8,$5d,$c7,$62,$c7,$67,$c7,$6c,$c7,$a8,$c7,$ab,$c7
 	.byt $ae,$c7,$b1,$c7,$6c,$cd,$75,$cf,$45,$cf,$06,$cf,$14,$cf,$31,$ff
@@ -1245,6 +1336,7 @@ next112
 	.byt $18,$65,$05,$85,$05,$8a,$18,$65,$09,$85,$09,$e8,$88,$b1,$04,$91
 	.byt $08,$98,$d0,$f8,$c6,$05,$c6,$09,$ca,$d0,$f1,$f0,$db,$0a,$64,$e8
 	.byt $10,$00,$00,$03,$27,$a2,$00,$a0,$00,$2c,$a2,$03,$2c,$a2,$02
+Lcdef	
 routine_to_define_15
 	STA $0D
 	STY $0E
@@ -1595,7 +1687,7 @@ next71
 next74
 	PLA
 	LDX #$00
-	JSR $C51D ; FIXME POUET
+	JSR $C51D ; FIXME 
 	PLA
 	LDX #$00
 	JSR $C51D ; FIXME
@@ -1962,33 +2054,41 @@ loop17
 	BVS next14
 	LDA #$56
 	LDY #$02
+Ldf8b
 next14
 	LDX #$00
 	JMP ROUTINE_TO_DEFINE_7 ; $DEFD
-	LDA $0320
+Ldf90
+	LDA V2DRB
 	AND #$3F
 	ORA #$40
 	BNE next15
-	LDA $0320
+Ldf99
+	LDA V2DRB
 	AND #$3F
 	ORA #$80
+	
 next15
-	STA $0320
-	LDA $0320
+	STA V2DRB
+	LDA V2DRB
 	AND #$1F
 	rts
 
 	.byt $38,$60
 init_joystick
 routine_to_define_5
-	LDA #$41
-	STA $028C
-	LDX #$06
-loop15
-	LDA data_to_define_3,X ; data_to_define_3
-	STA $029D,X
+	LDA #%01000001 ; SET mouse and joystick flag
+	STA FLGJCK
+; init JCKTAB values
+.(
+	LDX #$06 ; 7 bytes 
+loop
+	LDA telemon_values_for_JCKTAB,X ; data_to_define_3
+	STA JCKTAB,X
 	DEX
-	BPL loop15
+	BPL loop
+.)
+
 	LDA #$01
 	STA $0297
 	STA $029C
@@ -2009,42 +2109,271 @@ loop15
 	STA $0308
 	STY $0309
 	LDA #$A0
-	STA $030E
+	STA V1IER
 	RTS
 
-
-data_to_define_3
+telemon_values_for_JCKTAB
 	.byt $0b,$0a,$20,$08,$09,$03,$03
-	
-	.byt $60,$ad,$8d,$02,$29,$04
-	.byt $d0,$12,$20,$90,$df,$29,$04,$d0,$15,$ce,$93,$02,$d0,$29,$ae,$97
-	.byt $02,$4c,$1e,$e0,$20,$90,$df,$29,$04,$d0,$1c,$ae,$98,$02,$8e,$93
-	.byt $02,$85,$58,$ad,$8d,$02,$29,$1b,$05,$58,$8d,$8d,$02,$a5,$58,$d0
-	.byt $06,$ad,$9f,$02,$20,$9f,$e1,$ad,$8d,$02,$29,$1b,$49,$1b,$f0,$1b
-	.byt $20,$90,$df,$29,$1b,$85,$58,$ad,$8d,$02,$29,$1b,$45,$58,$d0,$12
-	.byt $ce,$91,$02,$d0,$2f,$ae,$97,$02,$4c,$65,$e0,$20,$90,$df,$29,$1b
-	.byt $85,$58,$ae,$98,$02,$8e,$91,$02,$ad,$8d,$02,$29,$04,$05,$58,$8d
-	.byt $8d,$02,$a2,$04,$09,$04,$4a,$48,$b0,$06,$bd,$9d,$02,$20,$9f,$e1
-	.byt $68,$ca,$10,$f2,$60,$20,$99,$df,$29,$1b,$85,$58,$c9,$1b,$d0,$05
+Ldffa
+	rts
+Ldffb
+	LDA JCGVAL
+	AND #$04
+	BNE Le014
+	JSR Ldf90 
+	AND #$04
+	BNE Le01e
+	DEC $0293
+	BNE Le037
+	LDX $0297
+	JMP Le01e 
+Le014
+	JSR Ldf90 
+	AND #$04
+	BNE Le037
+	LDX $0298
+Le01e
+	STX $0293
+	STA $58
+	LDA JCGVAL
+	AND #$1B
+	ORA $58
+	STA JCGVAL
+	LDA $58
+	BNE Le037
+	LDA $029F
+	JSR Le19f 
+Le037
+	LDA JCGVAL
+	AND #$1B
+	EOR #$1B
+	BEQ Le05b
+	JSR Ldf90 
+	AND #$1B
+	STA $58
+	LDA JCGVAL
+	AND #$1B
+	EOR $58
+	BNE Le062
+	DEC $0291
+	BNE Le084
+	LDX $0297
+	JMP Le065
+Le05b
+	JSR Ldf90 
+	AND #$1B
+	STA $58
+Le062
+	LDX $0298
+Le065
+	STX $0291
+	LDA JCGVAL
+	AND #$04
+	ORA $58
+	STA JCGVAL
+	LDX #$04
+	ORA #$04
+Le076
+	LSR
+	PHA
+	BCS Le080
+	LDA JCKTAB,X
+	JSR Le19f 
+Le080
+	PLA
+	DEX
+	BPL Le076
+Le084
+	RTS
+
+le085
+	.byt $20,$99,$df,$29,$1b,$85,$58,$c9,$1b,$d0,$05
 	.byt $ce,$a4,$02,$d0,$ef,$ad,$a5,$02,$8d,$a4,$02,$a5,$58,$c9,$1b,$f0
 	.byt $14,$29,$1b,$4d,$8e,$02,$29,$1b,$d0,$0b,$ce,$92,$02,$d0,$31,$ae
 	.byt $99,$02,$4c,$bb,$e0,$20,$99,$df,$ae,$9a,$02,$8e,$92,$02,$29,$1b
 	.byt $85,$58,$ad,$8e,$02,$29,$64,$05,$58,$8d,$8e,$02,$a5,$58,$09,$04
 	.byt $a2,$04,$4a,$48,$b0,$06,$bd,$9d,$02,$20,$9d,$e1,$68,$ca,$10,$f2
-	.byt $60,$ad,$8e,$02,$29,$04,$d0,$12,$20,$99,$df,$29,$04,$d0,$13,$ce
-	.byt $94,$02,$d0,$27,$ae,$97,$02,$4c,$02,$e1,$20,$99,$df,$29,$04,$ae
-	.byt $98,$02,$85,$58,$8e,$94,$02,$ad,$8e,$02,$29,$7b,$05,$58,$8d,$8e
-	.byt $02,$a5,$58,$d0,$06,$ad,$9f,$02,$20,$9d,$e1,$ad,$8e,$02,$29,$20
-	.byt $d0,$15,$20,$99,$df,$ad,$2f,$03,$29,$20,$d0,$14,$ce,$95,$02,$d0
-	.byt $2a,$ae,$9c,$02,$4c,$40,$e1,$20,$99,$df,$ad,$2f,$03,$ae,$9b,$02
-	.byt $8e,$95,$02,$29,$20,$85,$58,$ad,$8e,$02,$29,$5f,$05,$58,$8d,$8e
-	.byt $02,$29,$20,$d0,$06,$ad,$a2,$02,$20,$9d,$e1,$ad,$8e,$02,$29,$40
-	.byt $d0,$15,$20,$99,$df,$ad,$2f,$03,$29,$80,$d0,$14,$ce,$96,$02,$d0
-	.byt $2b,$ae,$9c,$02,$4c,$80,$e1,$20,$99,$df,$ad,$2f,$03,$ae,$9b,$02
-	.byt $8e,$96,$02,$4a,$29,$40,$85,$58,$ad,$8e,$02,$29,$3f,$05,$58,$8d
-	.byt $8e,$02,$29,$40,$d0,$06,$ad,$a3,$02,$4c,$9d,$e1,$60,$38,$24,$18
+	.byt $60
+Le0e1
+
+	LDA JCDVAL
+	AND #$04
+	BNE Le0fa
+	JSR Ldf99 
+	AND #$04
+	BNE Le102
+	DEC $0294
+	BNE Le11b
+	LDX $0297
+	JMP Le102
+Le0fa
+	JSR Ldf99
+	AND #$04
+	LDX $0298
+Le102
+	STA $58
+	STX $0294
+	LDA JCDVAL
+	AND #$7B
+	ORA $58
+	STA JCDVAL
+	LDA $58
+	BNE Le11b
+	LDA $029F
+	JSR Le19d 
+Le11b
+	LDA JCDVAL
+	AND #$20
+	BNE Le137
+	JSR Ldf99 
+	LDA V2DRAB
+	AND #$20
+	BNE Le140
+	DEC $0295
+	BNE Le15b
+	LDX $029C
+	JMP Le140
+Le137
+	JSR Ldf99
+	LDA V2DRAB
+	LDX $029B
+Le140
+	STX $0295
+	AND #$20
+	STA $58
+	LDA JCDVAL
+	AND #$5F
+	ORA $58
+	STA JCDVAL
+	AND #$20
+	BNE Le15b
+	LDA $02A2
+	JSR Le19d
+Le15b
+	LDA JCDVAL
+	AND #$40
+	BNE Le177
+	JSR Ldf99
+	LDA V2DRAB
+	AND #$80
+	BNE Le180
+	DEC $0296
+	BNE Le19c
+	LDX $029C
+	JMP Le180
+Le177
+	JSR Ldf99
+	LDA V2DRAB
+	LDX $029B
+Le180
+	STX $0296
+	LSR
+	AND #$40
+	STA $58
+	LDA JCDVAL
+	AND #$3F
+	ORA $58
+	STA JCDVAL
+	AND #$40
+	BNE Le19c
+	LDA $02A3
+	JMP Le19d
+Le19c
+	RTS
+Le19d
+
+	.byt $38,$24
+Le19f
+
+	CLC
+	PHP
+	STX $58
+	LDX #$00
+	JSR LC51D 
+	LDA #$08
+	PLP
+	BCS Le1af
+	LDA #$20
+Le1af
+	LDX #$00
+	JSR LC51D 
+	LDX $58
+	RTS
+	
+/*
+E1B7   38         SEC
+E1B8   60         RTS
+E1B9   A6 28      LDX $28
+E1BB   BD 20 02   LDA $0220,X
+E1BE   48         PHA
+E1BF   BD 24 02   LDA $0224,X
+E1C2   48         PHA
+E1C3   A9 1E      LDA #$1E
+E1C5   20 B5 DB   JSR $DBB5
+E1C8   20 E4 DA   JSR $DAE4
+E1CB   A6 28      LDX $28
+E1CD   BC 20 02   LDY $0220,X
+E1D0   B1 26      LDA ($26),Y
+E1D2   C9 20      CMP #$20
+E1D4   B0 02      BCS $E1D8
+E1D6   A9 20      LDA #$20
+E1D8   20 72 DA   JSR $DA72
+E1DB   BD 20 02   LDA $0220,X
+E1DE   DD 2C 02   CMP $022C,X
+E1E1   F0 08      BEQ $E1EB
+E1E3   A9 09      LDA #$09
+E1E5   20 B5 DB   JSR $DBB5
+E1E8   4C CB E1   JMP $E1CB
+E1EB   20 E4 DA   JSR $DAE4
+E1EE   A6 28      LDX $28
+E1F0   BD 24 02   LDA $0224,X
+E1F3   DD 34 02   CMP $0234,X
+E1F6   D0 EB      BNE $E1E3
+E1F8   A9 1F      LDA #$1F
+E1FA   20 B5 DB   JSR $DBB5
+E1FD   68         PLA
+E1FE   09 40      ORA #$40
+E200   20 B5 DB   JSR $DBB5
+E203   68         PLA
+E204   09 40      ORA #$40
+E206   4C B5 DB   JMP $DBB5
+E209   20 E4 DA   JSR $DAE4
+E20C   AD 88 02   LDA $0288
+E20F   48         PHA
+E210   A9 28      LDA #$28
+E212   8D 88 02   STA $0288
+E215   A9 1E      LDA #$1E
+E217   20 78 D1   JSR $D178
+E21A   A4 38      LDY $38
+E21C   B1 30      LDA ($30),Y
+E21E   30 06      BMI $E226
+E220   B1 2E      LDA ($2E),Y
+E222   C9 20      CMP #$20
+E224   B0 02      BCS $E228
+E226   A9 20      LDA #$20
+E228   20 72 DA   JSR $DA72
+E22B   A9 09      LDA #$09
+E22D   20 78 D1   JSR $D178
+E230   A5 38      LDA $38
+E232   D0 E6      BNE $E21A
+E234   A4 39      LDY $39
+E236   88         DEY
+E237   D0 E1      BNE $E21A
+E239   20 E4 DA   JSR $DAE4
+E23C   68         PLA
+E23D   8D 86 02   STA $0286
+E240   60         RTS
+*/
+
+/*
+	.byt 	$18
 	.byt $08,$86,$58,$a2,$00,$20,$1d,$c5,$a9,$08,$28,$b0,$02,$a9,$20,$a2
-	.byt $00,$20,$1d,$c5,$a6,$58,$60,$38,$60,$a6,$28,$bd,$20,$02,$48,$bd
+
+	.byt $00,$20,$1d,$c5,$a6,$58,$60
+	*/
+	.byt $38,$60
+
+	.byt $a6,$28,$bd,$20,$02,$48,$bd
 	.byt $24,$02,$48,$a9,$1e,$20,$b5,$db,$20,$e4,$da,$a6,$28,$bc,$20,$02
 	.byt $b1,$26,$c9,$20,$b0,$02,$a9,$20,$20,$72,$da,$bd,$20,$02,$dd,$2c
 	.byt $02,$f0,$08,$a9,$09,$20,$b5,$db,$4c,$cb,$e1,$20,$e4,$da,$a6,$28
@@ -2053,7 +2382,9 @@ data_to_define_3
 	.byt $a9,$28,$8d,$88,$02,$a9,$1e,$20,$78,$d1,$a4,$38,$b1,$30,$30,$06
 	.byt $b1,$2e,$c9,$20,$b0,$02,$a9,$20,$20,$72,$da,$a9,$09,$20,$78,$d1
 	.byt $a5,$38,$d0,$e6,$a4,$39,$88,$d0,$e1,$20,$e4,$da,$68,$8d,$86,$02
-	.byt $60,$18,$33,$1b,$0a,$0d,$00,$f0,$4b,$1b,$0d,$0a,$40,$1b,$0a,$0a
+	.byt $60
+	
+	.byt $18,$33,$1b,$0a,$0d,$00,$f0,$4b,$1b,$0d,$0a,$40,$1b,$0a,$0a
 	.byt $6c,$50,$02,$a2,$05,$ad,$8a,$02,$48,$09,$40,$8d,$8a,$02,$bd,$40
 	.byt $e2,$20,$72,$da,$ca,$d0,$f7,$86,$0c,$a2,$06,$bd,$45,$e2,$20,$72
 	.byt $da,$ca,$d0,$f7,$86,$0d,$a9,$05,$85,$0e,$a5,$0c,$0a,$0a,$0a,$20

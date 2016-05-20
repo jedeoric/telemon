@@ -35,13 +35,20 @@
 /// @brief [VALUE_PAGE_0] save P used when there is an IRQ
 #define IRQSVP $24 
 
-; SCR
+
 #define ADSCR $26 ; Adress of begin line display 
-#define SCRNB $28 ; number window screen
+/// @brief [VALUE_PAGE_0] number window screen
+#define SCRNB $28
 
 #define ADKBD $2a ; ASCII conversion table adress
 
-/// @brief [VALUE_PAGE_0] decompteur utilisateur en dixieme de secondes
+/// @brief [VALUE_PAGE_0] address to display clock
+#define ADCLK $40 
+
+/// @brief [VALUE_PAGE_0] decompteur utilisateur en secondes (16 bits)
+#define TIMEUS $42
+
+/// @brief [VALUE_PAGE_0] decompteur utilisateur en dixieme de secondes (16 bits)
 #define TIMEUD $44
 
 #define RS232T $59
@@ -53,6 +60,22 @@
 
 /// @brief [VALUE_PAGE_2]  Activating drive 0 if not connected, b7 equal double side
 #define TABDRV $0208 
+
+/// @brief [VALUE_PAGE_2]  horloge 1/10
+#define TIMED $210
+/// @brief [VALUE_PAGE_2]  clock seconds
+#define TIMES $211
+
+/// @brief [VALUE_PAGE_2]  clock minutes
+#define TIMEM $212
+
+/// @brief [VALUE_PAGE_2]  clock hours
+#define TIMEH $213
+
+/// @brief [VALUE_PAGE_2]  clock flag
+/// b7 display clock every seconds
+#define FLGCLK $214
+
 /// @brief [VALUE_PAGE_2]  Default drive
 #define DRVDEF $20C
 
@@ -73,6 +96,19 @@
 /// @brief [VALUE_PAGE_2]  screen X cursor
 #define SCRX $220
 
+
+/// @brief [VALUE_PAGE_2]  flag for screen
+/// b7 : display cursor
+/// b6 : cursor does not blink
+/// b5 : inverted video
+/// b4 : 38/40 column mode ?
+/// b3 : escape ?
+/// b2 : US ?
+/// b1 : double height
+/// b0 : counter for us
+
+#define FLGSCR $248
+
 #define SCRTXT $0256 ; desc scrtxt 6 bytes
 
 #define SCRHIR $025C ; desc 6 bytes for HIres
@@ -90,7 +126,20 @@
 
 #define FLGLPR $028a ;; word b7 ready
 
+/// @brief [VALUE_PAGE_2]  flag joystick
+/// b6=1 if left joystick
+/// b0=1 if  mouse
 #define FLGJCK $028c
+
+/// @brief [VALUE_PAGE_2]  value of left joystick
+#define JCGVAL $028d
+
+/// @brief [VALUE_PAGE_2]  value of right joystick
+#define JCDVAL $028e
+
+/// @brief [VALUE_PAGE_2] value of joystick by default : $0b $0a $20 $08 $09 $03 $03 these value must be verifyed 
+#define JCKTAB $029d
+
 
 /// @brief [VALUE_PAGE_2]  Activating channel 0
 #define IOTAB0 $02ae ; activating channel 0
