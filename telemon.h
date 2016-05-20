@@ -1,8 +1,12 @@
 
 ; Page 0 variables
 
-#define RES $00 ; address general usage
-#define RESB $02 ; ???
+/********************************************************************** PAGE 0 VARIABLES */
+
+/// @brief [VALUE_PAGE_0] 16 bits used for address usage
+#define RES $00 
+/// @brief [VALUE_PAGE_0] 16 bits used for address usage
+#define RESB $02 
 
 #define DECDEB $04 ; param/shift
 #define DECFIN $06 ; param/shift
@@ -22,9 +26,14 @@
 
 #define DEFAFF $14 ; default value for decimal conversion
 
-#define IRQSVA $21 ; SAVE A when it enters in IRQ
-#define IRQSVX $22 ; SAVE X when it enters in IRQ
-#define IRQSVY $23 ; SAVE X when it enters in IRQ
+/// @brief [VALUE_PAGE_0] save Accumulator used when there is an IRQ
+#define IRQSVA $21 
+/// @brief [VALUE_PAGE_0] save X used when there is an IRQ
+#define IRQSVX $22 
+/// @brief [VALUE_PAGE_0] save Y used when there is an IRQ
+#define IRQSVY $23 
+/// @brief [VALUE_PAGE_0] save P used when there is an IRQ
+#define IRQSVP $24 
 
 ; SCR
 #define ADSCR $26 ; Adress of begin line display 
@@ -32,17 +41,66 @@
 
 #define ADKBD $2a ; ASCII conversion table adress
 
+/// @brief [VALUE_PAGE_0] decompteur utilisateur en dixieme de secondes
+#define TIMEUD $44
+
 #define RS232T $59
 #define RS232C $5A
 
+/********************************************************************** PAGE 2 VARIABLES */
 
-/* PAGE 2 TELEMON */
+#define BNKST $0200 ; RESB 8 value of bytes $fffb of each bank
 
-#define TABDRV $0208 ; Activating drive 0 if not connected, b7 equal double side
+/// @brief [VALUE_PAGE_2]  Activating drive 0 if not connected, b7 equal double side
+#define TABDRV $0208 
+/// @brief [VALUE_PAGE_2]  Default drive
+#define DRVDEF $20C
 
-#define FLGTEL $020D ; b0=1 strated is missing
+/// @brief [VALUE_PAGE_2]  Flag telestrat
 
-#define IOTAB0 $02ae ; activating channel 1
+/// b7=1 HIRES mode
+/// b6=1 Minitel mode
+/// b5=1 degre mode : 0 (calcul radians )
+/// b2=1 BONJOURCOM exists
+/// b1=1 Printer detected 
+/// b0=1 strated is missing
+
+#define FLGTEL $020D ; 
+
+#define KOROM $020E	; Ko ROM total
+#define KORAM $020f ; total Max ram Bytes	
+
+/// @brief [VALUE_PAGE_2]  screen X cursor
+#define SCRX $220
+
+#define SCRTXT $0256 ; desc scrtxt 6 bytes
+
+#define SCRHIR $025C ; desc 6 bytes for HIres
+
+#define SCRTRA $0262 ; desc 6 bytes for trace
+
+/// @brief [VALUE_PAGE_2]  image of 8x8 keyboard matrix (8 bytes)
+#define KBDCOL $268 
+
+#define FLGKBD $0275	;Keyboard flag : b7 majn b6 if sound
+
+#define LPRX $0286 ; word cursor in the line
+
+#define LPRFX $0288 ; printer width
+
+#define FLGLPR $028a ;; word b7 ready
+
+#define FLGJCK $028c
+
+/// @brief [VALUE_PAGE_2]  Activating channel 0
+#define IOTAB0 $02ae ; activating channel 0
+/// @brief [VALUE_PAGE_2]  Activating channel 1
+#define IOTAB1 $02b2 ; activating channel 1
+/// @brief [VALUE_PAGE_2]  Activating channel 2
+#define IOTAB2 $02b6 ; activating channel 2
+/// @brief [VALUE_PAGE_2]  Activating channel 3
+#define IOTAB3 $02ba ; activating channel 3
+
 
 #define ADIOB $02be ; 48 bytes ? I/O management address
 
@@ -52,25 +110,17 @@
 
 
 
-#define LPRFX $0288 ; printer width
 
-#define LPRX $0286 ; word cursor in the line
-#define FLGLPR $028a ;; word b7 ready
 
-#define KORAM $020f ; total Max ram Bytes	
-#define BNKST $0200 ; RESB 8 value of bytes $fffb of each bank
-#define KOROM $020E	; Ko ROM total
 
-#define FLGKBD $0275	;Keyboard flag : b7 majn b6 if sound
 
-#define SCRTXT $0256 ; desc scrtxt 6 bytes
-#define SCRHIR $025C ; desc 6 bytes for HIres
-#define SCRTRA $0262 ; desc 6 bytes for trace
+
+
 #define VIRQ $02FA
 #define VNMI $02F4
 #define VAPLIC $2FD ; No banque adress
 
-
+/********************************************************************** PAGE 4 VARIABLES */
 
 #define VEXBNK $414
 #define BNKCIB $417
@@ -79,23 +129,34 @@
 
 
 
-/*VECTORS used with brk */
+/********************************************************************** VECTORS used with brk */
 
-/// @brief Send a char in channel 0
-/*!
- lda #"A"
- 
- brk XOP0 
- 
-*/
+/// @brief [VECTOR] open device on channel 0
 #define XOP0 $00
+/// @brief [VECTOR] open device on channel 1
 #define XOP1 $01
+/// @brief [VECTOR] open device on channel 2
+#define XOP2 $02
+/// @brief [VECTOR] open device on channel 3
+#define XOP3 $03
+
+/// @brief [VECTOR] close an I/O on a channel. If we try to close an I/O which is not open in the channel 0, the command is ignored 
+#define XCL0 $04
+/// @brief [VECTOR] close an I/O on a channel. If we try to close an I/O which is not open in the channel 1, the command is ignored 
+#define XCL1 $05
+/// @brief [VECTOR] close an I/O on a channel. If we try to close an I/O which is not open in the channel 2, the command is ignored 
+#define XCL2 $06
+/// @brief [VECTOR] close an I/O on a channel. If we try to close an I/O which is not open in the channel 3, the command is ignored 
+#define XCL3 $07
 
 
-
+/// @brief [VECTOR] test a char on channel 0 : if C=1 then no char detecxted, if C=0 then A accumulator contains ASCII char (X and Y not changed)
 #define XRD0 $08
+/// @brief [VECTOR] test a char on channel 1 : if C=1 then no char detecxted, if C=0 then A accumulator contains ASCII char (X and Y not changed)
 #define XRD1 $09
+/// @brief [VECTOR] test a char on channel 2 : if C=1 then no char detecxted, if C=0 then A accumulator contains ASCII char (X and Y not changed)
 #define XRD2 $0a
+/// @brief [VECTOR] test a char on channel 3 : if C=1 then no char detecxted, if C=0 then A accumulator contains ASCII char (X and Y not changed)
 #define XRD3 $0b
 
 
@@ -105,23 +166,36 @@
 #define XRDW3 $0f
 
 
+/// @brief [VECTOR] display a char on text mode on channel 0
+/// This vector move memory 
+/// @param A (accumulator)  [in] ASCII value of the char
+/*!
+ lda #"A"
+ 
+ brk XWR0
+*/
+#define XWR0 $10 
 
-
-#define XWR0 $10 ; put a character on channel 0
 #define XWR1 $11 ; put a character on channel 1
 #define XWR2 $12 ; put a character on channel 2
 #define XWR3 $13 ; put a character on channel 3
 
-#define XWSTR0 $14 ; put a str on channel 0
-#define XWSTR1 $15 ; put a str on channel 1
+/// @brief [VECTOR] display string on text mode on channel 0
+/// @param A (accumulator)  [in] The desired low adress of the string
+/// @param Y (register)  [in] The desired high adress of the string
+/// string must be terminated by 0. Manage CRLF
+#define XWSTR0 $14 
 
-/// @brief move memory 
+/// @brief [VECTOR] display string on text mode on channel 1
+/// @param A (accumulator)  [in] The desired low adress of the string
+/// @param Y (register)  [in] The desired high adress of the string
+/// string must be terminated by 0. Manage CRLF
+#define XWSTR1 $15
+
+/// @brief [PRIMITIVE] move memory 
 /// This vector move memory 
 /// @param A (accumulator)  [in] The desired low adress of the memory 
 /// @param Y (register)  [in] The desired high adress of the memory
-
-
- 
 
 /*!
  Scroll one line in hires to the bottom
@@ -153,18 +227,18 @@
  BRK XDECAL
  
  */
-
-     
-
-
-/// @see DECFIN DECDEB
+/// @see DECFIN DECDEB DECCIB
 /// 
+#define XDECAL $18 
 
-#define XDECAL $18 ; COPY mem
+/// @brief [PRIMITIVE] Switch to text mode
+#define XTEXT 	$19 
 
-#define XTEXT 	$19 ; switch to text
-#define XHIRES 	$1A ; switch to HIRES
-#define XEFFHI 	$1B ; clear HIRES
+/// @brief [PRIMITIVE] Switch to hires mode
+#define XHIRES 	$1A 
+
+/// @brief [PRIMITIVE] Clear Hires
+#define XEFFHI 	$1B 
 
 #define XMINMA $1f ; A register converted to upper XY not changed
 
@@ -184,17 +258,19 @@
 
 
 /// @brief Do CRLF
-/// This vector send 0x0a and 0x0d
-
-#define XCRLF $25 ; send on channel 0, RC and LF (Return and line feed)
+/// This vector send 0x0a and 0x0d on channel 0
+/*!
+ return cursor at the beginning of next text line
+ 
+ brk XCRLF
+ */
+#define XCRLF $25 
 
 
 
 #define XDECAY $26 ; AY : decimal, length =X
 
 #define XBINDX $28 ; Convert to decimal : numer un AY 
-
-
 
 #define XDECIM $29  ; same as BINDX but displayed on channel 0 return in TR5 
 
@@ -218,14 +294,14 @@
 
 /* PSG Working 1/2 */
 
-/// @brief Send OUPS sound in PSG
+/// @brief [PRIMITIVE] Send OUPS sound in PSG
 #define XOUPS $42
 
 #define XSOUND $44 
 #define XMUSIC $45 
-/// @brief Send ZAP sound in PSG
+/// @brief [PRIMITIVE] Send ZAP sound in PSG
 #define XZAP $46
-/// @brief Send SHOOT sound in PSG
+/// @brief [PRIMITIVE] Send SHOOT sound in PSG
 #define XSHOOT $47
 
 #define XALLKB $50 ; Get keyboard, --> KBDCOL
@@ -233,24 +309,34 @@
 #define XA1PA2 $6A ; A1+A2 --> A1
 
 /* GRAPHICS WORKING*/
-
-#define XCIRCL $8f ; CIRCLE
-#define XCURSE $90 ; CURSET
-#define XCURMO $91 ; CURMOV
-#define XPAPER $92 ; PAPER : X= no window, 128 if hires
-#define XINK $93 ; A value 0-7 or 16-23
+/// @brief [PRIMITIVE] Do a circle un HIRES
+#define XCIRCL $8f
+/// @brief [PRIMITIVE] change position cursor in Hires  absolute
+#define XCURSE $90 
+/// @brief [PRIMITIVE] change position cursor in Hires relative
+#define XCURMO $91 
+/// @brief [PRIMITIVE] change paper X= no window, 128 if hires
+#define XPAPER $92
+/// @brief [PRIMITIVE] change ink A value 0-7 or 16-23
+#define XINK $93
 #define XBOX $94 ; BOX
 #define XABOX $95 ; ABOX
 #define XFILL $96 ; FILL
+/// @brief [PRIMITIVE] put a char un Hires
 #define XCHAR $97 ; XCHAR
+
+/// @brief [PRIMITIVE] put a string un Hires
+/// @param A (accumulator)  [in] The desired low adress of the memory 
+/// @param Y (register)  [in] The desired high adress of the memory
+/// @param X (register)  [in] Length of the string
 #define XSCHAR $98 ; SCHAR string adress in AY, length in X 
 
 /*PSG working */
 
-/// @brief Send EXPLODE sound in PSG
+/// @brief [PRIMITIVE] Send EXPLODE sound in PSG
 #define XEXPLO $9c 
 
-/// @brief Send PING sound in PSG
+/// @brief [PRIMITIVE] Send PING sound in PSG
 #define XPING $9d
 
 
