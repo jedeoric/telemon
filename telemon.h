@@ -35,8 +35,9 @@
 /// @brief [VALUE_PAGE_0] save P used when there is an IRQ
 #define IRQSVP $24 
 
+/// @brief [VALUE_PAGE_0] low Adress of begin line display (16 bits)
+#define ADSCR $26 
 
-#define ADSCR $26 ; Adress of begin line display 
 /// @brief [VALUE_PAGE_0] number window screen
 #define SCRNB $28
 
@@ -44,6 +45,9 @@
 
 /// @brief [VALUE_PAGE_0] address to display clock
 #define ADCLK $40 
+
+/// @brief [VALUE_PAGE_0] ?
+#define FLGVD0 $3c
 
 /// @brief [VALUE_PAGE_0] decompteur utilisateur en secondes (16 bits)
 #define TIMEUS $42
@@ -53,6 +57,16 @@
 
 #define RS232T $59
 #define RS232C $5A
+
+
+/// @brief [VALUE_PAGE_0] 48 bytes 
+#define VARMNB $60 
+
+/// @brief [VALUE_PAGE_0] 68 bytes for language
+#define VARLNG $8c
+
+/// @brief [VALUE_PAGE_0] 48 bytes for the application 
+#define VARAPL $D0 
 
 /********************************************************************** PAGE 2 VARIABLES */
 
@@ -93,8 +107,67 @@
 #define KOROM $020E	; Ko ROM total
 #define KORAM $020f ; total Max ram Bytes	
 
-/// @brief [VALUE_PAGE_2]  screen X cursor
+/// @brief [VALUE_PAGE_2] low address of the screen 0 
+#define ADSCRL $218
+
+/// @brief [VALUE_PAGE_2] high address of the screen 0 
+#define ADSCRH $21c
+
+
+/// @brief [VALUE_PAGE_2]  screen X cursor screen 0
 #define SCRX $220
+/// @brief [VALUE_PAGE_2]  screen X cursor screen 1
+#define SCRX1 $221
+/// @brief [VALUE_PAGE_2]  screen X cursor screen 2
+#define SCRX2 $222
+/// @brief [VALUE_PAGE_2]  screen X cursor screen 3
+#define SCRX3 $223
+
+/// @brief [VALUE_PAGE_2]  screen Y cursor screen 0
+#define SCRY $224
+/// @brief [VALUE_PAGE_2]  screen Y cursor screen 1
+#define SCRY1 $225
+/// @brief [VALUE_PAGE_2]  screen Y cursor screen 2
+#define SCRY2 $226
+/// @brief [VALUE_PAGE_2]  screen Y cursor screen 3
+#define SCRY3 $227
+
+/// @brief [VALUE_PAGE_2]  beginning of the window
+#define SCRDX $228
+/// @brief [VALUE_PAGE_2]  beginning of the screen 0
+#define SCRDY $230
+
+/// @brief [VALUE_PAGE_2]  end of the screen 0
+#define SCRFY $234 
+
+
+/// @brief [VALUE_PAGE_2]  low address of the screen 0
+#define SCRBAL $238 
+
+/// @brief [VALUE_PAGE_2]  high address of the screen 0
+#define SCRBAH $23c
+
+
+/// @brief [VALUE_PAGE_2] ink color for screen 0
+#define SCRCT $0240 
+
+/// @brief [VALUE_PAGE_2] ink color for screen 1
+#define SCRCT1 $0241
+
+/// @brief [VALUE_PAGE_2] ink color for screen 2
+#define SCRCT2 $0242
+
+/// @brief [VALUE_PAGE_2] ink color for screen 3
+#define SCRCT3 $0243
+
+/// @brief [VALUE_PAGE_2] paper color for screen 0
+#define SCRCF $244
+/// @brief [VALUE_PAGE_2] paper color for screen 1
+#define SCRCF1 $245
+/// @brief [VALUE_PAGE_2] paper color for screen 2
+#define SCRCF2 $246
+/// @brief [VALUE_PAGE_2] paper color for screen 3
+#define SCRCF3 $247
 
 
 /// @brief [VALUE_PAGE_2]  flag for screen
@@ -106,8 +179,10 @@
 /// b2 : US ?
 /// b1 : double height
 /// b0 : counter for us
-
 #define FLGSCR $248
+
+
+#define CURSCR $24c ; char on the cursor
 
 #define SCRTXT $0256 ; desc scrtxt 6 bytes
 

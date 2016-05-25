@@ -11,3 +11,4 @@
 #define V1IFR $030D
 
 #define V1IER $030E
+#define V1DRAB $030F
