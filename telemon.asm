@@ -367,8 +367,8 @@ loop58
 next54
 	LDX #$02
 loop55	
-	LDA $C45C,X
-	STA $055D,X
+	LDA $C45C,X ; FIXME
+	STA $055D,X ; FIXME
 	DEX
 	BPL loop55
 	JSR $0600 ; FIXME
@@ -776,7 +776,7 @@ code_adress_436
 	DEC $0418
 	LDX $0418
 	LDA $04C8,X
-	JSR $046A
+	JSR $046A ; FIXME
 	PLA
 	TAX
 	PLA
@@ -801,7 +801,7 @@ code_adress_47E ; brk gestion ?
 	LDA V2DRA ; Switch to telemon bank and jump
 	ORA #$07
 	STA V2DRA
-	JMP LC868	 ; FIXME
+	JMP LC868	 
 code_adress_493
 	LDA V2DRA
 	AND #$F8
@@ -1413,9 +1413,7 @@ loop31
 	BNE loop31
 	RTS
 
-	;.byt $48,$a9,$00,$85,$11,$a9,$01
-	;.byt $85,$12,$68,$20,$ef,$cd,$a0,$00,$b9,$00,$01,$20,$5d,$c7,$c8,$c4
-	;.byt $10,$d0,$f5,$60
+
 	.byt $48,$29,$0f,$20,$60,$ce,$a8,$68,$4a,$4a,$4a,$4a
 	.byt $09,$30,$c9,$3a,$90,$02,$69,$06,$60,$a0,$00,$85,$00,$84,$01,$0a
 	.byt $26,$01,$0a,$26,$01,$65,$00,$90,$02,$e6,$01,$0a,$26,$01,$0a,$26
@@ -1567,14 +1565,15 @@ manage_code_control_videotex
 Ld1f9
 	tax
 	clc
-	lda $d20b,x
+	lda table_code_control	,x ; FIXME
 	adc #$7e ; CORRECTME adress Aaddind to d37e
 	sta $00
 	lda #$d3
 	adc #$00
-	sta $01
+	sta $01 ; CORRECTME
 	jmp ($0000)
 Ld20b
+
 /**** BEGIN OF TABLE CONTROL **/
 table_code_control	
 	.byt $00,$00,$00,$00,$00,$00,$00  ; COde 0 to 6 not managed
@@ -1583,7 +1582,7 @@ table_code_control
 	.byt $00,$b9,$00,$83,$b9,$00,$bc,$00,$00,$a7,$bf
 /**** END OF TABLE CONTROL **/
 Ld22b
-	jmp $d2b7
+	jmp $d2b7 ; FIXME
 Ld22e
 manage_a_sequence
 	lda $3c
@@ -1602,7 +1601,7 @@ Ld23b
 	LSR $3C
 Ld244
 	LDA $0285 ; FIXME
-	JSR $D178 ; FIXME
+	JSR send_A_to_video_screen 
 	DEX
 	BNE Ld244
 	RTS
@@ -1623,7 +1622,7 @@ Ld24e
 	RTS
 Ld26a
 	lsr $3c
-	jmp $d178
+	jmp send_A_to_video_screen 
 Ld26f	
 	lsr $3c
 	lda $3e
@@ -1661,35 +1660,299 @@ Ld2a3
 	jmp $d140 ; FIXME
 
 /*END routine */
+
+/*Gestion de la sequence ESC*/
+Ld2b7
+
+management_sequence_esc
+	LDX $36
+	LDA $3E
+	CPX #$03
+	BNE Ld2e1 
+	STA $0282
+	LDX #$00
+	STX $35
+	CMP #$36
+	BEQ Ld2d7 
+	CMP #$39
+	BCC Ld2f0 
+	CMP #$3C
+	BCS Ld2f0
+	AND #$03
+	SBC #$00
+	.byt $2c ; don't know
+Ld2d7	
+	lda #00
+	ora #$c0
+
+	sta $3c
+Ld2dd	
+	RTS
+Ld2de
+	lsr $3c
+	rts
+Ld2e1
+	inc $35
+	ldx $35
+	sta $0281,x
+	dec $3c
+	dec $36
+	bpl Ld2dd
+	bmi Ld2de
+Ld2f0
+	CMP #$40
+	BCC Ld2dd	
+	LSR $3C
+	CMP #$48
+	BCS Ld307
+	AND #$07
+	STA $36
+	LDA $34
+	AND #$F8
+	ORA $36
+	STA $34
+	RTS
+Ld307
+	CMP #$4A
+	BCS Ld317
+	LSR
+	LDA $34
+	AND #$F7
+	BCS Ld314
+	ORA #$08
+Ld314
+	STA $34
+	RTS
+Ld317
+	CMP #$4C
+	BCC Ld34a 
+	CMP #$50
+	BCS Ld330 
+	AND #$03
+	ASL
+	ASL
+	ASL
+	ASL
+	STA $36
+	LDA $34
+	AND #$CF
+	ORA $36
+	STA $34
+	RTS
+
+Ld330
+	CMP #$58
+	BCS Ld34b
+	AND #$07
+	ASL
+	ASL
+	ASL
+	ASL
+	STA $36
+	LDA $32
+	AND #$84
+	ORA $36
+	BIT $34
+	BMI Ld348
+	ORA #$80
+Ld348
+	STA $32
+Ld34a
+	RTS
+Ld34b	
+	BNE Ld34d
+Ld34d
+	CMP #$5B
+	BCS Ld36c
+	LSR
+	BIT $34
+	BPL Ld34f
+	LDA #$00
+	BCC Ld35c
+	LDA #$40
+Ld35c
+	STA $33
+	RTS
+Ld34f
+	LDA $32
+	AND #$70
+	BCS Ld367
+	ORA #$04
+Ld367
+	ORA #$80
+	STA $32
+Ld36b
+	RTS
+Ld36c
+	BEQ Ld36b
+	CMP #$5E
+	BCS Ld37e
+	LSR
+	LDA $34
+	AND #$BF
+	BCC Ld37b
+	ORA #$40
+Ld37b
+	STA $34
+	RTS
+Ld37e
+	RTS
+
+CTRL_G_KEYBOARD ; Send oups
+	jmp $ddd8 ; FIXME
+CTRL_H_KEYBOARD 
+	jsr $d759 ; switch off cursor  Why not BRK ?
+	lda $38
+	beq $d3be ; FIXME
+Ld389	
+	dec $38
+Ld38b
+	jmp $d756 ; FIXME
+CTRL_I_KEYBOARD 	
+	jsr $d759 ; FIXME
+	inc $38
+	lda $38
+	cmp #$28
+	bcc Ld38b
+	lda $39
+	beq Ld389	
+	jsr $d3d7
+CTRL_J_KEYBOARD ; 10 code
+	jsr $d759 ; FIXME
+	ldx $39
+	beq $d3b3 ; FIXME
+	cpx #$18
+	bne Ld3ad
+	ldx #$0
+Ld3ad	
+	inx
+Ld3ae
+	stx $39
+	jmp $d140 ; FIXME
 	
-	.byt $a6,$36,$a5,$3e,$e0,$03,$d0,$22,$8d
-	.byt $82,$02,$a2,$00,$86,$35,$c9,$36,$f0,$0d,$c9,$39,$90,$22,$c9,$3c
-	.byt $b0,$1e,$29,$03,$e9,$00,$2c,$a9,$00,$09,$c0,$85,$3c,$60,$46,$3c
-	.byt $60,$e6,$35,$a6,$35,$9d,$81,$02,$c6,$3c,$c6,$36,$10,$ef,$30,$ee
-	.byt $c9,$40,$90,$e9,$46,$3c,$c9,$48,$b0,$0d,$29,$07,$85,$36,$a5,$34
-	.byt $29,$f8,$05,$36,$85,$34,$60,$c9,$4a,$b0,$0c,$4a,$a5,$34,$29,$f7
-	.byt $b0,$02,$09,$08,$85,$34,$60,$c9,$4c,$90,$2f,$c9,$50,$b0,$11,$29
-	.byt $03,$0a,$0a,$0a,$0a,$85,$36,$a5,$34,$29,$cf,$05,$36,$85,$34,$60
-	.byt $c9,$58,$b0,$17,$29,$07,$0a,$0a,$0a,$0a,$85,$36,$a5,$32,$29,$84
-	.byt $05,$36,$24,$34,$30,$02,$09,$80,$85,$32,$60,$d0,$00,$c9,$5b,$b0
-	.byt $1b,$4a,$24,$34,$10,$09,$a9,$00,$90,$02,$a9,$40,$85,$33,$60,$a5
-	.byt $32,$29,$70,$b0,$02,$09,$04,$09,$80,$85,$32,$60,$f0,$fd,$c9,$5e
-	.byt $b0,$0c,$4a,$a5,$34,$29,$bf,$90,$02,$09,$40,$85,$34,$60,$60,$4c
-	.byt $d8,$dd,$20,$59,$d7,$a5,$38,$f0,$35,$c6,$38,$4c,$56,$d7,$20,$59
-	.byt $d7,$e6,$38,$a5,$38,$c9,$28,$90,$f2,$a5,$39,$f0,$ec,$20,$d7,$d3
-	.byt $20,$59,$d7,$a6,$39,$f0,$0c,$e0,$18,$d0,$02,$a2,$00,$e8,$86,$39
-	.byt $4c,$40,$d1,$ad,$80,$02,$ae,$81,$02,$85,$38,$4c,$ae,$d3,$a9,$27
-	.byt $85,$38,$20,$59,$d7,$a6,$39,$ca,$d0,$02,$a2,$18,$86,$39,$4c,$40
-	.byt $d1,$20,$11,$d1,$4c,$25,$d4,$20,$59,$d7,$a9,$00,$85,$38,$4c,$56
-	.byt $d7,$a9,$40,$85,$33,$a5,$32,$29,$74,$85,$32,$a5,$34,$29,$0f,$09
-	.byt $80,$85,$34,$60,$a5,$34,$29,$0f,$85,$34,$60,$4c,$4f,$d7,$4c,$4d
-	.byt $d7,$a5,$38,$48,$a5,$39,$48,$a9,$20,$20,$78,$d1,$a5,$38,$f0,$09
-	.byt $c9,$27,$d0,$f3,$a9,$20,$20,$78,$d1,$20,$59,$d7,$68,$85,$39,$68
-	.byt $85,$38,$4c,$40,$d1,$20,$d7,$d3,$20,$61,$d2,$20,$59,$d7,$4c,$ab
-	.byt $d3,$a9,$89,$2c,$a9,$84,$2c,$a9,$a1,$2c,$a9,$c3,$2c,$a9,$91,$85
-	.byt $3c,$60,$a4,$37,$24,$37,$08,$a2,$00,$86,$37,$28,$30,$1c,$70,$16
-	.byt $c9,$13,$f0,$0b,$c9,$19,$f0,$04,$c9,$16,$d0,$09,$a9,$80,$2c,$a9
-	.byt $40,$85,$37,$a9,$00,$60,$18,$69,$5f,$60,$70,$1e,$a2,$14,$dd,$a7
+	lda $280
+	ldx $281
+	sta $38
+	jmp  Ld3ae
+	lda #$27 
+	sta $38
+	
+CTRL_K_KEYBOARD 
+	jsr $d759 ; FIXME
+	ldx $39
+	dex
+	bne Ld3cc
+	ldx #$18
+Ld3cc	
+	stx $39
+	jmp $d140 ; FIXME
+	
+CTRL_L_KEYBOARD 
+	jsr $d111 ; FIXME Initialize VIDEOTEX MINITEL
+	jmp $d425 ; FIXME 
+
+CTRL_M_KEYBOARD
+	jsr $d759 ; FIXME
+	lda #0
+	sta $38
+	jmp $d756 ; FIXME
+	
+CTRL_N_KEYBOARD
+	lda #$40
+	sta $33
+	lda $32
+	and #$74
+	sta $32
+	lda $34
+	and #$0f
+	ora #$80
+	sta $34
+	rts
+CTRL_O_KEYBOARD
+	lda $34
+	and #$0f
+	sta $34
+	rts
+CTRL_Q_KEYBOARD
+	jmp $d74f ; FIXME
+CTRL_T_KEYBOARD	
+	jmp $d74d ; FIXME
+	
+CTRL_X_KEYBOARD
+	lda $38
+	pha
+	lda $39
+	pha
+Ld407	
+	lda #$20
+	jsr $d178 ; FIXME
+	lda $38
+	beq Ld419
+	cmp #$27
+	bne Ld407
+	lda #$20
+	jsr send_A_to_video_screen  ; FIXME
+Ld419	
+	jsr $d759 ; FIXME
+	pla
+	sta $39
+	pla
+	sta $38
+	jmp $d140 ; FIXME
+CTRL_DOT_KEYBOARD	
+	jsr $d3d7 ; FIXME
+	jsr $d261 ; FIXME
+	jsr $d759 ; FIXME
+	jmp $d3ab ; FIXME
+
+	lda #$89 ; REP
+	.byt $2c
+	
+	lda #$84 ; SEP
+	.byt $2c
+	
+	lda #$a1 ; SYN
+	.byt $2c
+	
+	lda #$c3 ; ESC
+	.byt $2c
+	
+	lda #$91
+	sta $3c
+	rts
+; MINITEL
+send_a_data_to_videotex screen
+	ldy $37
+	bit $37
+	php
+	ldx #0
+	stx $37
+	plp
+	bmi Ld46a 
+	bvs Ld466 
+	cmp #$13
+	beq Ld45f
+	cmp #$19
+	beq Ld45c	
+	cmp #$16
+	bne Ld465	
+Ld45c	
+	lda #$80
+	.byt $2c
+Ld45f	
+	lda #$40
+	sta $37
+	lda #$0
+Ld465	
+	rts
+Ld466
+	clc
+	adc #$5f
+	rts
+Ld46a
+	
+	
+	.byt $70,$1e,$a2,$14,$dd,$a7
 	.byt $d4,$f0,$06,$ca,$10,$f8,$a9,$5f,$60,$e0,$05,$b0,$08,$8a,$09,$c0
 	.byt $85,$37,$a9,$00,$60,$29,$1f,$09,$80,$60,$48,$98,$29,$07,$aa,$bd
 	.byt $c1,$d4,$a8,$bd,$bc,$d4,$aa,$68,$dd,$c6,$d4,$f0,$06,$e8,$88,$d0
@@ -3254,8 +3517,13 @@ bank_signature
 	.byt $00,$8d,$75,$02,$bd,$90,$ff,$bc,$91,$ff,$85,$2a,$84,$2b,$20,$49
 	.byt $fe,$ad,$75,$02,$29,$06,$c9,$04,$d0,$07,$a9,$98,$a0,$ff,$4c,$f9
 	.byt $fe,$c9,$02,$d0,$0a,$a9,$aa,$a0,$ff,$4c,$f9,$fe,$4c,$49,$fe,$60
-	.byt $3f,$fa,$af,$fa,$1f,$fb,$1f,$fb,$5b,$1c,$22,$1c,$02,$1e,$22,$1e
-	.byt $00,$60,$1c,$22,$00,$22,$22,$26,$1a,$00,$7b,$04,$08,$1c,$22,$3e
+	.byt $3f,$fa,$af,$fa,$1f,$fb,$1f,$fb
+Lff98	
+tab_accent_charset
+	.byt $5b ; Accent circonflexe
+	.byt $1c,$22,$1c,$02,$1e,$22,$1e,$00
+	
+	.byt $60,$1c,$22,$00,$22,$22,$26,$1a,$00,$7b,$04,$08,$1c,$22,$3e
 	.byt $20,$1e,$00,$7d,$10,$08,$1c,$22,$3e,$20,$1e,$00,$40,$10,$08,$1c
 	.byt $02,$1e,$22,$1e,$00,$5c,$00,$00,$1e,$20,$20,$20,$1e,$04,$7c,$10
 	.byt $08,$22,$22,$22,$26,$1a,$00,$7e,$1c,$22,$1c,$22,$3e,$20,$1c,$00
