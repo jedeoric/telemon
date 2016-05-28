@@ -1,8 +1,8 @@
-#include "telemon.h"
-#include "via6522_1.h"
-#include "via6522_2.h"
-#include "acia6551.h"
-#include "fdc1793.h"
+#include "include/telemon.h"
+#include "include/via6522_1.h"
+#include "include/via6522_2.h"
+#include "include/acia6551.h"
+#include "include/fdc1793.h"
 
 #define CDRIVE $314
 #define FDCCR $0310
