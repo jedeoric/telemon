@@ -362,13 +362,24 @@
 #define XHIRES 	$1A 
 
 /// @brief [PRIMITIVE] Clear Hires
-#define XEFFHI 	$1B 
+#define XEFFHI 	$1B
 
-#define XMINMA $1f ; A register converted to upper XY not changed
+
+
+
 
 #define XFILLM $1C ; FILL
 
+/// @brief [PRIMITIVE] found this adress of a char
+#define ZADCHA $1d
+
+/// @brief [PRIMITIVE] testing if printer is connected
+#define XTSTLP $1e
+#define XMINMA $1f ; A register converted to upper XY not changed
+
+
 #define XMUL40 $20 ; AY=A*40
+#define XMULT $21
 #define XMULT $22 ; AY*RES --> TR0-1-2-3  RES étant une adresse
 
 #define XDIVIS $23 ; divide RES/AY=RES (RESB reste)
@@ -410,16 +421,37 @@
 
 #define XSCELG $2f ; search line
 
+#define XEDTIN $32
+
+#define XECRPR $33
+
+#define XCOSCR $34
+
 #define XCSSCR $35 ; display cursor (prompt)	, X equal to 0 : No window
 
+#define XSCRSE $36
+
+#define XSCROH $37
+
+#define XSCROB $38
+
+#define XSCRNE $39
+
+#define XCLCL $3d
+
+#define XWRCLK $3e
 
 
+#define XSONPS $40
 
+#define XEPSG $41
 
 /* PSG Working 1/2 */
 
 /// @brief [PRIMITIVE] Send OUPS sound in PSG
 #define XOUPS $42
+
+#define XPLAY $43
 
 #define XSOUND $44 
 #define XMUSIC $45 

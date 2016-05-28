@@ -5,12 +5,14 @@
 #include "include/fdc1793.h"
 
 #define CDRIVE $314
-#define FDCCR $0310
+
 
 #define BRK_TELEMON(value)\
 	.byt 00,value;\
 
 
+#define HAVE_MINITEL
+	
 
 ; interrupt primitives
 
@@ -367,11 +369,11 @@ loop58
 next54
 	LDX #$02
 loop55	
-	LDA $C45C,X ; FIXME
-	STA $055D,X ; FIXME
+	LDA $C45C,X ; CORRECTME
+	STA $055D,X ; CORRECTME
 	DEX
 	BPL loop55
-	JSR $0600 ; FIXME
+	JSR $0600 ; CORRECTME
 	JSR routine_to_define_19
 	LDA FLGTEL ; test if strased is here
 	LSR ; shift FLGTEL value to the right, b0 is in the carry
@@ -520,10 +522,10 @@ loop44
 	CMP #$02
 	BNE loop46
 	JMP (RESET) ; something is wrong : reset 
+LC30a	
 loop46
 	DEX
 	BNE loop47
-
 	lda #$07
 	sta V2DRA ; return to telemon bank
 	rts
@@ -885,15 +887,104 @@ next40
 	
 	;.byt $ad,$0d,$02,$09
 	;.byt $02,$8d,$0d,$02,$60
+/// A contains channel
+XOP0_ROUTINE
+	ldx #$00 ; Channel 0
+	.byt $2c
+XOP1_ROUTINE
+	ldx #$04 ; Channel 1
+	.byt $2c
+XOP2_ROUTINE	
+	ldx #$08 ; Channel 2
+	.byt $2c
+XOP3_ROUTINE	
+	ldx #$0c
+	pha
+Lc6f1	
+	pla
+	cmp $02ae,x
+	beq Lc704 
+	ldy $02ae,x
+	bpl Lc705
+	inx
+	pha
+	txa
+	and #$03
+	bne Lc6f1
+	pla
+Lc704	
+	rts
+Lc705
+
+	ldy #$0f
+Lc707	
+	cmp $2ae,y
+	beq Lc71b
+	dey
+
+	bpl Lc707
+	stx $19
+	pha
+
+	ldy #$80
+	tax
 	
-	.byt $a2,$00,$2c,$a2,$04,$2c,$a2,$08,$2c,$a2,$0c
-	.byt $48,$68,$dd,$ae,$02,$f0,$0d,$bc,$ae,$02,$10,$09,$e8,$48,$8a,$29
-	.byt $03,$d0,$ee,$68,$60,$a0,$0f,$d9,$ae,$02,$f0,$0f,$88,$10,$f8,$86
-	.byt $19,$48,$a0,$80,$aa,$20,$1c,$c8,$a6,$19,$68,$9d,$ae,$02,$18,$60
-	.byt $a2,$00,$2c,$a2,$04,$2c,$a2,$08,$2c,$a2,$0c,$a0,$03,$c9,$00,$f0
-	.byt $1d,$dd,$ae,$02,$f0,$05,$e8,$88,$10,$f7,$60,$5e,$ae,$02,$a2,$0f
-	.byt $dd,$ae,$02,$f0,$f5,$ca,$10,$f8,$aa,$a0,$81,$4c,$1c,$c8,$5e,$ae
-	.byt $02,$e8,$88,$10,$f9,$60,$a9,$0a,$20,$5d,$c7,$a9,$0d
+	jsr $c81c ; FIXME
+
+	ldx $19
+	pla
+Lc71b	
+	sta $02AE,x
+	clc
+	rts
+close_a_IO_on_a_channel
+XCL0_ROUTINE
+Lc720
+	ldx #0
+	.byt $2c
+XCL1_ROUTINE	
+	ldx #4
+	.byt $2c
+XCL2_ROUTINE	
+	ldx #8
+	.byt $2c	
+XCL3_ROUTINE	
+	ldx #$0c
+	ldy #3
+	cmp #0
+	beq Lc74e
+Lc731	
+	cmp $02ae,x
+	beq Lc73b 
+	inx
+	dey
+	bpl Lc731
+Lc73a	
+	rts
+Lc73b	
+	lsr $02ae,x
+	ldx #$0f
+Lc740	
+	cmp $02ae,x
+	beq Lc73a
+	dex
+	bpl Lc740
+	tax
+	ldy #$81
+	jmp $c81c ; FIXME
+Lc74e	
+	lsr $02ae,x
+	inx
+	dey
+	bpl Lc74e
+	rts
+jump_a_line_on_channel_0
+Lc756	
+	lda #$0a
+	jsr send_a_code_on_channel ; FIXME
+	lda #$0d
+Lc75d	
+send_a_code_on_channel
 routine_to_define_17
 	PHA
 	LDA #$00
@@ -916,6 +1007,7 @@ next37
 	PHA
 	TYA
 	PHA
+Lc77c	
 next39
 	LDX $19
 	LDA IOTAB0,X
@@ -929,7 +1021,8 @@ next39
 	STA $02F9 ; FIXME
 	LDA $1B
 	BIT $C795 ; FIXME
-	JSR $02F7 ; FIXLME
+	JSR $02F7 ; FIXME
+Lc79b	
 next38
 	INC $19
 	DEC $1A
@@ -940,16 +1033,50 @@ next38
 	TAX
 	LDA $1B
 	RTS
-
+Lc81c
 
 	.byt $a2,$00,$2c,$a2,$04,$2c,$a2,$08
 	.byt $2c,$a2,$0c,$86,$1c,$85,$15,$84,$16,$a5,$1c,$85,$19,$a0,$00,$20
-	.byt $11,$04,$f0,$e3,$20,$72,$c7,$e6,$15,$d0,$ee,$e6,$16,$d0,$ea,$a9
-	.byt $00,$2c,$a9,$04,$2c,$a9,$08,$2c,$a9,$0c,$85,$19,$a9,$04,$85,$1a
-	.byt $8a,$48,$98,$48,$a6,$19,$bd,$ae,$02,$10,$0e,$c9,$88,$b0,$0a,$aa
-	.byt $a0,$40,$20,$1c,$c8,$85,$1d,$90,$06,$e6,$19,$c6,$1a,$d0,$e5,$68
-	.byt $a8,$68,$aa,$a5,$1d,$60,$a9,$00,$2c,$a9,$04,$2c,$a9,$08,$2c,$a9
-	.byt $0c,$85,$1b,$a5,$1b,$20,$da,$c7,$b0,$f9,$38,$60,$84,$17,$84,$18
+	.byt $11,$04,$f0,$e3,$20,$72,$c7,$e6,$15,$d0,$ee,$e6,$16,$d0,$ea
+Lc7cf	
+XRD0_ROUTINE
+	lda #0
+	.byt $2c
+XRD1_ROUTINE	
+	lda #4
+	.byt $2c
+XRD2_ROUTINE		
+	lda #8
+	.byt $2c	
+XRD3_ROUTINE		
+	lda #$0c
+
+	STA $19
+	LDA #$04
+	STA $1A
+	TXA
+	PHA
+	TYA
+	PHA
+	LDX $19
+	LDA $02AE,X
+
+	.byt $10,$0e ; FIXME
+	cmp #$88
+	.byt $b0,$0a ; bcs FIXME
+	tax
+	ldy #$40
+	jsr $c81c ; FIXME
+	sta $1d
+	.byt $90,$06,$e6,$19,$c6,$1a,$d0,$e5,$68
+	.byt $a8,$68,$aa,$a5,$1d
+	rts
+	
+	
+	.byt $a9,$00,$2c,$a9,$04,$2c,$a9,$08,$2c,$a9
+	.byt $0c,$85,$1b,$a5,$1b,$20,$da,$c7,$b0,$f9,$38,$60
+
+	.byt $84,$17,$84,$18
 	.byt $48,$8a,$0a,$aa,$bd,$be,$02,$8d,$f8,$02,$bd,$bf,$02,$8d,$f9,$02
 	.byt $68,$46,$17,$24,$18,$4c,$f7,$02
 
@@ -1012,8 +1139,8 @@ LC87A
 	PHA
 	LDA #$02
 	PHA
-	LDA $CAA5,X ; CORRECTME
-	LDY $CAA4,X ; CORRECTME
+	LDA vectors_telemon+1,X ; fetch vector of brk
+	LDY vectors_telemon,X 
 	BCC LC8A6
 	LDA $CBA5,X ; CORRECTME
 	LDY $CBA4,X ; CORRECTME
@@ -1074,7 +1201,7 @@ next24
 	LDA ACIASR
 	AND #$20
 	BNE next23
-	JSR $C518 ; FIXME POUET
+	JSR $C518 ; FIXME
 	STA ACIADR
 	LDA ACIACT
 	AND #$07
@@ -1283,13 +1410,29 @@ Lca93
 	INY
 	RTS
 
-	; table des vecteurs du brk 
+	; table des vecteurs du brk
+vectors_telemon	
 Lcaa4
-	.byt $e5,$c6
+	.byt <XOP0_ROUTINE,>XOP0_ROUTINE
+	.byt <XOP1_ROUTINE,>XOP1_ROUTINE
+	.byt <XOP2_ROUTINE,>XOP2_ROUTINE
+	.byt <XOP3_ROUTINE,>XOP3_ROUTINE
+	
+	.byt <XCL0_ROUTINE,>XCL0_ROUTINE
+	.byt <XCL1_ROUTINE,>XCL1_ROUTINE
+	.byt <XCL2_ROUTINE,>XCL2_ROUTINE
+	.byt <XCL3_ROUTINE,>XCL3_ROUTINE
 
-
-	.byt $e8,$c6,$eb,$c6,$ee,$c6,$20,$c7,$23,$c7
-	.byt $26,$c7,$29,$c7,$cf,$c7,$d2,$c7,$d5,$c7,$d8,$c7,$06,$c8,$09,$c8
+	
+	.byt <XRD0_ROUTINE,>XRD0_ROUTINE
+	.byt <XRD1_ROUTINE,>XRD1_ROUTINE
+	.byt <XRD2_ROUTINE,>XRD2_ROUTINE
+	.byt <XRD3_ROUTINE,>XRD3_ROUTINE
+	
+	
+	
+; POUET	
+	.byt $06,$c8,$09,$c8
 	.byt $0c,$c8,$0f,$c8,$5d,$c7,$62,$c7,$67,$c7,$6c,$c7,$a8,$c7,$ab,$c7
 	.byt $ae,$c7,$b1,$c7,$6c,$cd,$75,$cf,$45,$cf,$06,$cf,$14,$cf,$31,$ff
 	.byt $bf,$c6,$f0,$d0,$69,$ce,$97,$ce,$89,$ce,$dc,$ce,$f0,$cf,$56,$c7
@@ -1475,79 +1618,9 @@ table_to_define prompt_charset
 /**** MINITEL **/
 /* 102 Bytes begin */
 Ld178
-send_A_to_video_screen
-.(
-	STA $3E
-	TYA
-	PHA
-	TXA
-	PHA
-	LDA $39
-	BEQ Ld18a
-	
-	STA $0281
-	LDA $38
-	STA $0280
-
-Ld18a
-	BIT $3C
-	BMI Ld1ed
-	LDA $3E
-	JSR $D442 ; FIXME
-	STA $00
-	BEQ Ld1e6
-	CMP #$20
-	BCC manage_control_code 
-	CMP #$A0
-	bcs Ld1e1
-	STA $0285
-	AND #$7F
-	TAX
-	LDA $34
-	BMI Ld1bb
-	LDY $38
-	CPY #$27
-	
-	BNE Ld1b1
-	AND #$df
-Ld1b1
-	LDY $39
-	CPY #$02
-	BCS Ld1bb
-	AND #$EF
-	STA $34
-Ld1bb
-	PHA
-	JSR $D530 ; FIXME
-	JSR $D5DC ; FIXME
-	PLA
-	PHA
-	BMI Ld1d0
-	AND #$20
-	beq  Ld1d0
-	JSR $D391 ; FIXME
-	JSR $D759 ; FIXME
-Ld1d0
-	JSR $D391 ; FIXME
-	PLA	
-	bmi Ld1e1	
-	LDX $38
-	BNE Ld1e1
-	AND #$10
-	BEQ Ld1e1
-	JSR $D3A0 ; FIXME
-Ld1e1
-	LDA $0285
-	STA $00
-Ld1e6	
-	PLA
-	TAX
-	PLA
-	TAY
-	LDA $00
-	RTS
-/* 102 Bytes end */
-
+#ifdef HAVE_MINITEL
+#include "functions/minitel/send_A_to_video_screen.asm"
+#endif
 ; follow_a_sequence
 follow_a_sequence
 
@@ -1921,34 +1994,9 @@ CTRL_DOT_KEYBOARD
 	sta $3c
 	rts
 ; MINITEL
-send_a_data_to_videotex screen
-	ldy $37
-	bit $37
-	php
-	ldx #0
-	stx $37
-	plp
-	bmi Ld46a 
-	bvs Ld466 
-	cmp #$13
-	beq Ld45f
-	cmp #$19
-	beq Ld45c	
-	cmp #$16
-	bne Ld465	
-Ld45c	
-	lda #$80
-	.byt $2c
-Ld45f	
-	lda #$40
-	sta $37
-	lda #$0
-Ld465	
-	rts
-Ld466
-	clc
-	adc #$5f
-	rts
+#define HAVE_MINITEL
+#include "functions/minitel/send_a_data_to_videotex_screen.asm"
+#endif
 Ld46a
 	
 	
@@ -1981,8 +2029,7 @@ routine_to_define_7
 	STA $3D ; CORRECTME
 	STA $37 ; CORRECTME
 	rts
-	;.byt $a9,$00,$85
-	;.byt $3c,$85,$3d,$85,$37,$60
+
 	.byt $10,$11,$b0,$ed,$20,$45,$cf,$20,$bd,$d5
 	.byt $a9,$96,$a0,$d7,$20,$f9,$fe,$a9,$0c,$4c,$78,$d1,$46,$3d,$08,$26
 	.byt $3d,$28,$b0,$2b,$a4,$38,$f0,$27,$48,$8a,$48,$88,$b1,$2e,$30,$1b
@@ -2359,24 +2406,48 @@ routine_to_define_8
 	STA $0250 ; LPRVEC ?
 	STY $0251 ; LPRVEC ?
 	rts
-	
-	
-
-	
-	.byt $30,$60,$48,$8a,$48,$a9,$82,$8d,$0e,$03,$ba,$bd,$02,$01,$20,$a5
+Lda70	
+	.byt $30,$60
+Lda72	
+	.byt $48,$8a,$48,$a9,$82,$8d,$0e,$03,$ba,$bd,$02,$01,$20,$a5
 	.byt $da,$2c,$8a,$02,$70,$1b,$c9,$20,$b0,$06,$c9,$0d,$d0,$13,$f0,$0c
 	.byt $ae,$86,$02,$e8,$ec,$88,$02,$90,$05,$20,$e4,$da,$a2,$00,$8e,$86
 	.byt $02,$68,$aa,$68,$60,$aa,$ad,$8a,$02,$29,$04,$f0,$08,$20,$2f,$db
 	.byt $8a,$a2,$18,$d0,$0a,$ad,$0d,$02,$29,$02,$f0,$15,$8a,$a2,$24,$2c
 	.byt $8a,$02,$70,$06,$c9,$7f,$d0,$02,$a9,$20,$48,$20,$1d,$c5,$68,$b0
-	.byt $ee,$60,$b0,$0c,$ad,$8a,$02,$29,$04,$d0,$06,$a9,$82,$8d,$0e,$03
+	.byt $ee,$60,$b0,$0c,$ad,$8a,$02,$29,$04,$d0,$06,$a9,$82
+	.byt $8d,$0e,$03
 	.byt $60
 
-	.byt $4c,$7d,$db,$48,$a9,$0d,$20,$72,$da,$ad,$8a,$02,$4a,$b0,$05
-	.byt $a9,$0a,$20,$72,$da,$68,$60,$30,$05,$a2,$0c,$4c,$18,$c5,$b0,$09
-	.byt $ad,$1e,$03,$29,$0d,$09,$60,$d0,$3a,$ad,$1e,$03,$09,$02,$8d,$1e
-	.byt $03,$60
-	
+	.byt $4c,$7d,$db
+Ldae4
+	PHA
+	LDA #$0D
+	JSR Lda72 
+	LDA $028A
+	LSR
+	BCS Ldaf5
+	LDA #$0A
+	JSR Lda72  
+Ldaf5
+	PLA
+	RTS
+	BMI Ldafe
+	LDX #$0C
+	JMP $C518 ; FIXME
+Ldafe
+	BCS Ldb09
+	LDA $031E
+	AND #$0D
+	ORA #$60
+	BNE $DB43 ; FIXME
+Ldb09
+	LDA $031E
+	ORA #$02
+	STA $031E
+RTS
+Ldb12
+
 .byt 	$30,$26,$aa,$10,$0f,$c9,$c0,$b0,$0b,$09,$40,$48,$a9,$1b
 	.byt $a2,$18,$20,$1d,$c5,$68,$48,$a2,$18,$20,$1d,$c5,$68,$b0,$f7,$ad
 	.byt $1e,$03,$29,$f3,$09,$04,$8d,$1e,$03,$60,$b0,$17,$ad,$1e,$03,$29
@@ -2903,7 +2974,7 @@ Le180
 Le19c
 	RTS
 Le19d
-
+	
 	.byt $38,$24
 Le19f
 
@@ -2921,22 +2992,80 @@ Le1af
 	JSR LC51D 
 	LDX $58   ; CORRECTME
 	RTS
+Le1b7	
+	sec
+	rts
+
+
+	LDX $28
+	LDA $0220,X
+	PHA
+	LDA $0224,X
+	PHA
+	LDA #$1E
+	JSR Ldbb5 
+	JSR Ldae4 
+	LDX $28
+	LDY $0220,X
+	LDA ($26),Y
+	CMP #$20
+	BCS $E1D8
+	LDA #$20
+Le1d8
+	JSR $DA72  ; FIXME
+	LDA $0220,X
+	CMP $022C,X
+	BEQ Le1eb 
+Le1e3
+	LDA #$09
+	JSR Ldbb5 
+	JMP $E1CB  ; FIXME
+Le1eb
+	JSR Ldae4  
+	LDX $28
+	LDA $0224,X
+	CMP $0234,X
+	BNE Le1e3  
+	LDA #$1F
+	JSR Ldbb5 
+	PLA
+	ORA #$40
+	JSR Ldbb5 
+	PLA
+	ORA #$40
+	JMP Ldbb5 
+	JSR Ldae4 
+	LDA $0288
+	PHA
+	LDA #$28
+	STA $0288
+	LDA #$1E
+	JSR Ld178  
+Le21a
+	LDY $38
+	LDA ($30),Y
+	BMI Le226  
+	LDA ($2E),Y
+	CMP #$20
+	BCS Le228 
+Le226
+	LDA #$20
+Le228
+	JSR $DA72  ; FIXME
+	LDA #$09
+	JSR Ld178  
+	LDA $38
+	BNE Le21a 
+	LDY $39
+	DEY
+	BNE Le21a 
+	JSR Ldae4  
+	PLA
+	STA $0286
+	rts
+	
 	
 
-
-	.byt $38,$60
-
-	.byt $a6,$28,$bd,$20,$02,$48,$bd
-	.byt $24,$02,$48,$a9,$1e,$20,$b5,$db,$20,$e4,$da,$a6,$28,$bc,$20,$02
-	.byt $b1,$26,$c9,$20,$b0,$02,$a9,$20,$20,$72,$da,$bd,$20,$02,$dd,$2c
-	.byt $02,$f0,$08,$a9,$09,$20,$b5,$db,$4c,$cb,$e1,$20,$e4,$da,$a6,$28
-	.byt $bd,$24,$02,$dd,$34,$02,$d0,$eb,$a9,$1f,$20,$b5,$db,$68,$09,$40
-	.byt $20,$b5,$db,$68,$09,$40,$4c,$b5,$db,$20,$e4,$da,$ad,$88,$02,$48
-	.byt $a9,$28,$8d,$88,$02,$a9,$1e,$20,$78,$d1,$a4,$38,$b1,$30,$30,$06
-	.byt $b1,$2e,$c9,$20,$b0,$02,$a9,$20,$20,$72,$da,$a9,$09,$20,$78,$d1
-	.byt $a5,$38,$d0,$e6,$a4,$39,$88,$d0,$e1,$20,$e4,$da,$68,$8d,$86,$02
-	.byt $60
-	
 	.byt $18,$33,$1b,$0a,$0d,$00,$f0,$4b,$1b,$0d,$0a,$40,$1b,$0a,$0a
 	.byt $6c,$50,$02,$a2,$05,$ad,$8a,$02,$48,$09,$40,$8d,$8a,$02,$bd,$40
 	.byt $e2,$20,$72,$da,$ca,$d0,$f7,$86,$0c,$a2,$06,$bd,$45,$e2,$20,$72
