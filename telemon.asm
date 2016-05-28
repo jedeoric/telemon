@@ -2,6 +2,7 @@
 #include "via6522_1.h"
 #include "via6522_2.h"
 #include "acia6551.h"
+#include "fdc1793.h"
 
 #define CDRIVE $314
 #define FDCCR $0310
@@ -351,8 +352,8 @@ loop58
 	
 	BRK_TELEMON(XWSTR0)
 	lda #$00
-	sta $0200
-	LDA FLGTEL
+	sta BNKST ; Switch to ram overlay ?
+	LDA FLGTEL ; does stratsed is load ?
 	LSR
 	BCS next54
 	LDA #<str_insert_disk
@@ -592,7 +593,7 @@ loading_vectors_b800
 	STA $00
 	STY $01
 	LDX #$01
-	STX $0312 ; FIXME
+	STX FDCSR 
 	JSR $B84F ; FIXME
 	LDA $C100 ; FIXME
 	bne next100
@@ -1282,8 +1283,12 @@ Lca93
 	INY
 	RTS
 
-Lcaa3
-	.byt $e5,$c6,$e8,$c6,$eb,$c6,$ee,$c6,$20,$c7,$23,$c7
+	; table des vecteurs du brk 
+Lcaa4
+	.byt $e5,$c6
+
+
+	.byt $e8,$c6,$eb,$c6,$ee,$c6,$20,$c7,$23,$c7
 	.byt $26,$c7,$29,$c7,$cf,$c7,$d2,$c7,$d5,$c7,$d8,$c7,$06,$c8,$09,$c8
 	.byt $0c,$c8,$0f,$c8,$5d,$c7,$62,$c7,$67,$c7,$6c,$c7,$a8,$c7,$ab,$c7
 	.byt $ae,$c7,$b1,$c7,$6c,$cd,$75,$cf,$45,$cf,$06,$cf,$14,$cf,$31,$ff
@@ -1438,8 +1443,12 @@ loop31
 	.byt $20,$de,$28,$60,$a0,$1f,$a2,$00,$ca,$d0,$fd,$88,$d0,$fa,$60,$38
 	.byt $24,$18,$66,$15,$a2,$00,$20,$0f,$c5,$90,$08,$8a,$69,$0b,$aa,$e0
 	.byt $30,$d0,$f3,$08,$a9,$dc,$a0,$cf,$b0,$04,$a9,$e6,$a0,$cf,$24,$15
-	.byt $10,$05,$20,$f9,$fe,$28,$60,$20,$f9,$fe,$28,$60,$7f,$00,$00,$08
-	.byt $3c,$3e,$3c,$08,$00,$00,$7f,$00,$00,$08,$34,$32,$34,$08,$00,$00
+	.byt $10,$05,$20,$f9,$fe,$28,$60,$20,$f9,$fe,$28,$60
+table_to_define prompt_charset
+	.byt $7f ; char 127
+	.byt $00,$00,$08,$3c,$3e,$3c,$08,$00,$00
+	
+	.byt $7f,$00,$00,$08,$34,$32,$34,$08,$00,$00
 	.byt $85,$15,$84,$16,$86,$00,$e6,$00,$ac,$0c,$02,$8c,$17,$05,$8c,$00
 	.byt $05,$a0,$0c,$a9,$3f,$99,$17,$05,$88,$d0,$fa,$8a,$f0,$3b,$e0,$01
 	.byt $d0,$22,$20,$df,$d0,$38,$e9,$41,$c9,$04,$b0,$40,$8d,$17,$05,$8d
@@ -1464,27 +1473,196 @@ loop31
 	.byt $a5,$39,$20,$69,$ce,$48,$98,$48,$a9,$00,$a0,$90,$20,$89,$ce,$85
 	.byt $2e,$84,$2f,$85,$30,$c8,$c8,$c8,$c8,$84,$31,$68,$85,$01,$68,$0a
 	.byt $26,$01,$0a,$26,$01,$0a,$26,$01,$85,$00,$a9,$00,$a0,$a0,$20,$89
-	.byt $ce,$85,$2c,$84,$2d,$4c,$56,$d7,$85,$3e,$98,$48,$8a,$48,$a5,$39
-	.byt $f0,$08,$8d,$81,$02,$a5,$38,$8d,$80,$02,$24,$3c,$30,$5f,$a5,$3e
-	.byt $20,$42,$d4,$85,$00,$f0,$4f,$c9,$20,$90,$58,$c9,$a0,$b0,$42,$8d
-	.byt $85,$02,$29,$7f,$aa,$a5,$34,$30,$12,$a4,$38,$c0,$27,$d0,$02,$29
-	.byt $df,$a4,$39,$c0,$02,$b0,$04,$29,$ef,$85,$34,$48,$20,$30,$d5,$20
-	.byt $dc,$d5,$68,$48,$30,$0a,$29,$20,$f0,$06,$20,$91,$d3,$20,$59,$d7
-	.byt $20,$91,$d3,$68,$30,$0b,$a6,$38,$d0,$07,$29,$10,$f0,$03,$20,$a0
-	.byt $d3,$ad,$85,$02,$85,$00,$68,$aa,$68,$a8,$a5,$00,$60,$20,$2e,$d2
-	.byt $4c,$e6,$d1,$20,$f9,$d1,$4c,$e6,$d1,$aa,$18,$bd,$0b,$d2,$69,$7e
-	.byt $85,$00,$a9,$d3,$69,$00,$85,$01,$6c,$00,$00,$00,$00,$00,$00,$00
-	.byt $00,$00,$01,$04,$10,$22,$44,$53,$59,$63,$76,$00,$7d,$b3,$b6,$80
-	.byt $00,$b9,$00,$83,$b9,$00,$bc,$00,$00,$a7,$bf,$4c,$b7,$d2,$a5,$3c
-	.byt $29,$03,$85,$36,$a5,$3c,$0a,$30,$f2,$0a,$0a,$30,$11,$a5,$3e,$29
-	.byt $3f,$aa,$46,$3c,$ad,$85,$02,$20,$78,$d1,$ca,$d0,$f7,$60,$a5,$36
-	.byt $f0,$1d,$a5,$3e,$c9,$30,$90,$12,$c9,$59,$b0,$0e,$8d,$82,$02,$c6
-	.byt $3c,$a9,$07,$85,$34,$a9,$00,$85,$32,$60,$46,$3c,$4c,$78,$d1,$46
-	.byt $3c,$a5,$3e,$c9,$30,$90,$f3,$c9,$69,$b0,$ef,$29,$3f,$8d,$83,$02
-	.byt $a5,$3e,$c9,$40,$b0,$1d,$ad,$82,$02,$29,$03,$0a,$0a,$6d,$82,$02
-	.byt $e9,$2f,$0a,$6d,$83,$02,$e9,$2f,$85,$39,$20,$d7,$d3,$20,$59,$d7
-	.byt $4c,$40,$d1,$20,$59,$d7,$ad,$83,$02,$85,$38,$c6,$38,$ad,$82,$02
-	.byt $29,$3f,$85,$39,$4c,$40,$d1,$a6,$36,$a5,$3e,$e0,$03,$d0,$22,$8d
+	.byt $ce,$85,$2c,$84,$2d,$4c,$56,$d7
+/**** MINITEL **/
+/* 102 Bytes begin */
+Ld178
+send_A_to_video_screen
+.(
+	STA $3E
+	TYA
+	PHA
+	TXA
+	PHA
+	LDA $39
+	BEQ Ld18a
+	
+	STA $0281
+	LDA $38
+	STA $0280
+
+Ld18a
+	BIT $3C
+	BMI Ld1ed
+	LDA $3E
+	JSR $D442 ; FIXME
+	STA $00
+	BEQ Ld1e6
+	CMP #$20
+	BCC manage_control_code 
+	CMP #$A0
+	bcs Ld1e1
+	STA $0285
+	AND #$7F
+	TAX
+	LDA $34
+	BMI Ld1bb
+	LDY $38
+	CPY #$27
+	
+	BNE Ld1b1
+	AND #$df
+Ld1b1
+	LDY $39
+	CPY #$02
+	BCS Ld1bb
+	AND #$EF
+	STA $34
+Ld1bb
+	PHA
+	JSR $D530 ; FIXME
+	JSR $D5DC ; FIXME
+	PLA
+	PHA
+	BMI Ld1d0
+	AND #$20
+	beq  Ld1d0
+	JSR $D391 ; FIXME
+	JSR $D759 ; FIXME
+Ld1d0
+	JSR $D391 ; FIXME
+	PLA	
+	bmi Ld1e1	
+	LDX $38
+	BNE Ld1e1
+	AND #$10
+	BEQ Ld1e1
+	JSR $D3A0 ; FIXME
+Ld1e1
+	LDA $0285
+	STA $00
+Ld1e6	
+	PLA
+	TAX
+	PLA
+	TAY
+	LDA $00
+	RTS
+/* 102 Bytes end */
+
+; follow_a_sequence
+follow_a_sequence
+
+Ld1ed	; 
+	jsr $d22e ; FIXME
+	jmp Ld1e6
+
+; manage control code	
+Ld1f3
+manage_control_code
+	jsr $d1f9 ; FIXME
+	jmp Ld1e6
+.)
+manage_code_control_videotex
+Ld1f9
+	tax
+	clc
+	lda $d20b,x
+	adc #$7e ; CORRECTME adress Aaddind to d37e
+	sta $00
+	lda #$d3
+	adc #$00
+	sta $01
+	jmp ($0000)
+Ld20b
+/**** BEGIN OF TABLE CONTROL **/
+table_code_control	
+	.byt $00,$00,$00,$00,$00,$00,$00  ; COde 0 to 6 not managed
+	.byt $01 ; BEL (bip) $d37f
+	.byt $04,$10,$22,$44,$53,$59,$63,$76,$00,$7d,$b3,$b6,$80
+	.byt $00,$b9,$00,$83,$b9,$00,$bc,$00,$00,$a7,$bf
+/**** END OF TABLE CONTROL **/
+Ld22b
+	jmp $d2b7
+Ld22e
+manage_a_sequence
+	lda $3c
+	and #$03
+	sta $36
+	lda $3c
+	asl
+	bmi Ld22b
+	asl
+	asl
+Ld23b	
+	BMI Ld24e
+	LDA $3E
+	AND #$3F
+	TAX
+	LSR $3C
+Ld244
+	LDA $0285 ; FIXME
+	JSR $D178 ; FIXME
+	DEX
+	BNE Ld244
+	RTS
+Ld24e	
+	LDA $36
+	BEQ Ld26f
+	LDA $3E
+	CMP #$30
+	BCC Ld26a
+	CMP #$59
+	BCS Ld26a
+	STA $0282
+	DEC $3C
+	LDA #$07
+	STA $34
+	LDA #$00
+	STA $32
+	RTS
+Ld26a
+	lsr $3c
+	jmp $d178
+Ld26f	
+	lsr $3c
+	lda $3e
+	cmp #$30
+	bcc Ld26a
+	cmp #$69
+	bcs Ld26a
+	and #$3f
+	sta $0283
+	lda $3e
+	cmp #$40
+	BCS Ld2a3 ;FIXME
+	lda $0282
+	and  #$03
+	asl
+	asl
+	adc $0282
+	sbc #$2f
+	asl
+	adc $283
+	sbc #$2f
+	sta $39
+	jsr $d3d7 ; FIXME
+
+	jsr $d759 ; FIXME
+	jmp $d140 ; FIXME
+Ld2a3		
+	jsr $d759 ; FIXME
+	lda $0283
+	sta $38
+	dec $38
+	lda $0282 ; CORRECTME
+	and #$3f
+	sta $39
+	jmp $d140 ; FIXME
+
+/*END routine */
+	
+	.byt $a6,$36,$a5,$3e,$e0,$03,$d0,$22,$8d
 	.byt $82,$02,$a2,$00,$86,$35,$c9,$36,$f0,$0d,$c9,$39,$90,$22,$c9,$3c
 	.byt $b0,$1e,$29,$03,$e9,$00,$2c,$a9,$00,$09,$c0,$85,$3c,$60,$46,$3c
 	.byt $60,$e6,$35,$a6,$35,$9d,$81,$02,$c6,$3c,$c6,$36,$10,$ef,$30,$ee
@@ -1533,7 +1711,7 @@ loop31
 	.byt $50,$13,$c6,$2f,$c6,$31,$48,$38,$a5,$38,$e9,$28,$a8,$68,$20,$a7
 	.byt $d5,$e6,$2f,$e6,$31,$a4,$38,$20,$af,$d5,$24,$36,$10,$08,$c8,$48
 	.byt $8a,$91,$2e,$68,$91,$30,$60,$20,$75,$cf,$4c,$4d,$d7
-
+Ld5db
 routine_to_define_7
 	LDA #$00
 	STA FLGVD0
@@ -1942,6 +2120,7 @@ routine_to_define_8
 	.byt $02,$09,$65,$8d,$1e,$03,$ad,$21,$03,$29,$ef,$8d,$21,$03,$a9,$38
 
 	.byt $8d,$1f,$03,$60
+Ldb54	
 init_rs232
 	; RS232T: 
 	;	b0 to b3 : speed
