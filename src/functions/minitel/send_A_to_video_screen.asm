@@ -1,5 +1,5 @@
 send_A_to_video_screen
-.(
+
 	STA $3E
 	TYA
 	PHA
@@ -41,7 +41,7 @@ Ld1b1
 	STA $34
 Ld1bb
 	PHA
-	JSR $D530 ; FIXME
+	JSR Ld530 
 	JSR $D5DC ; FIXME
 	PLA
 	PHA
@@ -69,4 +69,5 @@ Ld1e6
 	TAY
 	LDA $00
 	RTS
+
 /* 102 Bytes end */

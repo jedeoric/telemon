@@ -4,3 +4,4 @@ cd src
 ..\md5sums a.o65 ..\original\telemon.rom
 cd ..
 
+ 

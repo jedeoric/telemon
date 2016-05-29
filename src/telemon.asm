@@ -885,200 +885,54 @@ next40
 	sta FLGTEL
 	rts
 	
-	;.byt $ad,$0d,$02,$09
-	;.byt $02,$8d,$0d,$02,$60
-/// A contains channel
-XOP0_ROUTINE
-	ldx #$00 ; Channel 0
-	.byt $2c
-XOP1_ROUTINE
-	ldx #$04 ; Channel 1
-	.byt $2c
-XOP2_ROUTINE	
-	ldx #$08 ; Channel 2
-	.byt $2c
-XOP3_ROUTINE	
-	ldx #$0c
-	pha
-Lc6f1	
-	pla
-	cmp $02ae,x
-	beq Lc704 
-	ldy $02ae,x
-	bpl Lc705
-	inx
-	pha
-	txa
-	and #$03
-	bne Lc6f1
-	pla
-Lc704	
-	rts
-Lc705
-
-	ldy #$0f
-Lc707	
-	cmp $2ae,y
-	beq Lc71b
-	dey
-
-	bpl Lc707
-	stx $19
-	pha
-
-	ldy #$80
-	tax
 	
-	jsr $c81c ; FIXME
+#include "functions/XOP.asm"
 
-	ldx $19
-	pla
-Lc71b	
-	sta $02AE,x
-	clc
-	rts
+	
 close_a_IO_on_a_channel
-XCL0_ROUTINE
-Lc720
-	ldx #0
-	.byt $2c
-XCL1_ROUTINE	
-	ldx #4
-	.byt $2c
-XCL2_ROUTINE	
-	ldx #8
-	.byt $2c	
-XCL3_ROUTINE	
-	ldx #$0c
-	ldy #3
-	cmp #0
-	beq Lc74e
-Lc731	
-	cmp $02ae,x
-	beq Lc73b 
-	inx
-	dey
-	bpl Lc731
-Lc73a	
-	rts
-Lc73b	
-	lsr $02ae,x
-	ldx #$0f
-Lc740	
-	cmp $02ae,x
-	beq Lc73a
-	dex
-	bpl Lc740
-	tax
-	ldy #$81
-	jmp $c81c ; FIXME
-Lc74e	
-	lsr $02ae,x
-	inx
-	dey
-	bpl Lc74e
-	rts
+
+#include "functions/XCL.asm"
+
 jump_a_line_on_channel_0
 Lc756	
 	lda #$0a
-	jsr send_a_code_on_channel ; FIXME
+	jsr XWSTR0_ROUTINE 
 	lda #$0d
 Lc75d	
 send_a_code_on_channel
 routine_to_define_17
+
+#include "functions/XWSTR.asm"
+Lc762
+
+
+
+	.byt $a2,$00,$2c,$a2,$04,$2c,$a2,$08
+	.byt $2c,$a2,$0c,$86,$1c,$85,$15,$84,$16,$a5,$1c,$85,$19,$a0,$00,$20
+	.byt $11,$04,$f0,$e3,$20,$72,$c7,$e6,$15,$d0,$ee,$e6,$16,$d0,$ea
+Lc7cf
+
+#include "functions/XRD.asm"
+#include "functions/XWR.asm"	
+	
+
+Lc81c
+	STY $17
+	STY $18
 	PHA
-	LDA #$00
-	BEQ next37
-	PHA
-	LDA #$04
-	BNE next37
-	PHA
-	LDA #$08
-	BNE next37
-	PHA
-	LDA #$0C
-next37
-	STA $19
-	PLA
-	STA $1B
-	LDA #$04
-	STA $1A
 	TXA
-	PHA
-	TYA
-	PHA
-Lc77c	
-next39
-	LDX $19
-	LDA IOTAB0,X
-	CMP #$88
-	BCC next38
 	ASL
 	TAX
 	LDA $02BE,X
 	STA $02F8
 	LDA $02BF,X
-	STA $02F9 ; FIXME
-	LDA $1B
-	BIT $C795 ; FIXME
-	JSR $02F7 ; FIXME
-Lc79b	
-next38
-	INC $19
-	DEC $1A
-	BNE next39
+	STA $02F9
 	PLA
-	TAY
-	PLA
-	TAX
-	LDA $1B
-	RTS
-Lc81c
+	LSR $17
+	BIT $18
+	JMP $02F7
 
-	.byt $a2,$00,$2c,$a2,$04,$2c,$a2,$08
-	.byt $2c,$a2,$0c,$86,$1c,$85,$15,$84,$16,$a5,$1c,$85,$19,$a0,$00,$20
-	.byt $11,$04,$f0,$e3,$20,$72,$c7,$e6,$15,$d0,$ee,$e6,$16,$d0,$ea
-Lc7cf	
-XRD0_ROUTINE
-	lda #0
-	.byt $2c
-XRD1_ROUTINE	
-	lda #4
-	.byt $2c
-XRD2_ROUTINE		
-	lda #8
-	.byt $2c	
-XRD3_ROUTINE		
-	lda #$0c
 
-	STA $19
-	LDA #$04
-	STA $1A
-	TXA
-	PHA
-	TYA
-	PHA
-	LDX $19
-	LDA $02AE,X
-
-	.byt $10,$0e ; FIXME
-	cmp #$88
-	.byt $b0,$0a ; bcs FIXME
-	tax
-	ldy #$40
-	jsr $c81c ; FIXME
-	sta $1d
-	.byt $90,$06,$e6,$19,$c6,$1a,$d0,$e5,$68
-	.byt $a8,$68,$aa,$a5,$1d
-	rts
-	
-	
-	.byt $a9,$00,$2c,$a9,$04,$2c,$a9,$08,$2c,$a9
-	.byt $0c,$85,$1b,$a5,$1b,$20,$da,$c7,$b0,$f9,$38,$60
-
-	.byt $84,$17,$84,$18
-	.byt $48,$8a,$0a,$aa,$bd,$be,$02,$8d,$f8,$02,$bd,$bf,$02,$8d,$f9,$02
-	.byt $68,$46,$17,$24,$18,$4c,$f7,$02
 
 Lc838	
 data_to_define_1
@@ -1429,11 +1283,16 @@ Lcaa4
 	.byt <XRD2_ROUTINE,>XRD2_ROUTINE
 	.byt <XRD3_ROUTINE,>XRD3_ROUTINE
 	
+	.byt <XWR0_ROUTINE,>XWR0_ROUTINE
+	.byt <XWR1_ROUTINE,>XWR1_ROUTINE
+	.byt <XWR2_ROUTINE,>XWR2_ROUTINE
+	.byt <XWR3_ROUTINE,>XWR3_ROUTINE
 	
+	.byt <XWSTR0_ROUTINE,>XWSTR0_ROUTINE
 	
 ; POUET	
-	.byt $06,$c8,$09,$c8
-	.byt $0c,$c8,$0f,$c8,$5d,$c7,$62,$c7,$67,$c7,$6c,$c7,$a8,$c7,$ab,$c7
+
+	.byt $62,$c7,$67,$c7,$6c,$c7,$a8,$c7,$ab,$c7
 	.byt $ae,$c7,$b1,$c7,$6c,$cd,$75,$cf,$45,$cf,$06,$cf,$14,$cf,$31,$ff
 	.byt $bf,$c6,$f0,$d0,$69,$ce,$97,$ce,$89,$ce,$dc,$ce,$f0,$cf,$56,$c7
 	.byt $49,$e7,$00,$00,$ef,$cd,$39,$ce,$54,$ce,$9b,$f4,$e0,$cb,$35,$e4
@@ -1550,7 +1409,7 @@ routine_to_define_14
 loop31
 
 	LDA FUFTRV,Y
-	jSR routine_to_define_17
+	jSR XWSTR0_ROUTINE
 	INY
 	CPY TR4
 	BNE loop31
@@ -1633,7 +1492,7 @@ Ld1f3
 manage_control_code
 	jsr $d1f9 ; FIXME
 	jmp Ld1e6
-.)
+
 manage_code_control_videotex
 Ld1f9
 	tax
@@ -2002,26 +1861,119 @@ Ld46a
 	
 	.byt $70,$1e,$a2,$14,$dd,$a7
 	.byt $d4,$f0,$06,$ca,$10,$f8,$a9,$5f,$60,$e0,$05,$b0,$08,$8a,$09,$c0
-	.byt $85,$37,$a9,$00,$60,$29,$1f,$09,$80,$60,$48,$98,$29,$07,$aa,$bd
+	.byt $85,$37,$a9,$00,$60,$29,$1f,$09,$80,$60
+
+	.byt $48,$98,$29,$07,$aa,$bd
 	.byt $c1,$d4,$a8,$bd,$bc,$d4,$aa,$68,$dd,$c6,$d4,$f0,$06,$e8,$88,$d0
-	.byt $f7,$aa,$60,$bd,$de,$d4,$60,$41,$42,$43,$48,$4b,$20,$23,$24,$26
+	.byt $f7,$aa,$60
+
+	.byt $bd,$de,$d4,$60
+	.byt $41,$42,$43,$48,$4b,$20,$23,$24,$26
 	.byt $2c,$2d,$2e,$2f,$30,$31,$38,$3c,$3d,$3e,$6a,$7a,$00,$05,$07,$0e
 	.byt $11,$05,$02,$07,$03,$02,$41,$61,$45,$65,$75,$45,$65,$41,$61,$45
 	.byt $65,$75,$69,$6f,$45,$65,$69,$43,$63,$41,$42,$43,$48,$4b,$87,$97
 	.byt $89,$99,$88,$82,$92,$81,$86,$8b,$9b,$96,$80,$9f,$84,$93,$94,$85
-	.byt $95,$a2,$00,$c9,$a0,$90,$05,$e9,$5f,$a0,$13,$60,$a8,$30,$04,$a8
+	.byt $95,$a2,$00,$c9,$a0,$90,$05,$e9,$5f,$a0,$13,$60
+	
+	.byt $a8,$30,$04,$a8
 	.byt $a9,$00,$60,$a0,$12,$d9,$de,$d4,$f0,$13,$88,$10,$f8,$18,$69,$a0
-	.byt $c9,$2a,$f0,$04,$c9,$3a,$d0,$02,$09,$40,$a0,$19,$60,$98,$a2,$04
-	.byt $dd,$bc,$d4,$b0,$03,$ca,$d0,$f8,$bd,$d9,$d4,$be,$c6,$d4,$d0,$ea
-	.byt $85,$36,$06,$36,$06,$36,$a8,$10,$26,$48,$8a,$c9,$60,$90,$02,$e9
-	.byt $20,$38,$e9,$20,$85,$36,$a5,$33,$29,$40,$05,$36,$aa,$a5,$32,$29
-	.byt $70,$85,$36,$68,$29,$8f,$05,$36,$a4,$38,$84,$36,$4c,$af,$d5,$e0
-	.byt $20,$d0,$2b,$24,$32,$10,$27,$29,$70,$85,$35,$a5,$32,$29,$04,$09
-	.byt $80,$05,$35,$aa,$a5,$32,$29,$74,$85,$32,$29,$70,$85,$35,$4a,$4a
-	.byt $4a,$4a,$24,$34,$50,$04,$a5,$34,$29,$07,$05,$35,$09,$80,$24,$36
-	.byt $50,$13,$c6,$2f,$c6,$31,$48,$38,$a5,$38,$e9,$28,$a8,$68,$20,$a7
-	.byt $d5,$e6,$2f,$e6,$31,$a4,$38,$20,$af,$d5,$24,$36,$10,$08,$c8,$48
-	.byt $8a,$91,$2e,$68,$91,$30,$60,$20,$75,$cf,$4c,$4d,$d7
+	.byt $c9,$2a,$f0,$04,$c9,$3a,$d0,$02,$09,$40,$a0,$19,$60
+	
+	.byt $98,$a2,$04
+	.byt $dd,$bc,$d4,$b0,$03,$ca,$d0,$f8,$bd,$d9,$d4
+	
+
+	.byt $be,$c6,$d4,$d0,$ea
+Ld530	
+
+	STA $36
+	ASL $36
+	ASL $36
+	TAY
+	BPL Ld55f ; 
+	PHA
+	TXA
+	CMP #$60
+	BCC Ld541
+	SBC #$20
+Ld541
+	SEC
+	SBC #$20
+	STA $36
+	LDA $33
+	AND #$40
+	ORA $36
+	TAX
+	LDA $32
+	AND #$70
+	STA $36
+	PLA
+	AND #$8F
+	ORA $36
+	LDY $38
+	STY $36
+	JMP Ld5af	
+Ld55f	
+	CPX #$20
+	BNE Ld58e
+	BIT $32
+	BPL Ld58e
+	AND #$70
+	STA $35
+	LDA $32
+	AND #$04
+	ORA #$80
+	ORA $35
+	TAX
+	LDA $32
+	AND #$74
+	STA $32
+	AND #$70
+	STA $35
+	LSR
+	LSR
+	LSR
+	LSR
+	BIT $34
+	BVC Ld58a
+	LDA $34
+	AND #$07
+Ld58a
+	ORA $35
+	ORA #$80
+Ld58e
+	BIT $36
+	BVC Ld5a5
+	DEC $2F
+	DEC $31
+	PHA
+	SEC
+	LDA $38
+	SBC #$28
+	TAY
+	PLA
+	JSR Ld5a7
+	INC $2F
+	INC $31
+Ld5a5
+	LDY $38
+Ld5a7
+	JSR Ld5af
+	BIT $36
+	BPL Ld5b6
+	INY
+Ld5af
+	PHA
+	TXA
+	STA ($2E),Y
+	PLA
+	STA ($30),Y
+Ld5b6
+RTS
+
+
+
+	.byt $20,$75,$cf,$4c,$4d,$d7
 Ld5db
 routine_to_define_7
 	LDA #$00
@@ -2069,7 +2021,7 @@ routine_to_define_7
 routine_to_define_20
 	CLD
 	LDA $0272 ; CORRECTME
-	JMP next60; FIXME
+	JMP next60
 	DEC $0274 ; CORRECTME
 	BNE end2 
 	JSR routine_to_define_21 ; FIXME
