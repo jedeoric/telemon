@@ -12,6 +12,8 @@
 
 
 #define HAVE_MINITEL
+;#define HAVE_USBDRIVE
+
 	
 
 ; interrupt primitives
@@ -903,13 +905,37 @@ send_a_code_on_channel
 routine_to_define_17
 
 #include "functions/XWSTR.asm"
-Lc762
 
 
 
-	.byt $a2,$00,$2c,$a2,$04,$2c,$a2,$08
-	.byt $2c,$a2,$0c,$86,$1c,$85,$15,$84,$16,$a5,$1c,$85,$19,$a0,$00,$20
-	.byt $11,$04,$f0,$e3,$20,$72,$c7,$e6,$15,$d0,$ee,$e6,$16,$d0,$ea
+XDECAL_ROUTINE
+Lc7a8
+	ldx #0
+	.byt $2c
+	ldx #4
+	.byt $2c
+	ldx #$08
+	.byt $2c
+	ldx #$0c
+	STX $1C
+	STA $15
+	STY $16
+Lc7b9
+loop500
+	LDA $1C
+	STA $19
+
+	LDY #$00
+	JSR $0411
+	.byt $f0,$e3
+	JSR XWSTR0_re_enter_from_XDECAL	; FIXME
+	INC $15
+	bne loop500
+	INC $16
+
+	bne loop500
+
+
 Lc7cf
 
 #include "functions/XRD.asm"
@@ -1266,7 +1292,6 @@ Lca93
 
 	; table des vecteurs du brk
 vectors_telemon	
-Lcaa4
 	.byt <XOP0_ROUTINE,>XOP0_ROUTINE
 	.byt <XOP1_ROUTINE,>XOP1_ROUTINE
 	.byt <XOP2_ROUTINE,>XOP2_ROUTINE
@@ -1289,10 +1314,16 @@ Lcaa4
 	.byt <XWR3_ROUTINE,>XWR3_ROUTINE
 	
 	.byt <XWSTR0_ROUTINE,>XWSTR0_ROUTINE
+	.byt <XWSTR1_ROUTINE,>XWSTR1_ROUTINE
+	.byt <XWSTR2_ROUTINE,>XWSTR2_ROUTINE
+	.byt <XWSTR3_ROUTINE,>XWSTR3_ROUTINE
+	
+
 	
 ; POUET	
 
-	.byt $62,$c7,$67,$c7,$6c,$c7,$a8,$c7,$ab,$c7
+	.byt $a8,$c7
+	.byt $ab,$c7
 	.byt $ae,$c7,$b1,$c7,$6c,$cd,$75,$cf,$45,$cf,$06,$cf,$14,$cf,$31,$ff
 	.byt $bf,$c6,$f0,$d0,$69,$ce,$97,$ce,$89,$ce,$dc,$ce,$f0,$cf,$56,$c7
 	.byt $49,$e7,$00,$00,$ef,$cd,$39,$ce,$54,$ce,$9b,$f4,$e0,$cb,$35,$e4
@@ -1477,9 +1508,9 @@ table_to_define prompt_charset
 /**** MINITEL **/
 /* 102 Bytes begin */
 Ld178
-#ifdef HAVE_MINITEL
+;#ifdef HAVE_MINITEL
 #include "functions/minitel/send_A_to_video_screen.asm"
-#endif
+;#endif
 ; follow_a_sequence
 follow_a_sequence
 
@@ -1853,9 +1884,9 @@ CTRL_DOT_KEYBOARD
 	sta $3c
 	rts
 ; MINITEL
-#define HAVE_MINITEL
+;#define HAVE_MINITEL
 #include "functions/minitel/send_a_data_to_videotex_screen.asm"
-#endif
+;#endif
 Ld46a
 	
 	
@@ -1983,30 +2014,33 @@ routine_to_define_7
 	rts
 
 	.byt $10,$11,$b0,$ed,$20,$45,$cf,$20,$bd,$d5
-	.byt $a9,$96,$a0,$d7,$20,$f9,$fe,$a9,$0c,$4c,$78,$d1,$46,$3d,$08,$26
-	.byt $3d,$28,$b0,$2b,$a4,$38,$f0,$27,$48,$8a,$48,$88,$b1,$2e,$30,$1b
-	.byt $aa,$b1,$30,$30,$06,$e0,$20,$d0,$12,$f0,$05,$8a,$29,$3f,$d0,$0b
-	.byt $a5,$34,$29,$07,$c6,$38,$20,$48,$d6,$e6,$38,$68,$aa,$68,$18,$a8
-	.byt $10,$41,$8a,$30,$25,$a0,$00,$a9,$9c,$84,$00,$85,$01,$8a,$85,$03
-	.byt $20,$b2,$fe,$a2,$07,$bd,$00,$9c,$24,$03,$70,$03,$3d,$09,$d7,$09
-	.byt $40,$9d,$00,$9c,$ca,$10,$ee,$4c,$b0,$d6,$a9,$00,$b0,$02,$a5,$32
-	.byt $4a,$4a,$4a,$4a,$29,$07,$09,$10,$a2,$0f,$9d,$00,$9c,$ca,$10,$fa
-	.byt $4c,$9f,$d6,$8a,$a2,$13,$86,$03,$0a,$26,$03,$0a,$26,$03,$0a,$26
-	.byt $03,$85,$02,$a0,$07,$b1,$02,$09,$40,$99,$00,$9c,$88,$10,$f6,$a4
-	.byt $38,$b1,$2e,$10,$06,$29,$04,$d0,$07,$f0,$0a,$88,$10,$f3,$30,$05
-	.byt $a9,$3f,$8d,$07,$9c,$24,$36,$10,$16,$a2,$07,$bd,$00,$9c,$85,$02
-	.byt $20,$f5,$d6,$9d,$08,$9c,$20,$f5,$d6,$9d,$00,$9c,$ca,$10,$ec,$24
-	.byt $34,$50,$0d,$a0,$0f,$b9,$00,$9c,$09,$80,$99,$00,$9c,$88,$10,$f5
-	.byt $a5,$2c,$a4,$2d,$24,$36,$50,$07,$38,$e9,$40,$88,$b0,$01,$88,$85
-	.byt $00,$84,$01,$a2,$00,$46,$03,$a4,$38,$bd,$00,$9c,$91,$00,$24,$36
-	.byt $10,$06,$bd,$08,$9c,$c8,$91,$00,$18,$a5,$00,$69,$28,$85,$00,$90
-	.byt $02,$e6,$01,$24,$36,$50,$08,$a5,$03,$49,$80,$85,$03,$30,$d8,$e8
-	.byt $e0,$08,$d0,$d3,$60,$a9,$00,$a0,$03,$46,$02,$08,$6a,$28,$6a,$88
+	.byt $a9,$96,$a0,$d7,$20,$f9,$fe,$a9,$0c,$4c,$78,$d1
+
+#ifdef HAVE_MINITEL
+; 281 bytes
+#include "functions/minitel/display_in_videotex_mode.asm"
+#endif
+#ifdef HAVE_USBDRIVE
+; 281 bytes reserved
+
+#include "functions/usbdrive/ch376_primitives.asm"
+#endif	
+
+	
+	
+	.byt $a9,$00,$a0,$03,$46,$02,$08,$6a,$28,$6a,$88
 	.byt $d0,$f7,$4a,$4a,$29,$3f,$09,$40,$60,$1b,$1b,$00,$1b,$00,$1b,$1b
-	.byt $00,$a9,$00,$a2,$03,$a4,$3b,$f0,$09,$ca,$a9,$03,$88,$f0,$03,$e8
-	.byt $a9,$05,$20,$69,$ce,$a5,$2c,$a4,$2d,$20,$89,$ce,$a9,$38,$a4,$3a
-	.byt $f0,$02,$a9,$07,$85,$02,$a4,$38,$b1,$00,$0a,$30,$02,$a9,$80,$6a
-	.byt $45,$02,$91,$00,$98,$18,$69,$28,$a8,$ca,$d0,$ec,$60,$18,$24,$38
+	.byt $00
+	
+;#ifdef HAVE_MINITEL	
+#include "functions/minitel/minitel_display_mosaique.asm"
+;#endif	
+
+
+
+
+	
+	.byt $18,$24,$38
 	.byt $08,$06,$3d,$28,$66,$3d,$a9,$80,$2c,$a9,$00,$25,$3d,$24,$3d,$50
 	.byt $02,$a9,$00,$85,$02,$a5,$2c,$a4,$2d,$85,$00,$84,$01,$a4,$38,$b1
 	.byt $30,$30,$0a,$29,$40,$f0,$06,$a5,$02,$49,$80,$85,$02,$a2,$08,$a4

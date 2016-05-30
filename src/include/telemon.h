@@ -316,6 +316,10 @@
 /// string must be terminated by 0. Manage CRLF
 #define XWSTR1 $15
 
+
+#define XWSTR2 $16
+#define XWSTR3 $17
+
 /// @brief [PRIMITIVE] move memory 
 /// This vector move memory 
 /// @param A (accumulator)  [in] The desired low adress of the memory 
@@ -351,6 +355,9 @@
  BRK XDECAL
  
  */
+ 
+
+ 
 /// @see DECFIN DECDEB DECCIB
 /// 
 #define XDECAL $18 

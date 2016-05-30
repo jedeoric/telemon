@@ -9,7 +9,9 @@ XRD2_ROUTINE
 	.byt $2c	
 XRD3_ROUTINE		
 	lda #$0c
+
 Lc7da
+.(
 	STA $19
 	LDA #$04
 	STA $1A
@@ -25,10 +27,11 @@ Lc7da
 	.byt $b0,$0a ; bcs FIXME
 	tax
 	ldy #$40
-	jsr $c81c ; FIXME
+	jsr Lc81c
 	sta $1d
 	.byt $90,$06,$e6,$19,$c6,$1a,$d0,$e5,$68
 	.byt $a8,$68,$aa,$a5,$1d
+.)	
 	rts
 	
 	

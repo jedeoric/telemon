@@ -14,9 +14,9 @@ XOP3_ROUTINE
 	pha
 Lc6f1	
 	pla
-	cmp $02ae,x
+	cmp IOTAB0,x
 	beq Lc704 
-	ldy $02ae,x
+	ldy IOTAB0,x
 	bpl Lc705
 	inx
 	pha
@@ -30,7 +30,7 @@ Lc705
 
 	ldy #$0f
 Lc707	
-	cmp $2ae,y
+	cmp IOTAB0,y
 	beq Lc71b
 	dey
 
@@ -46,6 +46,6 @@ Lc707
 	ldx $19
 	pla
 Lc71b	
-	sta $02AE,x
+	sta IOTAB0,x
 	clc
 	rts
