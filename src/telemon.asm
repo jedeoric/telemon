@@ -4,17 +4,20 @@
 #include "include/acia6551.h"
 #include "include/fdc1793.h"
 
+;pouet
+
 #define CDRIVE $314
 
 
 #define BRK_TELEMON(value)\
 	.byt 00,value;\
 
-
-#define HAVE_MINITEL
-;#define HAVE_USBDRIVE
-
 	
+;#define HAVE_MINITEL
+;#define HAVE_MINITEL
+;#define HAVE_USBDRIVE
+;#echo PREPROCESSOR_CMD
+;#printdef HAVE_MINITEL
 
 ; interrupt primitives
 
@@ -215,7 +218,7 @@ next5
 next6
 	JSR routine_to_define_9 ; $DF5B 
 	JSR routine_to_define_8	 ; routine_to_define_8
-	JSR routine_to_define_7 ; 
+	JSR init_minitel ; 
 	JSR init_joystick ; $DFAB
 	JSR init_rs232 ; $DB54 
 	; Here we go :  set up keyboard !
@@ -568,8 +571,15 @@ str_KOROM
 str_drive
 	.asc "Drive:",0
 str_telemon
-	.asc $0d,$0a,"TELEMON V2.4"
-	str_oric_international
+	.asc $0d,$0a,"TELEMON V2."
+#ifdef HAVE_MINITEL	
+	.byt "4"
+#endif	
+#ifdef HAVE_USBDRIVE	
+	.byt "5"
+#endif	
+
+str_oric_international
 	.asc $0d,$0a,"(c) 1986 ORIC International",$0d,$0a,$00
 str_printer
 	.asc $0a,"Imprimante",0
@@ -698,17 +708,28 @@ ROUTINE_TO_DEFINE_40
 
 	LDA #$00
 lc50e
-	BIT $01A9 ; CORRECTME
-	BIT $C524 ; CORRECTME
+	.byt $2c
+	lda #1
+	;BIT $01A9 ; CORRECTME
+	.byt $2c
+	.byt $24
+	.byt $c5
+	;BIT $C524 ; CORRECTME
 next19
 	SEC
 	JMP $0409
-
-	BIT $C518 ; CORRECTME
+Lc518
+	.byt $2c
+	.byt $18 
+	.byt $c5
+	;BIT $C518 ; CORRECTME
 	
 	BVC next20
-LC51D		
-	BIT $C524 ; CORRECTME
+LC51D
+	.byt $2c
+	.byt $24
+	.byt $c5
+	;BIT $C524 ; CORRECTME
 next20
 	CLC
 	JMP $0409
@@ -741,7 +762,7 @@ code_adress_419
 	SEI
 	PHA
 	LDA V2DRA
-	AND #$F8
+	AND #%11111000
 	STA V2DRA
 	PLA
 	JSR $C500 ; FIXME
@@ -928,7 +949,7 @@ loop500
 	LDY #$00
 	JSR $0411
 	.byt $f0,$e3
-	JSR XWSTR0_re_enter_from_XDECAL	; FIXME
+	JSR XWSTR0_re_enter_from_XDECAL
 	INC $15
 	bne loop500
 	INC $16
@@ -1643,7 +1664,7 @@ management_sequence_esc
 	BCS Ld2f0
 	AND #$03
 	SBC #$00
-	.byt $2c ; don't know
+	.byt $2c ;jump 2 instructions
 Ld2d7	
 	lda #00
 	ora #$c0
@@ -1887,6 +1908,11 @@ CTRL_DOT_KEYBOARD
 ;#define HAVE_MINITEL
 #include "functions/minitel/send_a_data_to_videotex_screen.asm"
 ;#endif
+;#define HAVE_USBDRIVE
+;.dsb 40,0
+;#endif
+
+
 Ld46a
 	
 	
@@ -2006,6 +2032,7 @@ RTS
 
 	.byt $20,$75,$cf,$4c,$4d,$d7
 Ld5db
+init_minitel
 routine_to_define_7
 	LDA #$00
 	STA FLGVD0
@@ -2019,21 +2046,27 @@ routine_to_define_7
 #ifdef HAVE_MINITEL
 ; 281 bytes
 #include "functions/minitel/display_in_videotex_mode.asm"
+	.byt $a9,$00,$a0,$03,$46,$02,$08,$6a,$28,$6a,$88
+	.byt $d0,$f7,$4a,$4a,$29,$3f,$09,$40,$60,$1b,$1b,$00,$1b,$00,$1b,$1b
+	.byt $00
+#include "functions/minitel/minitel_display_mosaique.asm"
 #endif
+
+
 #ifdef HAVE_USBDRIVE
 ; 281 bytes reserved
-
+.dsb 50,0
+.dsb 186,0
+.asc "kernel.x02",0
 #include "functions/usbdrive/ch376_primitives.asm"
 #endif	
 
 	
 	
-	.byt $a9,$00,$a0,$03,$46,$02,$08,$6a,$28,$6a,$88
-	.byt $d0,$f7,$4a,$4a,$29,$3f,$09,$40,$60,$1b,$1b,$00,$1b,$00,$1b,$1b
-	.byt $00
+
 	
 ;#ifdef HAVE_MINITEL	
-#include "functions/minitel/minitel_display_mosaique.asm"
+
 ;#endif	
 
 
@@ -2166,10 +2199,10 @@ next71
 next74
 	PLA
 	LDX #$00
-	JSR LC51D ; FIXME 
+	JSR LC51D
 	PLA
 	LDX #$00
-	JSR LC51D; FIXME
+	JSR LC51D
 	BIT $0275
 	BVC end3
 	LDX #$CF
@@ -2394,18 +2427,97 @@ routine_to_define_8
 	rts
 Lda70	
 	.byt $30,$60
-Lda72	
-	.byt $48,$8a,$48,$a9,$82,$8d,$0e,$03,$ba,$bd,$02,$01,$20,$a5
-	.byt $da,$2c,$8a,$02,$70,$1b,$c9,$20,$b0,$06,$c9,$0d,$d0,$13,$f0,$0c
-	.byt $ae,$86,$02,$e8,$ec,$88,$02,$90,$05,$20,$e4,$da,$a2,$00,$8e,$86
-	.byt $02,$68,$aa,$68,$60,$aa,$ad,$8a,$02,$29,$04,$f0,$08,$20,$2f,$db
-	.byt $8a,$a2,$18,$d0,$0a,$ad,$0d,$02,$29,$02,$f0,$15,$8a,$a2,$24,$2c
-	.byt $8a,$02,$70,$06,$c9,$7f,$d0,$02,$a9,$20,$48,$20,$1d,$c5,$68,$b0
-	.byt $ee,$60,$b0,$0c,$ad,$8a,$02,$29,$04,$d0,$06,$a9,$82
-	.byt $8d,$0e,$03
-	.byt $60
+Lda72
+.(
+	PHA
+	TXA
+	PHA
+	LDA #$82
+	STA $030E
+	TSX
+	LDA $0102,X
+	JSR $DAA5 ; FIXME
+	BIT $028A
+	BVS next901
+	CMP #$20
+	BCS next900
+	CMP #$0D
+	BNE next901
+	BEQ next902
+next900
+	LDX $0286
+	INX
+	CPX $0288
+	BCC next903
+	JSR Ldae4 ; FIXME
+next902
+	LDX #$00
+next903
+	STX $0286
+next901
+	PLA
+	TAX
+	PLA
 
-	.byt $4c,$7d,$db
+	RTS
+/*
+	TAX
+	LDA $028A
+	AND #$04
+	BEQ next905
+	JSR $DB2F ; FIXME
+	TXA
+	LDX #$18
+	BNE next906
+next905
+	LDA $020D
+	AND #$02
+	BEQ next907
+	TXA
+	LDX #$24
+
+
+
+*/
+.)	
+
+	.byt $aa,$ad,$8a,$02
+
+	.byt $29,$04,$f0,$08,$20,$2f,$db
+	.byt $8a,$a2,$18,$d0,$0a,$ad,$0d,$02,$29,$02,$f0,$15,$8a,$a2,$24
+
+next906
+	BIT $028A	
+	BVS next909
+
+	CMP #$7F
+	BNE next909
+
+	
+	LDA #$20
+next909
+	PHA	
+	JSR $C51D ; FIXME
+	pla 
+	bcs next906
+
+	rts
+
+	
+	BCS next908
+	LDA $028A
+	AND #$04
+	BNE Ldae1	
+	
+	LDA #$82
+	STA $030E
+next908
+	RTS
+
+	
+Ldae1
+	jmp $db7d ; FIXME
+	
 Ldae4
 	PHA
 	LDA #$0D
@@ -2426,7 +2538,7 @@ Ldafe
 	LDA $031E
 	AND #$0D
 	ORA #$60
-	BNE $DB43 ; FIXME
+	BNE Ldb43 
 Ldb09
 	LDA $031E
 	ORA #$02
@@ -2437,7 +2549,9 @@ Ldb12
 .byt 	$30,$26,$aa,$10,$0f,$c9,$c0,$b0,$0b,$09,$40,$48,$a9,$1b
 	.byt $a2,$18,$20,$1d,$c5,$68,$48,$a2,$18,$20,$1d,$c5,$68,$b0,$f7,$ad
 	.byt $1e,$03,$29,$f3,$09,$04,$8d,$1e,$03,$60,$b0,$17,$ad,$1e,$03,$29
-	.byt $02,$09,$65,$8d,$1e,$03,$ad,$21,$03,$29,$ef,$8d,$21,$03,$a9,$38
+	.byt $02,$09,$65
+Ldb43	
+	.byt $8d,$1e,$03,$ad,$21,$03,$29,$ef,$8d,$21,$03,$a9,$38
 
 	.byt $8d,$1f,$03,$60
 Ldb54	
@@ -2484,7 +2598,7 @@ Ldbce
 	LDA FLGSCR,X
 	PHA
 	
-	JSR lde1e ; FIXME POUET
+	JSR lde1e 
 	LDA #$DC
 	PHA
 	LDA #$2A
@@ -2988,24 +3102,26 @@ Le1b7
 	PHA
 	LDA $0224,X
 	PHA
+
 	LDA #$1E
 	JSR Ldbb5 
-	JSR Ldae4 
+	JSR Ldae4
+Le1cb
 	LDX $28
 	LDY $0220,X
 	LDA ($26),Y
 	CMP #$20
-	BCS $E1D8
+	BCS Le1d8
 	LDA #$20
 Le1d8
-	JSR $DA72  ; FIXME
+	JSR Lda72  
 	LDA $0220,X
 	CMP $022C,X
 	BEQ Le1eb 
 Le1e3
 	LDA #$09
 	JSR Ldbb5 
-	JMP $E1CB  ; FIXME
+	JMP Le1cb 
 Le1eb
 	JSR Ldae4  
 	LDX $28
@@ -3037,7 +3153,7 @@ Le21a
 Le226
 	LDA #$20
 Le228
-	JSR $DA72  ; FIXME
+	JSR Lda72  
 	LDA #$09
 	JSR Ld178  
 	LDA $38
@@ -3049,7 +3165,7 @@ Le228
 	PLA
 	STA $0286
 	rts
-	
+POUET2	
 	
 
 	.byt $18,$33,$1b,$0a,$0d,$00,$f0,$4b,$1b,$0d,$0a,$40,$1b,$0a,$0a
@@ -3210,10 +3326,52 @@ Le228
 	.byt $20,$e7,$d9,$a9,$00,$aa,$8a,$48,$a9,$00,$20,$1a,$da,$a2,$00,$ca
 	.byt $d0,$fd,$68,$aa,$e8,$e0,$70,$d0,$ed,$a9,$08,$a2,$00,$4c,$1a,$da
 	.byt $a2,$0c,$4c,$5d,$db,$20,$10,$ec,$b0,$fb,$60,$2c,$1b,$ec,$4c,$79
-	.byt $db,$24,$5b,$70,$24,$aa,$30,$10,$c9,$20,$b0,$1d,$69,$20,$48,$a9
-	.byt $02,$20,$49,$ec,$68,$4c,$49,$ec,$c9,$a0,$b0,$04,$69,$c0,$b0,$ee
-	.byt $29,$7f,$48,$a9,$01,$20,$49,$ec,$68,$2c,$49,$ec,$4c,$12,$db,$86
-	.byt $0c,$84,$0d,$48,$24,$5b,$10,$06,$20,$21,$ec,$4c,$61,$ec,$20,$1b
+	.byt $db
+Minitel	
+send_a_to_minitel output
+.(
+Lec21
+	bit $5b
+	bvs Lec49 
+	tax
+	bmi next910
+	cmp #$20
+	bcs Lec49 
+	adc #$20
+next912	
+	pha
+	lda #$02
+	jsr Lec49 
+	pla 
+	jmp Lec49 
+next910
+	cmp #$A0
+	
+	bcs next911 
+	adc #$c0
+	
+	bcs next912 
+next911	
+	and #$7f
+	pha 
+	lda #1
+	jsr Lec49
+	pla 
+Lec49	
+	bit Lec49
+	jmp $db12 ; FIXME
+.)	
+send_A_to_serial_output_with_check
+Lec4f
+; MINITEL
+	stx $0C
+	sty $0d
+	pha
+	bit $5b
+	bpl $ec5e ; FIXME
+	jsr $ec21 ; FIXME
+	
+	.byt $4c,$61,$ec,$20,$1b
 	.byt $ec,$68,$45,$0e,$85,$0e,$a6,$0c,$a4,$0d,$60,$86,$0c,$84,$0d,$0e
 	.byt $7e,$02,$90,$03,$68,$68,$60,$24,$5b,$30,$10,$20,$10,$ec,$b0,$ef
 	.byt $48,$45,$0e,$85,$0e,$68,$a6,$0c,$a4,$0d,$60,$20,$b4,$ec,$b0,$df
@@ -3240,7 +3398,10 @@ Le228
 	.byt $ec,$20,$0a,$ee,$4c,$c7,$ec,$66,$5b,$38,$66,$5b,$20,$d9,$ec,$20
 	.byt $0a,$ee,$4c,$d7,$ec,$66,$5b,$46,$5b,$a9,$40,$8d,$0e,$03,$20,$c1
 	.byt $ec,$20,$56,$ee,$a9,$c0,$8d,$0e,$03,$4c,$bf,$ec,$66,$5b,$38,$66
-	.byt $5b,$20,$d1,$ec,$20,$56,$ee,$4c,$cf,$ec,$24,$5b,$70,$03,$20,$fd
+	.byt $5b
+	
+	
+	.byt $20,$d1,$ec,$20,$56,$ee,$4c,$cf,$ec,$24,$5b,$70,$03,$20,$fd
 	.byt $ec,$20,$df,$ec,$a9,$00,$85,$0e,$ad,$2a,$05,$f0,$12,$a0,$00,$b1
 	.byt $00,$20,$4f,$ec,$ce,$2a,$05,$e6,$00,$d0,$ed,$e6,$01,$d0,$e9,$ad
 	.byt $2b,$05,$f0,$1d,$a0,$00,$b1,$00,$20,$4f,$ec,$c8,$d0,$f8,$ce,$2b
@@ -3260,27 +3421,225 @@ Le228
 	.byt $f7,$e0,$0f,$b0,$e2,$58,$a9,$0a,$85,$44,$a5,$44,$d0,$fc,$18,$60
 	.byt $20,$d9,$ec,$a9,$6f,$20,$30,$ef,$a9,$68,$20,$30,$ef,$4c,$d7,$ec
 	.byt $48,$a9,$1b,$20,$49,$ec,$a9,$39,$20,$49,$ec,$68,$4c,$49,$ec,$20
-	.byt $d9,$ec,$a9,$67,$20,$30,$ef,$4c,$d7,$ec,$20,$d1,$ec,$a9,$fa,$85
-	.byt $44,$a5,$44,$c9,$f0,$d0,$fa,$a2,$0c,$20,$0c,$c5,$a5,$44,$d0,$05
-	.byt $20,$cf,$ec,$38,$60,$20,$b4,$ec,$b0,$f2,$c9,$13,$d0,$ee,$20,$b9
-	.byt $ec,$c9,$53,$d0,$e7,$20,$cf,$ec,$18,$60,$48,$20,$d9,$ec,$68,$20
-	.byt $49,$ec,$4c,$d7,$ec,$48,$20,$c9,$ec,$68,$20,$1b,$ec,$4c,$c7,$ec
-	.byt $a9,$e4,$a0,$f5,$4c,$af,$ef,$60,$20,$ec,$f1,$a5,$65,$49,$ff,$85
-	.byt $65,$45,$6d,$85,$6e,$a5,$60,$4c,$b2,$ef,$20,$e5,$f0,$90,$3f,$20
-	.byt $ec,$f1,$d0,$03,$4c,$77,$f3,$ba,$86,$89,$a6,$66,$86,$7f,$a2,$68
-	.byt $a5,$68,$a8,$f0,$d2,$38,$e5,$60,$f0,$24,$90,$12,$84,$60,$a4,$6d
-	.byt $84,$65,$49,$ff,$69,$00,$a0,$00,$84,$7f,$a2,$60,$d0,$04,$a0,$00
-	.byt $84,$66,$c9,$f9,$30,$c4,$a8,$a5,$66,$56,$01,$20,$fc,$f0,$24,$6e
-	.byt $10,$57,$a0,$60,$e0,$68,$f0,$02,$a0,$68,$38,$49,$ff,$65,$7f,$85
-	.byt $66,$b9,$04,$00,$f5,$04,$85,$64,$b9,$03,$00,$f5,$03,$85,$63,$b9
-	.byt $02,$00,$f5,$02,$85,$62,$b9,$01,$00,$f5,$01,$85,$61,$b0,$03,$20
-	.byt $90,$f0,$a0,$00,$98,$18,$a6,$61,$d0,$4a,$a6,$62,$86,$61,$a6,$63
-	.byt $86,$62,$a6,$64,$86,$63,$a6,$66,$86,$64,$84,$66,$69,$08,$c9,$28
-	.byt $d0,$e4,$a9,$00,$85,$60,$85,$65,$60,$65,$7f,$85,$66,$a5,$64,$65
-	.byt $6c,$85,$64,$a5,$63,$65,$6b,$85,$63,$a5,$62,$65,$6a,$85,$62,$a5
-	.byt $61,$65,$69,$85,$61,$4c,$81,$f0,$69,$01,$06,$66,$26,$64,$26,$63
-	.byt $26,$62,$26,$61,$10,$f2,$38,$e5,$60,$b0,$c7,$49,$ff,$69,$01,$85
-	.byt $60,$90,$0c,$e6,$60,$f0,$40,$66,$61,$66,$62,$66,$63,$66,$64,$60
+	.byt $d9,$ec,$a9,$67,$20,$30,$ef,$4c,$d7,$ec
+Lef4a
+#ifdef HAVE_MINITEL	
+WCXFIN
+
+; Wait CONNEXION/FIN in 25 seconds (minitel function)
+	; MINITEL 
+	jsr $ecd1 ; FIXME
+	lda #$fa
+	sta $44
+loop600	
+	lda $44
+	cmp #$f0
+	bne loop600
+	ldx #$0c
+	jsr $c50c ; FIXME
+loop601	
+	lda $44
+	bne  next600
+	jsr $eccf ; FIXME
+	
+	sec
+	rts
+next600	
+	jsr $ecb4 ; FIXME
+	bcs  loop601
+	cmp #$13
+	bne loop601
+	jsr $ecb9 ; FIXME POUET
+	cmp #$53
+	bne loop601
+	jsr $eccf ; FIXME
+	clc
+	rts
+
+MOUT
+; minitel 
+	pha
+	jsr $ecd9 ; FIXME
+	pla
+	jsr $ec49 ; FIXME
+	jmp $ecd7 ;FIXME
+#endif
+
+
+#ifdef HAVE_USBDRIVE
+.dsb 59,0
+#endif 
+
+SOUT
+; RS232 
+	pha 
+	jsr $ecc9
+	pla
+	jsr $ec1b ; FIXME
+	jmp $ecc7 ; FIXME
+add_0_5_A_ACC1
+	lda #$e4
+	ldy #$f5
+	jmp $efaf ; AY+acc1 ; FIXME
+Lef97 	
+	rts ; Don't know why there is this RTS !
+
+ACC2_ACC1	
+	.byt $20,$ec,$f1 ; ??? FIXME
+	lda $65
+	eor #$ff
+	sta $65
+	eor $6d
+	sta $6e
+	lda $60
+	jmp $efb2
+Lefaa
+mantisse_A
+	jsr $f0e5 ; FIXME
+	bcc $efee ; FIXME
+
+AY_add_acc1
+		jsr $f1ec ; FIXME
+Lefb2	
+ACC2_ADD_ACC1	
+	bne  next700
+	jmp $f377 ; FIXME
+next700	
+	tsx
+	stx $89
+	ldx $66
+	stx $7f
+	ldx #$68
+	lda $68
+	tay 
+	beq Lef97 
+	sec
+	sbc $60
+	beq next802	
+	bcc next801 
+	sty $60
+	ldy $6d
+	sty $65
+	eor #$ff
+	adc #0
+	
+	ldy #00
+	sty $7f
+	ldx #$60
+	bne next800
+next801	
+	ldy #0
+	sty $66
+next800	
+	cmp #$f9
+	bmi mantisse_A
+	tay
+	lda $66
+	lsr $01,x
+	
+	jsr $f0fc ; FIXME
+next802	
+	bit $6e
+	bpl Lf049 
+	ldy #$60
+	cpx #$68
+	beq $effa ; FIXME
+	ldy #$68
+	sec
+	eor #$ff
+	adc $7f
+	sta $66
+	lda $0004,y
+	sbc $04,x
+	sta $64
+	lda $0003,y
+	sbc $03,x
+	sta $63
+	lda $0002,y
+	sbc $02,x
+	sta $62
+	lda $0001,y
+	sbc $01,x
+	sta $61
+
+	bcs $f022 ; FIXME
+	jsr $f090 ; FIXME
+
+	ldy #00
+	tya
+	clc
+	ldx $61
+	
+	bne $f074 ; FIXME
+	ldx $62
+	stx $61 
+	
+	ldx $63
+	stx $62
+
+	ldx $64
+	
+	stx $63
+
+	ldx $66
+	stx $64
+	sty $66
+
+	adc #$08
+	cmp #$28
+	bne $f026 ; FIXME
+Lf042
+	lda #0
+	sta $60
+	sta $65	
+	rts
+Lf049
+
+	ADC $7F
+	STA $66
+	LDA $64
+	ADC $6C
+	STA $64
+	LDA $63
+	ADC $6B
+	STA $63
+	LDA $62
+	ADC $6A
+	STA $62
+	LDA $61
+	ADC $69
+	STA $61
+	JMP Lf081
+Ld068
+	ADC #$01
+	ASL $66
+	ROL $64
+	ROL $63
+	ROL $62
+	ROL $61
+	BPL Ld068
+	
+	SEC
+	SBC $60
+	BCS Lf042 
+	EOR #$FF
+	ADC #$01
+	STA $60
+Lf081
+	BCC Lf08f
+	INC $60
+	BEQ $F0C7 ; FIXME
+	ROR $61
+	ROR $62
+	ROR $63
+	ROR $64
+Lf08f
+	RTS
+Lf90	
+
+
+
+	
 	.byt $a5,$65,$49,$ff,$85,$65,$a5,$61,$49,$ff,$85,$61,$a5,$62,$49,$ff
 	.byt $85,$62,$a5,$63,$49,$ff,$85,$63,$a5,$64,$49,$ff,$85,$64,$a5,$66
 	.byt $49,$ff,$85,$66,$e6,$66,$d0,$0e,$e6,$64,$d0,$0a,$e6,$63,$d0,$06
