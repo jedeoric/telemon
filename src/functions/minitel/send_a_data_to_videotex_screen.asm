@@ -1,5 +1,5 @@
 send_a_data_to_videotex_screen
-	ldy $37
+	ldy $37 
 	bit $37
 	php
 	ldx #0
