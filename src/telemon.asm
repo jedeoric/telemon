@@ -413,7 +413,8 @@ display_cursor
 	LDX #$00
 	BRK_TELEMON(XCSSCR) ; display cursors
 	ldx VAPLIC
-	.byt $30,$30 ; FIXME
+	bmi $c286 ; FIXME
+
 	lda $02FE
 	ldy $02ff
 	
@@ -437,7 +438,7 @@ loop57
 	ORA #$08
 	STA ACIACR
 	LDA #$8F
-	BRK_TELEMON($05) 
+	BRK_TELEMON(XCL1) 
 	rts
 
 	.byt $00,$10,$00,$0c,$c9,$03,$d0,$03,$20,$00,$90,$c9
@@ -449,8 +450,7 @@ telemon_convert_to_decimal
 	LDX #$01
 	JMP routine_to_define_14 
 	
-	;.byt $a0,$00,$a2,$20,$86
-	;.byt $14,$a2,$01,$4c,$39,$ce
+
 init_via
 	lda #$7f 
 	sta V1IER ; Initialize via1
@@ -521,7 +521,9 @@ loop45
 	BNE loop45
 	LDA #$0F
 loop42
-	BIT $10A9 ; Transform to lda #$10 when is not equal 
+	.byt $2c
+	lda #$10
+
 loop44
 	STA BNKST,X ; Fill $fffb of each bank 
 	CMP #$02
@@ -596,7 +598,8 @@ str_license
 	.asc "Logiciel ecrit par Fabrice BROCHE",0
 str_loading_bonjour	
 	.asc "BONJOURCOM"
-data_to_define_6	
+data_to_define_6
+Lc45f
 	; FIVE Bbytes to load in CSRND
 	.byt $80,$4f,$c7,$52,$58
 loading_vectors_b800
@@ -910,21 +913,15 @@ next40
 	
 	
 #include "functions/XOP.asm"
-
-	
-close_a_IO_on_a_channel
-
 #include "functions/XCL.asm"
 
-jump_a_line_on_channel_0
-Lc756	
+
+Lc756
+XCRLF_ROUTINE
 	lda #$0a
 	jsr XWSTR0_ROUTINE 
 	lda #$0d
 Lc75d	
-send_a_code_on_channel
-routine_to_define_17
-
 #include "functions/XWSTR.asm"
 
 
@@ -948,7 +945,7 @@ loop500
 
 	LDY #$00
 	JSR $0411
-	.byt $f0,$e3
+	.byt $f0,$e3 ; FIXME
 	JSR XWSTR0_re_enter_from_XDECAL
 	INC $15
 	bne loop500
@@ -1362,10 +1359,52 @@ vectors_telemon
 	.byt $12,$fa,$00,$00,$e7,$e7,$d9,$e7,$c1,$e7,$cd,$e7,$92,$e7,$66,$e8
 	.byt $85,$e8,$cb,$e9,$2f,$e9,$3c,$e9,$5d,$e9,$5f,$e9,$19,$e8,$2c,$e8
 	.byt $73,$ea,$af,$ea,$93,$ea,$00,$00,$00,$00,$00,$00,$e5,$eb,$d9,$eb
-	.byt $84,$60,$85,$66,$86,$63,$a2,$00,$20,$1e,$de,$a4,$62,$a6,$66,$2c
-	.byt $e8,$c8,$20,$f9,$cc,$30,$04,$c4,$63,$d0,$f5,$86,$67,$a6,$60,$38
-	.byt $8a,$e5,$66,$18,$65,$62,$a8,$20,$d3,$cc,$20,$06,$c8,$48,$2c,$0d
-	.byt $02,$50,$0d,$a9,$08,$20,$5d,$c7,$a9,$20,$20,$5d,$c7,$4c,$2e,$cc
+
+Lcbe0	
+menu_deroulant
+.(
+	sty $60
+	sta $66
+	stx $63
+	ldx #0
+	jsr $de1e ; FIXME switch off cursor
+	ldy $62
+	ldx $66
+	.byt $2c
+Lcbf0
+	inx
+	
+	iny 
+
+
+	jsr $ccf9 
+	
+	bmi next
+	cpy $63
+	bne Lcbf0 
+next	
+	stx $67
+.)
+	ldx $60
+	sec
+	txa
+	sbc $66
+	clc
+	adc $62
+	tay 
+	jsr $ccd3 ; FIXME
+	jsr $c806 ; FIXME
+	pha
+	bit $020d ; Is it on minitel mode
+	
+	bvc $cc20 ; FIXME
+	lda #$08
+	jsr $c75d ; FIXME
+	lda #$20
+	jsr $c75d ; FIXME
+	jmp $cc2e ; FIXME
+	
+
 	.byt $a4,$61,$a6,$65,$b1,$26,$29,$7f,$91,$26,$c8,$ca,$d0,$f6,$68,$c9
 	.byt $20,$f0,$08,$c9,$1b,$f0,$04,$c9,$0d,$d0,$03,$a6,$60,$60,$c9,$0a
 	.byt $d0,$2b,$a5,$60,$c5,$67,$f0,$05,$e6,$60,$4c,$fd,$cb,$24,$68,$30
@@ -2287,22 +2326,52 @@ out1
 	RTS
 
 
+manage_I_O_keyboard
+Ld95c
+	bmi Ld985 ; FIXME
+	lda #1
+	sta $2a8
+	sta $2a6
+	php
+	sei
+	ldx #0
+	jsr $c518 ; FIXME
+	bcs Ld982 
+	sta $279
+	ldx #00
+	jsr $c518 ; FIXME
+	bcs Ld982 
+	sta $0278
+	lda $0279
+	plp
+	clc
+	rts
+Ld982	
+	plp
+	sec
+	rts
+Ld985	
+	bcc Ld98d
+	lda #$40
+	sta $030e
+	rts
+Ld98d	
+	lda $030b
+	ora #$40
+	sta $030b
 	
+	lda #$a8
+	ldy #$61
+	sta $304
+	sty $305
+	lda #$c0
+	sta $30e
 	
 
-	.byt $30,$27,$a9,$01
-	.byt $8d,$a8,$02,$8d,$a6,$02,$08,$78,$a2,$00,$20,$18,$c5,$b0,$13,$8d
-	.byt $79,$02,$a2,$00,$20,$18,$c5,$b0,$09,$8d,$78,$02,$ad,$79,$02,$28
-	.byt $18,$60,$28,$38,$60
-	
-	
-	.byt $90,$06,$a9,$40,$8d,$0e,$03,$60,$ad,$0b,$03
+flush_keyboard_buffer
+	ldx #$00
+	jmp $c50c ; FIXME
 
-	.byt $09,$40,$8d,$0b,$03,$a9,$a8,$a0,$61,$8d,$04,$03,$8c,$05,$03,$a9
-
-	.byt $c0,$8d,$0e,$03,$a2,$00,$4c,$0c
-
-	.byt $c5
 	
 data_to_define_KBDCOL	
 Ld9a9	
@@ -2310,7 +2379,7 @@ Ld9a9
 	.byt $80
 Ld9b1	
 routine_to_define_4	
-
+init_keyboard
 	LDA #$FF
 	STA $0303
 	STA $02A7
@@ -2333,6 +2402,7 @@ routine_to_define_4
 	LDA #$00
 	STA $027E
 	RTS
+send_14_paramaters_to_psg	
 ld9e7
 	CLC
 	BIT $38
@@ -2371,6 +2441,9 @@ lda04
 	STA $16
 	PLP
 	RTS
+	
+	
+	
 lda1a
 routine_to_define_11
 	PHA
@@ -3299,34 +3372,118 @@ POUET2
 	.byt $e7,$4c,$4e,$ea,$20,$cd,$e7,$4c,$4e,$ea,$24,$0d,$30,$03,$20,$92
 	.byt $e7,$a5,$0f,$d0,$a3,$a5,$11,$c5,$4d,$d0,$9d,$68,$a8,$68,$aa,$4c
 	.byt $f3,$e7,$85,$12,$86,$13,$a6,$0c,$a5,$13,$2a,$66,$13,$66,$12,$ca
-	.byt $d0,$f6,$60,$a5,$4b,$a4,$4c,$85,$00,$84,$01,$a6,$4f,$a4,$49,$a5
-	.byt $51,$91,$00,$c8,$ca,$d0,$fa,$a9,$28,$a0,$00,$20,$89,$ce,$c6,$4d
-	.byt $d0,$e9,$60,$85,$51,$84,$52,$86,$4f,$a9,$40,$85,$57,$a0,$00,$84
-	.byt $50,$c4,$4f,$b0,$ed,$b1,$51,$20,$b5,$ea,$a4,$50,$c8,$d0,$f0,$a5
+	.byt $d0,$f6,$60
+FILL_ROUTINE
+	lda $4b
+	ldy $4c
+	sta $00 
+	sty $01
+Lea7b
+	ldx $4f
+	ldy $49
+	lda $51
+Lea81	
+	sta (RES),y
+	iny
+	dex
+	bne Lea81 ; FIXME
+	lda #$28
+	ldy #0
+	jsr $ce89 ; FIXME
+	dec $4d
+	bne Lea7b ; FIXME
+Lea92	
+	rts
+	
+SCHAR_ROUTINE
+	sta $51
+	sty $52
+	stx $4f
+	lda #$40
+	sta $57
+	ldy #$00
+Lea9f
+	sty $50
+	cpy $4f
+	bcs Lea92 
+	lda ($51),y
+	jsr $eab5 ; FIXME
+	ldy $50
+	iny
+	bne Lea9f 
+CHAR_ROUTINE	
+	
+	.byt $a5
 	.byt $4d,$0a,$46,$4f,$6a,$48,$a5,$46,$c9,$ea,$90,$17,$a6,$4a,$a5,$47
 	.byt $69,$07,$a8,$e9,$bf,$90,$09,$f0,$07,$c9,$08,$d0,$02,$a9,$00,$a8
 	.byt $20,$f3,$e7,$68,$20,$31,$ff,$a0,$00,$84,$00,$a5,$49,$48,$a5,$4a
 	.byt $48,$b1,$02,$0a,$0a,$f0,$0c,$48,$10,$03,$20,$9c,$e7,$20,$d9,$e7
 	.byt $68,$d0,$f1,$20,$c1,$e7,$68,$85,$4a,$68,$85,$49,$a4,$00,$c8,$c0
-	.byt $08,$d0,$d6,$a5,$46,$69,$05,$aa,$a4,$47,$4c,$f3,$e7,$a5,$4f,$0a
-	.byt $0a,$0a,$05,$4d,$49,$3f,$aa,$a9,$07,$20,$1a,$da,$06,$53,$26,$54
-	.byt $a6,$53,$a9,$0b,$20,$1a,$da,$a6,$54,$a9,$0c,$20,$1a,$da,$a4,$51
-	.byt $be,$38,$eb,$a9,$0d,$4c,$1a,$da,$00,$0b,$04,$08,$0a,$0b,$0c,$0d
+	.byt $08,$d0,$d6,$a5,$46,$69,$05,$aa,$a4,$47,$4c,$f3,$e7
+PLAY_ROUTINE
+	lda $4f
+	asl
+	asl
+	asl
+
+	ora $4d
+	eor #$3f
+	tax
+	
+	lda #7
+	jsr lda1a 
+	asl $53
+	rol $54
+
+	ldx $53
+	lda #$0b
+	jsr lda1a ; FIXME
+	
+
+	ldx $54
+	lda #$0c
+	jsr lda1a 
+	ldy $51
+	ldx enveloppes_play_0_to_7,y ; FIXME
+	lda #$0d
+	jmp lda1a 
+
+enveloppes_play_0_to_7
+Leb38
+	.byt $00,$0b,$04,$08,$0a,$0b,$0c,$0d
+periods_note_octave_0
+
+
 	.byt $00,$00,$ee,$0e,$16,$0e,$4c,$0d,$8e,$0c,$d8,$0b,$2e,$0b,$8e,$0a
-	.byt $f6,$09,$66,$09,$e0,$08,$60,$08,$e8,$07,$a4,$4f,$a5,$51,$0a,$aa
+	.byt $f6,$09,$66,$09,$e0,$08,$60,$08,$e8,$07
+/*End of period*/
+
+MUSIC_ROUTINE
+	.byt $a4,$4f,$a5,$51,$0a,$aa
 	.byt $bd,$40,$eb,$85,$4f,$bd,$41,$eb,$4a,$66,$4f,$88,$10,$fa,$85,$50
 	.byt $a6,$53,$2c,$a6,$51,$8a,$d0,$02,$a2,$10,$a4,$4d,$88,$98,$c9,$03
 	.byt $90,$02,$e9,$03,$09,$08,$20,$1a,$da,$c0,$03,$b0,$0c,$98,$0a,$a8
 	.byt $69,$01,$a6,$50,$20,$1a,$da,$98,$2c,$a9,$06,$a6,$4f,$4c,$1a,$da
-	.byt $18,$00,$00,$00,$00,$00,$00,$3e,$10,$00,$00,$00,$0f,$00,$00,$00
-	.byt $00,$00,$00,$00,$0f,$07,$10,$10,$10,$00,$08,$00,$00,$00,$00,$00
-	.byt $00,$00,$1f,$07,$10,$10,$10,$00,$18,$00,$00,$00,$00,$00,$00,$00
-	.byt $00,$3e,$0f,$00,$00,$00,$00,$00,$00,$a2,$a0,$a0,$eb,$d0,$0a,$a2
-	.byt $ae,$a0,$eb,$d0,$04,$a2,$bc,$a0,$eb,$4c,$e7,$d9,$a2,$ca,$a0,$eb
-	.byt $20,$e7,$d9,$a9,$00,$aa,$8a,$48,$a9,$00,$20,$1a,$da,$a2,$00,$ca
-	.byt $d0,$fd,$68,$aa,$e8,$e0,$70,$d0,$ed,$a9,$08,$a2,$00,$4c,$1a,$da
-	.byt $a2,$0c,$4c,$5d,$db,$20,$10,$ec,$b0,$fb,$60,$2c,$1b,$ec,$4c,$79
-	.byt $db
+	
+
+	
+#include "functions/sound/sounds.asm"
+	
+READ_A_SERIAL_BUFFER_CODE_INPUT
+Lec10
+	ldx #$0c
+	jmp $db5d ; FIXME
+wait_code_on_SERIAL_BUFFER_INPUT
+.(
+loop
+	jsr READ_A_SERIAL_BUFFER_CODE_INPUT 
+	bcs loop
+	rts
+.)	
+write_caracter_in_output_serial_buffer
+	bit write_caracter_in_output_serial_buffer
+	jmp $db79
+
 Minitel	
 send_a_to_minitel output
 .(
