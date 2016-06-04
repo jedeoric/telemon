@@ -913,27 +913,40 @@ next40
 	
 	
 #include "functions/XOP.asm"
+Lc720
 #include "functions/XCL.asm"
 
 
 Lc756
+
 XCRLF_ROUTINE
 	lda #$0a
 	jsr XWSTR0_ROUTINE 
 	lda #$0d
+
+;#include "functions/XCRLF.asm"
+	
+
+
+
+
 Lc75d	
 #include "functions/XWSTR.asm"
 
 
+Lc7a8
+;#include "functions/XDECAL.asm"
 
 XDECAL_ROUTINE
-Lc7a8
 	ldx #0
 	.byt $2c
+XDECAL1_ROUTINE	
 	ldx #4
 	.byt $2c
+XDECAL2_ROUTINE		
 	ldx #$08
 	.byt $2c
+XDECAL3_ROUTINE
 	ldx #$0c
 	STX $1C
 	STA $15
@@ -1336,13 +1349,15 @@ vectors_telemon
 	.byt <XWSTR2_ROUTINE,>XWSTR2_ROUTINE
 	.byt <XWSTR3_ROUTINE,>XWSTR3_ROUTINE
 	
-
-	
+	.byt <XDECAL_ROUTINE,>XDECAL_ROUTINE
+	.byt <XDECAL1_ROUTINE,>XDECAL1_ROUTINE
+	.byt <XDECAL2_ROUTINE,>XDECAL2_ROUTINE	
+	.byt <XDECAL3_ROUTINE,>XDECAL3_ROUTINE
 ; POUET	
 
-	.byt $a8,$c7
-	.byt $ab,$c7
-	.byt $ae,$c7,$b1,$c7,$6c,$cd,$75,$cf,$45,$cf,$06,$cf,$14,$cf,$31,$ff
+
+
+	.byt $6c,$cd,$75,$cf,$45,$cf,$06,$cf,$14,$cf,$31,$ff
 	.byt $bf,$c6,$f0,$d0,$69,$ce,$97,$ce,$89,$ce,$dc,$ce,$f0,$cf,$56,$c7
 	.byt $49,$e7,$00,$00,$ef,$cd,$39,$ce,$54,$ce,$9b,$f4,$e0,$cb,$35,$e4
 	.byt $b0,$e6,$80,$e6,$40,$d1,$11,$d7,$37,$e5,$6c,$e6,$1e,$de,$20,$de

@@ -1,5 +1,5 @@
 XCL0_ROUTINE
-Lc720
+
 	ldx #0
 	.byt $2c
 XCL1_ROUTINE	
