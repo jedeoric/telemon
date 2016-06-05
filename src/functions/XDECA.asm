@@ -1,4 +1,6 @@
+
 XDECAL_ROUTINE
+
 	ldx #0
 	.byt $2c
 XDECAL1_ROUTINE	
@@ -19,10 +21,12 @@ loop500
 
 	LDY #$00
 	JSR $0411
-	.byt $f0,$e3 ; FIXME
+	beq Lc7a7
+
 	JSR XWSTR0_re_enter_from_XDECAL
 	INC $15
 	bne loop500
 	INC $16
 
 	bne loop500
+	

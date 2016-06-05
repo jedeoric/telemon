@@ -4,9 +4,11 @@
 #include "include/acia6551.h"
 #include "include/fdc1793.h"
 
-;pouet
+
 
 #define CDRIVE $314
+
+#define bank_signature $ff00
 
 
 #define BRK_TELEMON(value)\
@@ -413,7 +415,7 @@ display_cursor
 	LDX #$00
 	BRK_TELEMON(XCSSCR) ; display cursors
 	ldx VAPLIC
-	bmi $c286 ; FIXME
+	bmi Lc286 
 
 	lda $02FE
 	ldy $02ff
@@ -440,9 +442,24 @@ loop57
 	LDA #$8F
 	BRK_TELEMON(XCL1) 
 	rts
+Lc284
+	BRK_TELEMON(XWR0)
+	
+Lc286
+.(
+	BRK_TELEMON(XRDW0)
+	CMP #$03
+	BNE next
+	JSR $9000
+next	
+	CMP #$01
+	BNE Lc284
+	LDA #$00
+	LDY #$E0
+	LDX #$00
+	BEQ next57
+.)	
 
-	.byt $00,$10,$00,$0c,$c9,$03,$d0,$03,$20,$00,$90,$c9
-	.byt $01,$d0,$f1,$a9,$00,$a0,$e0,$a2,$00,$f0,$c1
 telemon_convert_to_decimal
 	LDY #$00 ; 00
 	LDX #$20 ;
@@ -925,54 +942,17 @@ XCRLF_ROUTINE
 	lda #$0d
 
 ;#include "functions/XCRLF.asm"
-	
-
-
-
 
 Lc75d	
 #include "functions/XWSTR.asm"
-
-
 Lc7a8
-;#include "functions/XDECAL.asm"
-
-XDECAL_ROUTINE
-	ldx #0
-	.byt $2c
-XDECAL1_ROUTINE	
-	ldx #4
-	.byt $2c
-XDECAL2_ROUTINE		
-	ldx #$08
-	.byt $2c
-XDECAL3_ROUTINE
-	ldx #$0c
-	STX $1C
-	STA $15
-	STY $16
-Lc7b9
-loop500
-	LDA $1C
-	STA $19
-
-	LDY #$00
-	JSR $0411
-	.byt $f0,$e3 ; FIXME
-	JSR XWSTR0_re_enter_from_XDECAL
-	INC $15
-	bne loop500
-	INC $16
-
-	bne loop500
-
-
+#include "functions/XDECA.asm"
 Lc7cf
-
 #include "functions/XRD.asm"
 #include "functions/XWR.asm"	
 	
 
+	
 Lc81c
 	STY $17
 	STY $18
@@ -1072,7 +1052,7 @@ next200
 LC8B6		
 	SEC
 	ROR $1E
-LC8B9	
+LC8B9
 	JSR LC8BF
 	JMP LC9b9  
 
@@ -1227,7 +1207,7 @@ next110
 	JSR Lc91e 
 	DEC $02A6
 	BNE next113 
-	JSR $D7DF ; FIXME
+	JSR manage_keyboard 
 	JSR LC8BF 
 	BIT $0270 ; CORRECTME
 	BPL next114 
@@ -1270,10 +1250,10 @@ next112
 	BEQ Lca1c
 	BIT $0301
 	JSR Lca2f 
-	JMP $C8B9 ; FIXME
+	JMP LC8B9 
 Lca2f	
 	LDX #$24
-	JSR $C518 ; FIXME
+	JSR Lc518 
 	BCC Lca3e
 	ASL FLGLPR ; printer
 	SEC
@@ -1382,17 +1362,14 @@ menu_deroulant
 	sta $66
 	stx $63
 	ldx #0
-	jsr $de1e ; FIXME switch off cursor
+	jsr lde1e ;  switch off cursor
 	ldy $62
 	ldx $66
 	.byt $2c
 Lcbf0
 	inx
-	
 	iny 
-
-
-	jsr $ccf9 
+	jsr $ccf9  ; FIXME
 	
 	bmi next
 	cpy $63
@@ -1408,26 +1385,60 @@ next
 	adc $62
 	tay 
 	jsr $ccd3 ; FIXME
-	jsr $c806 ; FIXME
+	jsr XWR0_ROUTINE 
 	pha
-	bit $020d ; Is it on minitel mode
+	bit FLGTEL ; Is it on minitel mode ?
 	
-	bvc $cc20 ; FIXME
+	bvc Lcc20 
 	lda #$08
-	jsr $c75d ; FIXME
+	jsr Lc75d 
 	lda #$20
-	jsr $c75d ; FIXME
-	jmp $cc2e ; FIXME
+	jsr Lc75d 
+	jmp Lcc2e 
+Lcc20	
+	ldy $61
+	ldx $65
+Lcc24	
+	lda (ADSCR),y
+	and #$7f
+	sta (ADSCR),y
+	iny 
+	dex
+	bne Lcc24 
+Lcc2e	
+	pla
+	cmp #$20
+	beq Lcc3b
+	cmp #$1b
+	beq Lcc3b
+	cmp #$0d
+	bne Lcc3e
+Lcc3b	
+	ldx VARMNB
+	rts
+Lcc3e
+	cmp #$0a
+	bne $cc6d ; FIXME
+	lda VARMNB
+	cmp $67 
+	beq Lcc4d
+	inc VARMNB
+	jmp $cbfd ; FIXME
+Lcc4d	
+	bit $68
+	bmi $cbfd ; FIXME
+	inc VARMNB
+	inc $67
+	inc $66
+	bit FLGTEL ; FIXME
+	bvs $cbeb ; FIXME
+	ldx $62
+	ldy $63
+	jsr $de54 ; FIXME
+Lcc63	
+	ldy $63
+	ldx $60
 	
-
-	.byt $a4,$61,$a6,$65,$b1,$26,$29,$7f,$91,$26,$c8,$ca,$d0,$f6,$68,$c9
-	.byt $20,$f0,$08,$c9,$1b,$f0,$04,$c9,$0d,$d0,$03,$a6,$60,$60,$c9,$0a
-	.byt $d0,$2b,$a5,$60,$c5,$67,$f0,$05,$e6,$60,$4c,$fd,$cb,$24,$68,$30
-	.byt $ac
-	.byt 	$e6,$60
-
-	.byt $e6,$67,$e6,$66,$2c,$0d,$02,$70,$8f,$a6,$62,$a4,$63
-	.byt $20,$54,$de,$a4,$63,$a6,$60
 	.byt $20,$f9,$cc,$4c,$fd,$cb,$c9,$0b,$d0
 	.byt $29,$a5,$60,$c5,$66,$d0,$1b,$a5,$60
 
@@ -1454,9 +1465,22 @@ next
 	.byt $f9,$e6,$07,$e6,$09,$ca,$d0,$f2,$38,$68,$a8,$68,$aa,$68,$60,$8a
 	.byt $18,$65,$05,$85,$05,$8a,$18,$65,$09,$85,$09,$e8,$88,$b1,$04,$91
 	.byt $08,$98,$d0,$f8,$c6,$05,$c6,$09,$ca,$d0,$f1,$f0,$db,$0a,$64,$e8
-	.byt $10,$00,$00,$03,$27,$a2,$00,$a0,$00,$2c,$a2,$03,$2c,$a2,$02
+	.byt $10,$00,$00,$03,$27,$a2,$00,$a0,$00,$2c
+
+Lcdea
+convert_into_decimal_0_to_65535
+	
+	ldx #$03
+	.byt $2c
+Lcded
+convert_into_decimal_0_to_9999
+	ldx #2
 Lcdef	
 routine_to_define_15
+convert_into_decimal
+; AY contains the number
+; X ...
+
 	STA TR1
 	STY TR2
 	LDA #$00
@@ -1504,13 +1528,14 @@ lce32
 
 Lce39
 routine_to_define_14
+convert_in_decimal_and_display_on_channel_0
 	PHA
 	LDA #$00
 	STA TR5
 	LDA #$01
 	STA TR6
 	PLA
-	JSR routine_to_define_15
+	JSR convert_into_decimal
 	LDY #$00
 loop31
 
@@ -1520,13 +1545,67 @@ loop31
 	CPY TR4
 	BNE loop31
 	RTS
+	
+	
+Lce54	
+convert_into_hex
+	pha 
+	and #$0f
+	jsr Lce60 
+	tay
+	pla
+	lsr
+	lsr
+	lsr
+	lsr
+Lce60
+	ora #$30
+	cmp #$3a
+	bcc Lce68
+	adc #$6
+Lce68
+	rts
 
 
-	.byt $48,$29,$0f,$20,$60,$ce,$a8,$68,$4a,$4a,$4a,$4a
-	.byt $09,$30,$c9,$3a,$90,$02,$69,$06,$60,$a0,$00,$85,$00,$84,$01,$0a
-	.byt $26,$01,$0a,$26,$01,$65,$00,$90,$02,$e6,$01,$0a,$26,$01,$0a,$26
-	.byt $01,$0a,$26,$01,$85,$00,$a4,$01,$60,$18,$65,$00,$85,$00,$48,$98
-	.byt $65,$01,$85,$01,$a8,$68,$60,$85,$10,$84,$11,$a2,$00,$86,$0c,$86
+Lce69
+mult_by_40
+	ldy #0
+	sta $00
+	sty $01
+	asl
+	rol $01
+	asl
+	rol $01
+	adc $00
+	bcc Lce7b
+	inc $01
+Lce7b
+	asl
+	rol $01
+	asl
+	rol $01
+	asl
+	rol $01
+	sta $00
+	ldy $01
+	rts
+
+Lce89	
+add_integers
+; RES +AY = RES and AY
+	clc
+	adc $00
+	sta $00 
+	pha
+	tya
+	adc $01
+	sta $01
+	tay
+	pla
+	rts
+	
+mult_integers	
+	.byt $85,$10,$84,$11,$a2,$00,$86,$0c,$86
 	.byt $0d,$86,$0e,$86,$0f,$86,$02,$86,$03,$a2,$10,$46,$11,$66,$10,$90
 	.byt $19,$18,$a5,$00,$65,$0c,$85,$0c,$a5,$01,$65,$0d,$85,$0d,$a5,$02
 	.byt $65,$0e,$85,$0e,$a5,$03,$65,$0f,$85,$0f,$06,$00,$26,$01,$26,$02
@@ -1550,7 +1629,7 @@ loop31
 	.byt $24,$18,$66,$15,$a2,$00,$20,$0f,$c5,$90,$08,$8a,$69,$0b,$aa,$e0
 	.byt $30,$d0,$f3,$08,$a9,$dc,$a0,$cf,$b0,$04,$a9,$e6,$a0,$cf,$24,$15
 	.byt $10,$05,$20,$f9,$fe,$28,$60,$20,$f9,$fe,$28,$60
-table_to_define prompt_charset
+table_to_define_prompt_charset
 	.byt $7f ; char 127
 	.byt $00,$00,$08,$3c,$3e,$3c,$08,$00,$00
 	
@@ -1590,7 +1669,7 @@ Ld178
 follow_a_sequence
 
 Ld1ed	; 
-	jsr $d22e ; FIXME
+	jsr manage_a_sequence 
 	jmp Ld1e6
 
 ; manage control code	
@@ -1620,7 +1699,7 @@ table_code_control
 	.byt $00,$b9,$00,$83,$b9,$00,$bc,$00,$00,$a7,$bf
 /**** END OF TABLE CONTROL **/
 Ld22b
-	jmp $d2b7 ; FIXME
+	jmp management_sequence_esc
 Ld22e
 manage_a_sequence
 	lda $3c
@@ -1672,7 +1751,7 @@ Ld26f
 	sta $0283
 	lda $3e
 	cmp #$40
-	BCS Ld2a3 ;FIXME
+	BCS Ld2a3 
 	lda $0282
 	and  #$03
 	asl
@@ -1683,7 +1762,7 @@ Ld26f
 	adc $283
 	sbc #$2f
 	sta $39
-	jsr $d3d7 ; FIXME
+	jsr CTRL_M_KEYBOARD 
 
 	jsr $d759 ; FIXME
 	jmp $d140 ; FIXME
@@ -1923,13 +2002,13 @@ CTRL_X_KEYBOARD
 	pha
 Ld407	
 	lda #$20
-	jsr $d178 ; FIXME
+	jsr send_A_to_video_screen 
 	lda $38
 	beq Ld419
 	cmp #$27
 	bne Ld407
 	lda #$20
-	jsr send_A_to_video_screen  ; FIXME
+	jsr send_A_to_video_screen  
 Ld419	
 	jsr $d759 ; FIXME
 	pla
@@ -1938,7 +2017,7 @@ Ld419
 	sta $38
 	jmp $d140 ; FIXME
 CTRL_DOT_KEYBOARD	
-	jsr $d3d7 ; FIXME
+	jsr CTRL_M_KEYBOARD 
 	jsr $d261 ; FIXME
 	jsr $d759 ; FIXME
 	jmp $d3ab ; FIXME
@@ -1959,12 +2038,11 @@ CTRL_DOT_KEYBOARD
 	sta $3c
 	rts
 ; MINITEL
-;#define HAVE_MINITEL
+;#ifdefine HAVE_MINITEL
 #include "functions/minitel/send_a_data_to_videotex_screen.asm"
 ;#endif
-;#define HAVE_USBDRIVE
-;.dsb 40,0
-;#endif
+
+
 
 
 Ld46a
@@ -2104,57 +2182,143 @@ routine_to_define_7
 	.byt $d0,$f7,$4a,$4a,$29,$3f,$09,$40,$60,$1b,$1b,$00,$1b,$00,$1b,$1b
 	.byt $00
 #include "functions/minitel/minitel_display_mosaique.asm"
-#endif
+switch_off_cursor_videotex
+	clc
+	.byt $24
+switch_on_cursor_videotex	
+	sec
+	php
+	asl $3d
+	plp
+	ror $3d
+
+Ld756	
+display_cursor_videotex ; minitel
+	lda #$80
+	.byt $2c
+	lda #00
+	and $3d
+	bit $3d
+	bvc Ld763 
+	lda #0
+	
+Ld763	
+	sta $02
+	lda $2c
+	ldy $2d
+	sta $00
+	sty $01
+	ldy $38
+	lda ($30),y
+	bmi Ld77d
+	
+	and #$40
+	beq Ld77d 
+	lda $02
+	eor #$80
+	sta $02
+Ld77d	
+	ldx #$8
+	ldy $38
+Ld781	
+	lda ($00),y
+	and #$7f
+	ora $02 
+	sta ($00),y
+	clc
+	tya
+	adc #$28
+	tay
+	bcc Ld792 
+	inc $01
+Ld792	
+	dex
+	bne Ld781	 
+	rts
+
+
+table_of_char_videotex_special
+	.byt $2f
+	.byt $01,$02,$04,$04,$08,$08,$10,$20 ; "/"
+	; ç is 
+	.byt $5c
+	.byt $20,$10,$08,$08,$04,$04,$02,$01  
+	
+	; £ is _
+	.byt $5f
+	.byt $00,$00,$00,$00,$00,$00,$00,$3f
+	
+	; copyright is -
+	.byt $60
+	.byt $00,$00,$00,$3f,$00,$00,$00,$00
+
+	.byt $7b
+	.byt $20,$20,$20,$20,$20,$20,$20,$20
+	
+	.byt $7c
+	.byt $08,$08,$08,$08,$08,$08,$08,$08
+	
+	.byt $7d
+	.byt $01,$01,$01,$01,$01,$01,$01,$01
+	
+	.byt $7e
+	.byt $3f,$00,$00,$00,$00,$00,$00,$00,$00
+#endif	
+
+
+
 
 
 #ifdef HAVE_USBDRIVE
 ; 281 bytes reserved
-.dsb 50,0
-.dsb 186,0
+.dsb 382,0
 .asc "kernel.x02",0
 #include "functions/usbdrive/ch376_primitives.asm"
 #endif	
 
 	
-	
 
 	
-;#ifdef HAVE_MINITEL	
-
-;#endif	
-
-
 
 
 	
-	.byt $18,$24,$38
-	.byt $08,$06,$3d,$28,$66,$3d,$a9,$80,$2c,$a9,$00,$25,$3d,$24,$3d,$50
-	.byt $02,$a9,$00,$85,$02,$a5,$2c,$a4,$2d,$85,$00,$84,$01,$a4,$38,$b1
-	.byt $30,$30,$0a,$29,$40,$f0,$06,$a5,$02,$49,$80,$85,$02,$a2,$08,$a4
-	.byt $38,$b1,$00,$29,$7f,$05,$02,$91,$00,$18,$98,$69,$28,$a8,$90,$02
-	.byt $e6,$01,$ca,$d0,$ec,$60,$2f,$01,$02,$04,$04,$08,$08,$10,$20,$5c
-	.byt $20,$10,$08,$08,$04,$04,$02,$01,$5f,$00,$00,$00,$00,$00,$00,$00
-	.byt $3f,$60,$00,$00,$00,$3f,$00,$00,$00,$00,$7b,$20,$20,$20,$20,$20
-	.byt $20,$20,$20,$7c,$08,$08,$08,$08,$08,$08,$08,$08,$7d,$01,$01,$01
-	.byt $01,$01,$01,$01,$01,$7e,$3f,$00,$00,$00,$00,$00,$00,$00,$00,$20
-	.byt $03,$d9,$f0,$2e,$ae,$70,$02,$10,$08,$ad,$71,$02,$3d,$e8,$01,$d0
-	.byt $16,$88,$b9,$68,$02,$8d,$71,$02,$98,$09,$80,$8d,$70,$02,$20,$1f
+manage_keyboard
+	jsr d903 
+	beq Ld812
+	ldx $0270
+	bpl Ld7f1 
+	lda $0271 
+	and $01e8,x
+	bne Ld807
+Ld7f1	
+	dey
+	lda $0268,y
+	sta $0271
+	tya
+	ora #$80
+	sta $0270
+	jsr Ld81f 
+Ld800	
 routine_to_define_20
-	CLD
+;	CLD
 	LDA $0272 ; CORRECTME
 	JMP next60
+Ld807	
 	DEC $0274 ; CORRECTME
 	BNE end2 
 	JSR routine_to_define_21 ; FIXME
-	JMP $D815 ; FIXME
+	JMP Ld815
+Ld812
 	STA $0270 ; CORRECTME
+Ld815	
 	LDA $0273 ; CORRECTME
 next60		
 	STA $0274 ; CORRECTME
 end2
 	RTS
 next75
-	jmp $d8dd ; FIXME POUET
+	jmp Ld8dd 
+Ld81f
 routine_to_define_21
 	JSR LC8BF 
 	LDA #$00
@@ -2221,6 +2385,7 @@ next69
 	TAY
 next68
 	TYA
+Ld882	
 	LDX #$00
 	PHA
 	CMP #$06
@@ -2259,19 +2424,45 @@ next74
 	JSR LC51D
 	BIT $0275
 	BVC end3
-	LDX #$CF
-	LDY #$D8
+	LDX #<sound_bip_keyboard
+	LDY #>sound_bip_keyboard
 	JMP ld9e7
 end3
 	RTS
-
-
+Ld8cf
+sound_bip_keyboard
 	.byt $1f
-	.byt $00,$00,$00,$00,$00,$00,$3e,$10,$00,$00,$1f,$00,$00,$b1,$2a,$c9
-	.byt $2d,$f0,$15,$c9,$3d,$f0,$14,$68,$09,$40,$48,$ad,$75,$02,$4a,$b0
-	.byt $0f,$b1,$2a,$29,$1f,$09,$80,$2c,$a9,$60
-	.byt $2c,$a9,$7e,$4c,$82,$d8
-	.byt $6c,$76,$02
+	.byt $00,$00,$00,$00,$00,$00
+	.byt $3e,$10,$00,$00
+	.byt $1f,$00,$00
+/* END bip keyboard **/	
+
+manage_function_touch
+Ld8dd
+	lda ($2a),y
+	cmp #$2D
+	beq Ld8f8 
+	cmp #$3d
+	beq Ld8fb 
+	pla
+	ora #$40
+	pha
+	lda $0275
+	lsr
+	bcs Ld900 
+	lda ($2a),y
+	and #$1f
+	ora #$80
+	.byt $2c
+Ld8f8	
+	lda #$60
+	.byt $2c
+Ld8fb	
+	lda #$7e
+	jmp Ld882 
+Ld900
+	jmp ($0276)
+
 
 init_disk	
 d903	
@@ -2558,7 +2749,7 @@ next901
 	LDX #$18
 	BNE next906
 next905
-	LDA $020D
+	LDA FLGTEL
 	AND #$02
 	BEQ next907
 	TXA
@@ -4117,8 +4308,10 @@ routine_to_define_23
 	PLA
 end4
 	RTS
-		
-routine_to_define_24	
+
+Lfeb2		
+routine_to_define_24
+put_an_alternate_char_in_memory
 	LDX #$03
 	STX RESB
 next81
@@ -4145,31 +4338,145 @@ next80
 	DEC RESB
 	BNE next81
 	RTS
+	
+Led8	
+move_chars_text_to_hires
+	ldy #5
+	.byt $2c
+move_chars_hires_to_text
+	ldy #$0b
+	ldx #5
+Lfedf	
+	lda code_in_order_to_move_chars_tables,y ; FIXME
+	sta $04,x
+	dey
+	dex
+	bpl Lfedf 
+	jmp $cd6c ; FIXME
 
+code_in_order_to_move_chars_tables
+	; Text to hires 6 bytes
+	.byt $00,$b4,$80,$bb,$00,$98
+	; hires to text 6 bytes
+	.byt $00,$98,$80,$9f,$00,$b4
 
-	.byt $a0,$05,$2c,$a0,$0b,$a2,$05,$b9
-	.byt $eb,$fe,$95,$04,$88,$ca,$10,$f7,$4c,$6c,$cd,$00,$b4,$80,$bb,$00
+redefine_table_chars
+; define a char in the adress AY 
+; it take the first byte : it's the ascii char
+; Next 8 bytes is the definition of the char
+	clc
+	.byt  $24 ; jump a byte
+Lfef9	
+	sec
+	ror $00
+	sta $15
+	sty $16
 
+	
 
-	.byt $98,$00,$98,$80,$9f,$00,$b4,$18,$24,$38,$66,$00,$85,$15,$84,$16
 Lff00
-bank_signature
-	.byt $a0,$00,$20,$27,$ff,$f0,$1f,$20,$31,$ff,$e6,$15,$d0,$02,$e6,$16
-	.byt $20,$27,$ff,$91,$02,$c8,$c0,$08,$d0,$f6,$98,$18,$65,$15,$85,$15
-	.byt $90,$de,$e6,$16,$b0,$da,$60,$24,$00,$10,$03,$b1,$15,$60,$4c,$11
-	.byt $04,$a2,$13,$86,$03,$0a,$26,$03,$0a,$26,$03,$0a,$26,$03,$85,$02
-	.byt $2c,$0d,$02,$30,$06,$a5,$03,$69,$1c,$85,$03,$60,$c9,$04,$f0,$35
-	.byt $c9,$05,$f0,$38,$0a,$29,$06,$85,$00,$aa,$ad,$75,$02,$29,$f9,$05
-	.byt $00,$8d,$75,$02,$bd,$90,$ff,$bc,$91,$ff,$85,$2a,$84,$2b,$20,$49
-	.byt $fe,$ad,$75,$02,$29,$06,$c9,$04,$d0,$07,$a9,$98,$a0,$ff,$4c,$f9
-	.byt $fe,$c9,$02,$d0,$0a,$a9,$aa,$a0,$ff,$4c,$f9,$fe,$4c,$49,$fe,$60
-	.byt $3f,$fa,$af,$fa,$1f,$fb,$1f,$fb
+	ldy #00
+	jsr Lff27 
+	beq Lff26
+	jsr Lff31
+	inc $15
+	bne Lff10
+	inc $16
+Lff10
+	jsr Lff27 
+	sta ($02),y
+	iny
+	cpy #8
+	bne Lff10
+	tya
+	clc
+	adc $15
+	sta $15
+	bcc Lff00
+	inc $16
+	bcs Lff00
+Lff26	
+	rts
+read_a_code_in_15_and_y	
+Lff27
+	bit $00
+	bpl Lff2e
+	lda ($15),y
+	rts
+Lff2e	
+	jmp $411
+Lff31	
+compute_address_of_a_char
+	ldx #$13
+	stx $03
+	asl
+	rol $03
+	asl
+	rol $03
+	asl
+	rol $03
+	sta $02
+	bit FLGTEL
+	bmi Lff4b
+	lda $03
+	adc #$1c
+	sta $03
+Lff4b
+	rts
+	
+Lff4c	
+select_keyboard_mode
+	cmp #$04
+	beq Lff85
+	cmp #$05
+	beq Lff8c
+	asl
+	and #$06
+	sta $00
+	tax
+	lda $0275
+	and #$f9
+	ora $00
+	sta $0275
+	lda Lff90,x
+	ldy Lff90+1,x
+	sta $2a
+	sty $2b
+	jsr routine_to_define_22 
+	lda $0275
+	and #$06
+	cmp #$04
+	bne Lff81
+	lda #$98
+	ldy #$ff
+	jmp Lfef9 
+Lff81	
+	cmp #2
+	bne Lff8f
+Lff85	
+	lda #$aa
+	ldy #$ff
+	jmp Lfef9 
+Lff8c	
+	jmp routine_to_define_22 
+Lff8f	
+	rts
+
+Lff90
+	.byt $3f,$fa ; QWERTY TABLE FIXME
+	.byt $af,$fa ; AZETY TABLE FIXME
+	.byt $1f,$fb ; FRENCH TABLE FIXME
+	.byt $1f,$fb ; French bwana FIXME
 Lff98	
 tab_accent_charset
+a_accent_circonflexe
 	.byt $5b ; Accent circonflexe
 	.byt $1c,$22,$1c,$02,$1e,$22,$1e,$00
+u_accent_circonflexe	
+	.byt $60
+	.byt $1c,$22,$00,$22,$22,$26,$1a,$00
 	
-	.byt $60,$1c,$22,$00,$22,$22,$26,$1a,$00,$7b,$04,$08,$1c,$22,$3e
+	.byt $7b,$04,$08,$1c,$22,$3e
 	.byt $20,$1e,$00,$7d,$10,$08,$1c,$22,$3e,$20,$1e,$00,$40,$10,$08,$1c
 	.byt $02,$1e,$22,$1e,$00,$5c,$00,$00,$1e,$20,$20,$20,$1e,$04,$7c,$10
 	.byt $08,$22,$22,$22,$26,$1a,$00,$7e,$1c,$22,$1c,$22,$3e,$20,$1c,$00
