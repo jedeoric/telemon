@@ -546,20 +546,64 @@ loop44
 	CMP #$02
 	BNE loop46
 	JMP (RESET) ; something is wrong : reset 
-LC30a	
+Lc327
 loop46
 	DEX
 	BNE loop47
 	lda #$07
 	sta V2DRA ; return to telemon bank
 	rts
+Lc330
+	ldx #0
+	jsr $065e ; FIXME
+	ldx #$06 ; bank 6
+Lcc337	
+	jsr $065e ; FIXME
+	dex 
+	bne Lcc337
+	rts
+	lda $0200,x
+	bpl Lc365 
+
+	stx $0321
+	lda $fff8 
+	sta $02
+	lda $fff9
+	sta $03
+	ldy #0
+Lc352		
+	stx $0321 
+
+	lda ($02),y
+	pha
+
+	lda #7
+	sta $321
+		
+	pla
+	beq Lc365 
+
+	BRK_TELEMON($10) ; FIXEME
+	iny
 	
-	.byt $a2,$00,$20,$5e,$06,$a2,$06,$20,$5e,$06,$ca,$d0,$fa,$60,$bd,$00
-	.byt $02,$10,$22,$8e,$21,$03,$ad,$f8,$ff,$85,$02,$ad,$f9,$ff,$85,$03
-	.byt $a0,$00,$8e,$21,$03,$b1,$02,$48,$a9,$07,$8d,$21,$03,$68,$f0,$05
-	.byt $00,$10,$c8,$d0,$ed,$bd,$00,$02,$0a,$10,$17,$8e,$21,$03,$ad,$fc
-	.byt $ff,$ac,$fd,$ff,$8d,$fe,$02,$8c,$ff,$02,$8e,$fd,$02,$a9,$07,$8d
-	.byt $21,$03,$60,$4c,$00,$00
+	bne Lc352
+Lc365	
+	lda $0200,x
+	asl
+	bpl Lc382	
+	stx $0321
+	lda $fffc ; read execution address
+	ldy $fffd 
+	sta $02fe
+	sty $02ff
+	stx $02fd
+	lda #7
+	sta $0321
+Lc382	
+	rts
+
+; FIXME these bytes ?
+	.byt $4c,$00,$00
 data_vectors_VNMI_VIRQ_VAPLIC
 	; 12 bytes
 	.byt $07,<display_developper,>display_developper ; VAPLIC vectors : bank + address ?
@@ -877,11 +921,26 @@ code_adress_4AF
 	RTS	
 
 data_adress_04c7	
+to_put_in_address_700
 data_to_define_4	
 	; should be length 256 bytes ?
 	.byt $90,$4c,$50,$0f,$a8,$f0,$2c,$bd,$88,$c0,$1d,$89,$c0,$f0,$02,$18
-	.byt $60,$38,$60,$85,$02,$84,$03,$38,$e5,$00,$9d,$8a,$c0,$98,$e5,$01
-	.byt $9d,$8b,$c0,$8a,$69,$03,$aa,$a0,$03,$b9,$00,$00,$9d,$7f,$c0,$ca
+	rts
+	sec
+	rts
+	
+	sta $02
+	sty $03
+	
+	sec
+	sbc $00
+	sta $c08a,x
+	tya
+	sbc $01
+	sta $c08b,x
+	
+	
+	.byt $8a,$69,$03,$aa,$a0,$03,$b9,$00,$00,$9d,$7f,$c0,$ca
 	.byt $88,$10,$f6,$a9,$00
 	.byt $9d,$88,$c0,$9d,$89,$c0,$bd,$82,$c0,$9d,$84,$c0,$9d,$86,$c0,$bd
 	.byt $83,$c0,$9d,$85,$c0,$9d,$87,$c0,$60,$70,$26,$20,$07,$c5,$b0,$20
@@ -903,10 +962,11 @@ next36
 	LDA IRQSVP
 	RTS
 
-	
+address_buffers
 data_to_define_7
-	.byt $c4
-	.byt $c5,$80,$c6,$80,$c6,$00,$c8,$00,$c8,$00,$ca,$00,$ca,$00,$d2
+	.byt $c4,$c5 ; Keyboard buffer
+	.byt $80,$c6,$80,$c6,$00,$c8,$00,$c8,$00,$ca,$00,$ca,$00,$d2
+test_if_printer_is_connected	
 routine_to_define_18
 	LDX #$00
 	STX V1DRA
@@ -975,28 +1035,31 @@ Lc838
 data_to_define_1
 	; length must be $30
 	; used to set I/O vectors
-	.byt $5c,$d9 ; 0
-	.byt $1a,$c8 
-	.byt $f7,$da
-	.byt $5d,$db
-	.byt $1a,$c8 ; 
-	.byt $1a,$c8
-	.byt $1a,$c8
-	.byt $1a,$c8
-	.byt $86,$db
-	.byt $8c,$db ;
-	.byt $92,$db
+	.byt <manage_I_O_keyboard,>manage_I_O_keyboard ; 0
+	.byt $1a,$c8 ; not used 
+	.byt $f7,$da ; MINITEL (mde) FIXME
+	.byt $5d,$db ; RSE FIXME
+	.byt $1a,$c8 ;  not used  
+	.byt $1a,$c8 ; not used 
+	.byt $1a,$c8 ; not used 
+	.byt $1a,$c8 ; not used 
+	.byt $86,$db ; FIXME
+	.byt $8c,$db ; FIXME
+	.byt $92,$db  ; FIXME
 	.byt $98,$db
-	.byt $1a,$c8
-	.byt $1a,$c8
-	.byt $70,$da ;30
-	.byt $12,$db
-	.byt $79,$db
-	.byt $c6,$d5
-	.byt $1a,$c8
-	.byt $1a,$c8
+	.byt $1a,$c8 ; not used 
+	.byt $1a,$c8  ; FIXME
+	.byt <Lda70,>Lda70 ;30
+	.byt <Ldb12,>Ldb12
+	.byt $79,$db ; FIXME
+	.byt $c6,$d5 ; FIXME
+	.byt $1a,$c8 ; not used 
+	.byt $1a,$c8 ; not used 
 
-	.byt $1a,$c8,$1a,$c8,$1a,$c8,$1a,$c8
+	.byt $1a,$c8 ; not used 
+	.byt $1a,$c8 ; not used 
+	.byt $1a,$c8 ; not used 
+	.byt $1a,$c8 ; not used 
 LC868
 	; management of BRK $XX
 	; on the stack we have 
@@ -1092,7 +1155,7 @@ next24
 	LDA ACIASR
 	AND #$20
 	BNE next23
-	JSR $C518 ; FIXME
+	JSR Lc518 
 	STA ACIADR
 	LDA ACIACT
 	AND #$07
@@ -1178,11 +1241,21 @@ Lc973
 Lc991
 	RTS
 
-
+manage_irq_T1_and_T2
 Lc992
-	.byt $ad,$0d,$03,$29,$20,$f0,$20,$ad,$8f,$02,$ac,$90,$02,$8d
-	.byt $08,$03,$8c,$09,$03,$ad,$8c,$02,$4a,$90,$06,$20,$85,$e0,$4c,$b9
-	.byt $c8
+	lda $030d
+	and #$20
+	beq LC9b9
+	lda $028f
+	ldy $0290
+	sta $0308
+	sty $0309
+	lda $028c
+	lsr
+	bcc C9b1
+	jsr le085 
+	jmp LC8B9 
+
 routine_todefine_1:
 C9b1
 	LDA #$FF
@@ -1250,7 +1323,8 @@ next112
 	BEQ Lca1c
 	BIT $0301
 	JSR Lca2f 
-	JMP LC8B9 
+	JMP LC8B9
+manage_printer	
 Lca2f	
 	LDX #$24
 	JSR Lc518 
@@ -1260,14 +1334,38 @@ Lca2f
 	ROR FLGLPR ; printer
 	RTS
 Lca3e
-
+	sta $0301
+	lda $300
+	and #$ef
+	sta $0300
+	ora #$10
+	sta $0300
+	asl $028a
+	lsr $028a
+	rts
+reset_clock
+	lda #0
+	ldx #4
+Lda59	
+	sta $0210,x
+	dex
+	bpl Lda59
+	lda #1
+	sta $0215
+	rts
+switch_off_clock
+	lsr $0214
+	rts
+display_clock_regulary	
+	php
+	sei
+	sta $40
+	sty $41
+	sec
+	ror $214
+	plp
+	rts
 	
-
-	.byt $8d,$01
-	.byt $03,$ad,$00,$03,$29,$ef,$8d,$00,$03,$09,$10,$8d,$00,$03,$0e,$8a
-	.byt $02,$4e,$8a,$02,$60,$a9,$00,$a2,$04,$9d,$10,$02,$ca,$10,$fa,$a9
-	.byt $01,$8d,$15,$02,$60,$4e,$14,$02,$60,$08,$78,$85,$40,$84,$41,$38
-	.byt $6e,$14,$02,$28,$60
 	
 Lca75
 	LDY #$00
@@ -1343,7 +1441,9 @@ vectors_telemon
 	.byt $b0,$e6,$80,$e6,$40,$d1,$11,$d7,$37,$e5,$6c,$e6,$1e,$de,$20,$de
 	.byt $fb,$de,$54,$de,$5c,$de,$f7,$fe,$42,$d4,$f1,$d4,$55,$ca,$65,$ca
 	.byt $69,$ca,$00,$00,$e9,$d9,$1a,$da,$d8,$dd,$0d,$eb,$73,$eb,$5a,$eb
-	.byt $ec,$eb,$df,$eb,$72,$da,$e4,$da,$b9,$e1,$09,$e2,$50,$e2,$00,$00
+	.byt $ec,$eb
+	.byt $df,$eb
+	.byt $72,$da,$e4,$da,$b9,$e1,$09,$e2,$50,$e2,$00,$00
 	.byt $00,$00,$00,$00,$03,$d9,$1f,$d8,$4c,$ff,$00,$00,$1d,$c5,$18,$c5
 	.byt $0f,$c5,$0c,$c5,$07,$c5,$ea,$c4,$b1,$cf,$00,$00,$9a,$ed,$77,$ed
 	.byt $e5,$ed,$ca,$ed,$fc,$ed,$d7,$ed,$a5,$ee,$4a,$ef,$20,$ef,$3f,$ef
@@ -1353,7 +1453,12 @@ vectors_telemon
 	.byt $87,$f3,$77,$f3,$ed,$f3,$23,$f3,$a6,$f3,$52,$f3,$96,$f3,$cd,$f8
 	.byt $12,$fa,$00,$00,$e7,$e7,$d9,$e7,$c1,$e7,$cd,$e7,$92,$e7,$66,$e8
 	.byt $85,$e8,$cb,$e9,$2f,$e9,$3c,$e9,$5d,$e9,$5f,$e9,$19,$e8,$2c,$e8
-	.byt $73,$ea,$af,$ea,$93,$ea,$00,$00,$00,$00,$00,$00,$e5,$eb,$d9,$eb
+	.byt $73,$ea,$af,$ea,$93,$ea
+	.byt $00,$00 ; nothing
+	.byt $00,$00 ; nothing
+	.byt $00,$00 ; nothing
+	.byt <XEXPLO_ROUTINE,>XEXPLO_ROUTINE ; $9c
+	.byt <XPING_ROUTINE,>XPING_ROUTINE ; $9d
 
 Lcbe0	
 menu_deroulant
@@ -1363,6 +1468,7 @@ menu_deroulant
 	stx $63
 	ldx #0
 	jsr lde1e ;  switch off cursor
+Lcbeb	
 	ldy $62
 	ldx $66
 	.byt $2c
@@ -1376,7 +1482,8 @@ Lcbf0
 	bne Lcbf0 
 next	
 	stx $67
-.)
+
+Lcbfd
 	ldx $60
 	sec
 	txa
@@ -1384,7 +1491,7 @@ next
 	clc
 	adc $62
 	tay 
-	jsr $ccd3 ; FIXME
+	jsr Lccd3 ; FIXME
 	jsr XWR0_ROUTINE 
 	pha
 	bit FLGTEL ; Is it on minitel mode ?
@@ -1418,54 +1525,292 @@ Lcc3b
 	rts
 Lcc3e
 	cmp #$0a
-	bne $cc6d ; FIXME
+	bne Lcc6d 
 	lda VARMNB
 	cmp $67 
 	beq Lcc4d
 	inc VARMNB
-	jmp $cbfd ; FIXME
+	jmp Lcbfd
 Lcc4d	
 	bit $68
-	bmi $cbfd ; FIXME
+	bmi Lcbfd 
 	inc VARMNB
 	inc $67
 	inc $66
-	bit FLGTEL ; FIXME
-	bvs $cbeb ; FIXME
+	bit FLGTEL  ; Minitel mode ?
+	bvs Lcbeb 
 	ldx $62
 	ldy $63
 	jsr $de54 ; FIXME
 Lcc63	
 	ldy $63
+Lcc65	
 	ldx $60
 	
-	.byt $20,$f9,$cc,$4c,$fd,$cb,$c9,$0b,$d0
-	.byt $29,$a5,$60,$c5,$66,$d0,$1b,$a5,$60
+	jsr display_x_choice 
+	jmp Lcbfd
+Lcc6d	
+	cmp #$0b
+	bne Lcc9a 
+	lda $60
+	cmp $66
+	bne Lcc92
+	
+	lda $60
+	beq Lcc94 
+	dec $66
+	dec $67 
+	dec $60 
+	bit $020d ; Minitel ?
+	bvs Lcc97 
+	ldx $62
+	ldy $63
+	jsr $de5c  ; FIXME
+	ldy $62
+	jmp Lcc65
+Lcc92	
+	dec $60
+Lcc94
+	jmp Lcbfd 
+Lcc97	
+	jmp Lcbeb
+Lcc9a	
+	cmp #$30
+	bcc Lcc94
+	cmp #$3a
+	bcs Lcc94 
+	ldx $60
+	cpx #$19
+	bcc Lccae
+Lcca8	
+	ldx $66
+	stx $60 
+	bcs Lcc94
+Lccae	
+	pha
+	asl $60
+	lda $60 
+	asl $60 
+	asl $60
+	adc $60
+	sta $60
+	pla
+	and #$0f
+	adc $60
+	sbc #0
+	
+	sta $60
+	bcc Lcca8 
+	cmp $66
+	bcc Lcca8 
+	cmp $67
+	beq Lccd0  
+	bcs Lcca8 
+Lccd0	
+	jmp Lcbfd
+	
+	
+.)	
+	
 
-	.byt $f0,$19,$c6,$66,$c6,$67,$c6
-	.byt $60,$2c,$0d,$02,$70,$11,$a6,$62,$a4,$63,$20,$5c,$de,$a4,$62,$4c
-	.byt $65,$cc,$c6,$60,$4c,$fd,$cb,$4c,$eb,$cb,$c9,$30,$90,$f6,$c9,$3a
-	.byt $b0,$f2,$a6,$60,$e0,$19,$90,$06,$a6,$66,$86,$60,$b0,$e6,$48,$06
-	.byt $60,$a5,$60,$06,$60,$06,$60,$65,$60,$85,$60,$68,$29,$0f,$65,$60
-	.byt $e9,$00,$85,$60,$90,$e2,$c5,$66,$90,$de,$c5,$67,$f0,$02,$b0,$d8
-	.byt $4c,$fd,$cb,$20,$5a,$cd,$2c,$0d,$02,$50,$0f,$a2,$02,$a9,$09,$20
-	.byt $5d,$c7,$ca,$10,$f8,$a9,$2d,$4c,$5d,$c7,$a4,$61,$a6,$65,$b1,$26
-	.byt $09,$80,$91,$26,$c8,$ca,$d0,$f6,$60,$98,$48,$8a,$48,$48,$20,$5a
-	.byt $cd,$e8,$a5,$69,$a4,$6a,$85,$15,$84,$16,$a0,$00,$ca,$f0,$11,$c8
-	.byt $d0,$02,$e6,$16,$20,$11,$04,$d0,$f6,$c8,$d0,$f0,$e6,$16,$d0,$ec
-	.byt $a6,$16,$18,$98,$65,$15,$90,$01,$e8,$85,$02,$86,$03,$a9,$20,$85
-	.byt $14,$68,$18,$69,$01,$a0,$00,$a2,$01,$20,$39,$ce,$a9,$20,$20,$5d
-	.byt $c7,$a5,$02,$a4,$03,$20,$a8,$c7,$a0,$01,$20,$11,$04,$38,$f0,$01
-	.byt $18,$66,$68,$68,$aa,$68,$a8,$24,$68,$60,$a9,$1f,$20,$5d,$c7,$98
-	.byt $09,$40,$20,$5d,$c7,$a5,$61,$09,$40,$4c,$5d,$c7,$48,$8a,$48,$98
-	.byt $48,$38,$a5,$06,$e5,$04,$a8,$a5,$07,$e5,$05,$aa,$90,$3b,$86,$0b
-	.byt $a5,$08,$c5,$04,$a5,$09,$e5,$05,$b0,$35,$98,$49,$ff,$69,$01,$a8
-	.byt $85,$0a,$90,$03,$ca,$e6,$07,$38,$a5,$08,$e5,$0a,$85,$08,$b0,$02
-	.byt $c6,$09,$18,$a5,$07,$e5,$0b,$85,$07,$e8,$b1,$06,$91,$08,$c8,$d0
-	.byt $f9,$e6,$07,$e6,$09,$ca,$d0,$f2,$38,$68,$a8,$68,$aa,$68,$60,$8a
-	.byt $18,$65,$05,$85,$05,$8a,$18,$65,$09,$85,$09,$e8,$88,$b1,$04,$91
-	.byt $08,$98,$d0,$f8,$c6,$05,$c6,$09,$ca,$d0,$f1,$f0,$db,$0a,$64,$e8
-	.byt $10,$00,$00,$03,$27,$a2,$00,$a0,$00,$2c
+display_bar_in_inverted_video_mode
+Lccd3
+	jsr $cd5a ; FIXME
+	bit $020d ; Minitel ?
+	bvc Lccea 
+	ldx #2
+Lccdd	
+	lda #9
+	jsr XWSTR0_ROUTINE
+	dex
+	bpl Lccdd 
+	lda #$2d
+	jmp XWSTR0_ROUTINE 
+Lccea	
+	ldy $61 
+	ldx $65
+Lccee	
+	lda ($26),y
+	ora #$80
+	sta ($26),y
+	iny
+	dex
+	bne Lccee
+	rts
+Lccf9
+display_x_choice
+	tya
+	pha
+	txa
+	pha
+	pha
+	jsr put_cursor_in_61_x	
+	inx
+	lda $69
+	ldy $6a
+	sta $15
+	sty $16
+	ldy #0
+Lcd0c	
+	dex
+	beq Lcd20
+Lcd0f
+	iny 
+	bne Lcd14
+	inc $16
+Lcd14	
+	jsr $0411
+	bne Lcd0f
+	
+	iny
+	bne Lcd0c
+	inc $16
+	bne Lcd0c
+Lcd20	
+	ldx $16
+	clc
+	tya
+	adc $15
+	bcc Lcd29 
+	inx
+Lcd29	
+	sta $02
+	stx $03
+	lda #$20
+	sta $14
+	pla
+	clc
+	adc #1
+	ldy #0
+	ldx #1 
+	jsr $ce39 ; FIXME
+	
+	lda #$20
+	jsr XWSTR0_ROUTINE
+	lda $02
+	ldy $03
+	jsr $c7a8 ; FIXME
+	ldy #1
+	jsr $0411
+	sec
+	beq Lcd51 
+	clc
+Lcd51	
+	ror $68
+	pla
+	tax
+	pla
+	tay
+	bit $68
+	rts
+	
+	
+
+put_cursor_in_61_x	
+	lda #$1f
+	jsr XWSTR0_ROUTINE
+	tya
+	ora #$40
+	jsr XWSTR0_ROUTINE ;FIXME
+	lda $61
+	ora #$40
+	jmp XWSTR0_ROUTINE ;FIXME
+
+	
+	
+
+	
+shift_memory_block
+	pha
+	txa
+	pha 
+	tya
+	pha
+	sec
+	lda $06
+	sbc $04
+	tay
+	lda $07
+	sbc $05
+	tax
+	bcc $cdb9 ; FIXME
+	stx $0b
+
+	lda $08
+	cmp $04
+	lda $09
+	sbc $05
+	bcs $cdbf ; FIXME
+	tya
+	eor #$ff
+	adc #1
+	tay 
+	sta $0a
+	bcc Lcd97
+	dex
+	inc $07
+Lcd97	
+	sec
+	lda $08
+	sbc $0a
+	sta $08
+	bcs $cda2 ; FIXME
+
+	dec $09
+	clc
+	lda $07
+	sbc $0b
+	sta $07
+	inx
+Lcdaa	
+	lda ($06),y
+	sta ($08),y
+	iny 
+	bne Lcdaa
+	inc $07
+	inc $09
+	dex
+	bne	Lcdaa
+	sec
+	pla
+	tay
+	pla
+	tax
+	pla
+	rts
+	txa
+	
+	
+	clc
+	adc $05
+	sta $05
+	txa
+	clc
+	adc $09
+	sta $09
+	inx
+Lcdcc	
+	dey
+	lda ($04),y
+	sta ($08),y
+	tya
+	bne Lcdcc
+	dec $05
+	dec $09
+	dex
+	bne Lcdcc
+	beq $cdb8 ; FIXME
+	
+
+data_for_decimal_conversion
+	
+	.byt $0a,$64,$e8
+	.byt $10,$00,$00,$03,$27
+
+Lcde5	
+	ldx #0
+	ldy #0
+	.byt $2c
 
 Lcdea
 convert_into_decimal_0_to_65535
@@ -1604,21 +1949,141 @@ add_integers
 	pla
 	rts
 	
-mult_integers	
-	.byt $85,$10,$84,$11,$a2,$00,$86,$0c,$86
-	.byt $0d,$86,$0e,$86,$0f,$86,$02,$86,$03,$a2,$10,$46,$11,$66,$10,$90
-	.byt $19,$18,$a5,$00,$65,$0c,$85,$0c,$a5,$01,$65,$0d,$85,$0d,$a5,$02
-	.byt $65,$0e,$85,$0e,$a5,$03,$65,$0f,$85,$0f,$06,$00,$26,$01,$26,$02
-	.byt $26,$03,$a5,$10,$05,$11,$f0,$03,$ca,$d0,$d0,$60,$85,$0c,$84,$0d
-	.byt $a2,$00,$86,$02,$86,$03,$a2,$10,$06,$00,$26,$01,$26,$02,$26,$03
-	.byt $38,$a5,$02,$e5,$0c,$a8,$a5,$03,$e5,$0d,$90,$06,$84,$02,$85,$03
-	.byt $e6,$00,$ca,$d0,$e3,$60,$a9,$00,$a0,$a0,$85,$00,$84,$01,$a0,$68
-	.byt $a2,$bf,$a9,$40,$48,$38,$98,$e5,$00,$a8,$8a,$e5,$01,$aa,$84,$02
-	.byt $68,$a0,$00,$c4,$02,$b0,$05,$91,$00,$c8,$d0,$f7,$48,$98,$a0,$00
-	.byt $20,$89,$ce,$68,$e0,$00,$f0,$0c,$a0,$00,$91,$00,$c8,$d0,$fb,$e6
-	.byt $01,$ca,$d0,$f6,$60,$a2,$00,$a0,$ff,$8c,$aa,$02,$c8,$20,$f3,$e7
-	.byt $ad,$0d,$02,$30,$b1,$09,$80,$8d,$0d,$02,$08,$78,$a9,$1f,$8d,$67
-	.byt $bf,$20,$a4,$cf,$20,$d8,$fe,$a9,$5c,$a0,$02,$a2,$00,$20,$fd,$de
+mult_integers
+	sta $10
+	sty $11
+	ldx #00
+	stx $0c
+	stx $0d
+	stx $0e
+	stx $0f
+	stx $02
+	stx $03
+	ldx #$10
+	lsr $11
+	ror $10
+	bcc $ceca ; FIXME
+	clc
+	
+	lda $00
+	adc $0c
+	sta $0c
+	
+	lda $01
+	adc $0d
+	sta $0d
+	
+	lda $02
+	adc $0e
+	sta $0e
+	
+	lda $03
+	adc $0f
+	sta $0f
+
+	asl $00
+	rol $01
+	rol $02
+	rol $03
+	
+	lda $10
+	ora $11
+	beq Lcedb
+	dex
+	bne $ceab ; FIXME
+Lcedb	
+	rts
+	
+divide_interger
+Lcedc
+	sta $0c
+	sty $0d
+	ldx #0
+	stx $02
+	stx $03
+	ldx #$10
+Lcee8	
+	asl $00
+	rol $01
+	rol $02
+	rol $03
+	sec
+	lda $02
+	sbc $0c
+	tay 
+	lda $03
+	sbc $0d
+	bcc $cf02
+	sty $02
+	sta $03
+	inc $00
+	dex
+	bne Lcee8
+	rts
+
+clear_hires
+	lda #00
+	ldy #$a0
+	sta $00
+	sty $01
+	ldy #$68
+	ldx #$bf
+	lda #$40
+
+Fill_a_memory_zone	
+	pha
+	sec
+	tya
+	sbc $00
+	tay
+	txa
+	sbc $01
+	tax
+	sty $02
+	pla
+	ldy #0
+Lcf23	
+	cpy $02
+	bcs Lcf2c
+	sta ($00),y
+	iny
+	bne Lcf23
+Lcf2c	
+	pha
+	tya
+	
+	ldy #0
+	jsr $ce89 ; FIXME
+	pla
+	cpx #0
+	beq Lcf44 
+	ldy #0
+Lcf3a	
+	sta ($00),y
+	iny
+	bne Lcf3a
+	inc $01
+	dex
+	bne Lcf3a
+Lcf44	
+	rts
+switch_hires
+	ldx #$00
+	ldy #$ff
+	sty $02aa ; pattern
+	iny
+	jsr $e7f3 ; FIXME
+	lda $020d ; we are already in Hires ?
+	bmi $cf06 ; FIXME 
+	ora #$80
+	sta $020d ; Set to Hires flag
+	php 
+	sei
+	lda #$1f
+	sta $bf67
+
+	
+	.byt $20,$a4,$cf,$20,$d8,$fe,$a9,$5c,$a0,$02,$a2,$00,$20,$fd,$de
 	.byt $20,$06,$cf,$28,$60,$ad,$0d,$02,$10,$29,$08,$78,$29,$7f,$8d,$0d
 	.byt $02,$20,$db,$fe,$a9,$56,$a0,$02,$a2,$00,$20,$fd,$de
 	
@@ -1974,7 +2439,7 @@ CTRL_M_KEYBOARD
 	sta $38
 	jmp $d756 ; FIXME
 	
-CTRL_N_KEYBOARD
+CTRL_N_KEYBOARD ; clear current line in prompt
 	lda #$40
 	sta $33
 	lda $32
@@ -2264,10 +2729,6 @@ table_of_char_videotex_special
 	.byt $7e
 	.byt $3f,$00,$00,$00,$00,$00,$00,$00,$00
 #endif	
-
-
-
-
 
 #ifdef HAVE_USBDRIVE
 ; 281 bytes reserved
@@ -2705,7 +3166,8 @@ routine_to_define_8
 	STY $0251 ; LPRVEC ?
 	rts
 Lda70	
-	.byt $30,$60
+	.byt $30
+	rts
 Lda72
 .(
 	PHA
@@ -2811,17 +3273,17 @@ Ldaf5
 	RTS
 	BMI Ldafe
 	LDX #$0C
-	JMP $C518 ; FIXME
+	JMP Lc518 
 Ldafe
 	BCS Ldb09
-	LDA $031E
+	LDA ACIACR
 	AND #$0D
 	ORA #$60
 	BNE Ldb43 
 Ldb09
-	LDA $031E
+	LDA ACIACR
 	ORA #$02
-	STA $031E
+	STA ACIACR
 RTS
 Ldb12
 
