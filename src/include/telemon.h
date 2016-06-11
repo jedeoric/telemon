@@ -100,9 +100,9 @@
 /// b5=1 degre mode : 0 (calcul radians )
 /// b2=1 BONJOURCOM exists
 /// b1=1 Printer detected 
-/// b0=1 strated is missing
+/// b0=1 stratsed is missing
 
-#define FLGTEL $020D ; 
+#define FLGTEL $020D
 
 #define KOROM $020E	; Ko ROM total
 #define KORAM $020f ; total Max ram Bytes	
