@@ -2080,31 +2080,155 @@ switch_hires
 	php 
 	sei
 	lda #$1f
-	sta $bf67
+	sta $bf67 
+	jsr $cfa4 ; FIXME
+	jsr $fed8 ; FIXME
+	lda #$5c
+	ldy #$02
+	ldx #0
+	jsr $defd ; FIXME
+	jsr $cf06 ; FIXME
+	plp
+	rts
+switch_text
+	lda $020d
+	bpl $cfa3 ; FIXME
+	php 
+	
+	sei
+	and #$7f
+	sta $020d
+	jsr $fedb ; FIXME
+	lda #$56
+	ldy #$02
+	ldx #0
+	jsr $defd ; FIXME
+	
+	lda #$1a
+	sta $bfdf
+	jsr $cfa4 ; FIXME
+	ldx #$28
+	lda #$20
 
+Lcf99	
+	sta $bb7f,x
+	dex
+	bne Lcf99	
+	jsr $de20
+	plp
+	rts
 	
-	.byt $20,$a4,$cf,$20,$d8,$fe,$a9,$5c,$a0,$02,$a2,$00,$20,$fd,$de
-	.byt $20,$06,$cf,$28,$60,$ad,$0d,$02,$10,$29,$08,$78,$29,$7f,$8d,$0d
-	.byt $02,$20,$db,$fe,$a9,$56,$a0,$02,$a2,$00,$20,$fd,$de
+wait_0_3_seconds ; Wait 0,3333 seconds 	
+	ldy #$1f
+	ldx #$00
+Lcfa8
+	dex
+	bne Lcfa8
+	dey
+	bne Lcfa8
+	rts
+	
+
+test_if_all_buffers_are_empty
+	sec
+	.byt $24 ; jump
+	clc
+	ror $15
+	ldx #0
+Lcfb6	
+	jsr $c50f ; FIXME
+	bcc Lcfc3 ; FIXME
+	txa
+	adc #$0b
+	tax
+	cpx #$30
+	bne Lcfb6 
+Lcfc3	
+	php
+	lda #$dc
+	ldy #$cf
+	bcs Lcfce 
+	lda #$e6
+	ldy #$cf
+Lcfce	
+	bit $15
+	bpl Lcfd7 
+	jsr $fef9 ; FIXME Define prompt
+	plp
+	rts
+Lcfd7	
+	jsr $fef9 ; FIXME
+	plp
+	rts
 	
 	
-	.byt $a9,$1a,$8d
-	.byt $df,$bf,$20,$a4,$cf,$a2,$28,$a9,$20,$9d,$7f,$bb,$ca,$d0,$fa,$20
-	.byt $20,$de,$28,$60,$a0,$1f,$a2,$00,$ca,$d0,$fd,$88,$d0,$fa,$60,$38
-	.byt $24,$18,$66,$15,$a2,$00,$20,$0f,$c5,$90,$08,$8a,$69,$0b,$aa,$e0
-	.byt $30,$d0,$f3,$08,$a9,$dc,$a0,$cf,$b0,$04,$a9,$e6,$a0,$cf,$24,$15
-	.byt $10,$05,$20,$f9,$fe,$28,$60,$20,$f9,$fe,$28,$60
+	
+	
+
 table_to_define_prompt_charset
 	.byt $7f ; char 127
 	.byt $00,$00,$08,$3c,$3e,$3c,$08,$00,$00
-	
+table_to_define_prompt_charset_empty	
 	.byt $7f,$00,$00,$08,$34,$32,$34,$08,$00,$00
-	.byt $85,$15,$84,$16,$86,$00,$e6,$00,$ac,$0c,$02,$8c,$17,$05,$8c,$00
-	.byt $05,$a0,$0c,$a9,$3f,$99,$17,$05,$88,$d0,$fa,$8a,$f0,$3b,$e0,$01
-	.byt $d0,$22,$20,$df,$d0,$38,$e9,$41,$c9,$04,$b0,$40,$8d,$17,$05,$8d
-	.byt $00,$05,$a2,$01,$a0,$0c,$a9,$3f,$d9,$17,$05,$f0,$05,$88,$d0,$f8
-	.byt $18,$60,$38,$60,$a0,$01,$20,$df,$d0,$c9,$2d,$d0,$1f,$a0,$00,$20
-	.byt $df,$d0,$38,$e9,$41,$b0,$03,$a2,$81,$60,$c9,$04,$b0,$f9,$e0,$02
+	
+put_a_name_file_in_bufnom
+
+	sta $15
+	sty $16
+	stx $00
+	inc $00
+	ldy $020c
+	sty $517
+	sty $500
+	ldy #$0c
+	lda #$3f
+Ld005	
+	sta $517,y
+	dey
+	bne Ld005
+	txa 
+	beq $d049 ; FIXME
+	
+	cpx #1
+	bne $d034 ; FIXME
+	jsr $d0df ; FIXME
+	sec
+	sbc #$41
+	cmp #4
+	bcs $d05c ; FIXME
+	sta $0517
+	sta $500
+	ldx #1
+	ldy #$0c
+	lda #$3f
+Ld028	
+	cmp $517,y
+	beq $d032 ; FIXME
+	dey
+	bne Ld028
+	clc
+	rts
+	sec
+	rts
+	ldy #1
+	jsr $d0df ; FIXME
+	cmp #$2d
+	bne $d05c ; FIXME
+	ldy #0
+	jsr $d0df
+	sec
+	sbc #$41
+	bcs Ld04a ; FIXME
+	ldx #$81
+	rts
+Ld04a
+	cmp #4
+	bcs $d047 ; FIXME
+	cpx #2
+	
+	
+
+
 	.byt $d0,$04,$8d,$0c,$02,$60,$8d,$17,$05,$a0,$02,$2c,$a0,$00,$a2,$00
 	.byt $20,$df,$d0,$b0,$1d,$c9,$2e,$f0,$19,$c9,$2a,$f0,$22,$20,$fb,$d0
 	.byt $90,$06,$a2,$80,$60,$a2,$82,$60,$e0,$09,$f0,$f9,$9d,$18,$05,$e8
