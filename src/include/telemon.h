@@ -249,7 +249,9 @@
 #define VEXBNK $414
 #define BNKCIB $417
 
+/********************************************************************** PAGE 5 VARIABLES */
 
+#define BUFNOM $517
 
 
 
