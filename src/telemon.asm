@@ -1027,7 +1027,7 @@ Lc75d
 #include "functions/XWRx.asm"
 #include "functions/XWSTRx.asm"
 #include "functions/XRDW.asm"
-#include "functions/XWR.asm"	
+#include "functions/XWRD.asm"	
 	
 
 	
