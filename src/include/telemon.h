@@ -24,7 +24,16 @@
 #define TR7 $13 ; general usage 1 byte
 
 
+
+
 #define DEFAFF $14 ; default value for decimal conversion
+
+
+#define work_channel $19
+
+#define i_o_counter $1a
+
+#define i_o_save $1b
 
 /// @brief [VALUE_PAGE_0] save Accumulator used when there is an IRQ
 #define IRQSVA $21 
@@ -42,6 +51,18 @@
 #define SCRNB $28
 
 #define ADKBD $2a ; ASCII conversion table adress
+
+// VIDEOTEX HIRES
+
+#define ADVDT $2c ; adress hires screen
+
+#define ADASC $2e ; ascii table
+
+#define ADATR $30 ;adress table attributes
+
+#define VDTPAR $32 ; VDT work
+
+#define VDTASC $33 ; VDT work
 
 /// @brief [VALUE_PAGE_0] address to display clock
 #define ADCLK $40 

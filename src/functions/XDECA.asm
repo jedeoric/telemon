@@ -1,15 +1,15 @@
 
-XDECAL_ROUTINE
-
+;XDECAL_ROUTINE
+XFIXME_ROUTINE
 	ldx #0
 	.byt $2c
-XDECAL1_ROUTINE	
+XFIXME1_ROUTINE	
 	ldx #4
 	.byt $2c
-XDECAL2_ROUTINE		
+XFIXME2_ROUTINE		
 	ldx #$08
 	.byt $2c
-XDECAL3_ROUTINE
+XFIXME3_ROUTINE
 	ldx #$0c
 	STX $1C
 	STA $15
@@ -27,6 +27,5 @@ loop500
 	INC $15
 	bne loop500
 	INC $16
-
 	bne loop500
 	
