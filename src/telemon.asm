@@ -1,3 +1,11 @@
+/***********************************************************************/
+/* DASM and source converted with labels : jede (jede[at]oric[dot]org) */
+/* may and june 2016                                                   */
+/* with the help of G. Meister telemon dasm 						   */
+/* telemon 2.4                                                         */
+/***********************************************************************/
+
+
 #include "include/telemon.h"
 #include "include/via6522_1.h"
 #include "include/via6522_2.h"
@@ -579,7 +587,7 @@ Lc352
 	pla
 	beq Lc365 
 
-	BRK_TELEMON(XWR0) ; FIXME
+	BRK_TELEMON(XWR0)
 	iny
 	
 	bne Lc352
@@ -665,7 +673,7 @@ loading_vectors_b800
 	LDA #$00
 	LDY #$C1
 	STA RES
-	STY $01
+	STY RES+1
 	LDX #$01
 	STX FDCSR 
 	JSR $B84F ; FIXME
@@ -676,7 +684,7 @@ loading_vectors_b800
 	LDY $C104 ; FIXME
 	STA RES
 loop101	
-	STY $01
+	STY RES+1
 loop102	
 	CPX $C101
 
@@ -691,7 +699,7 @@ next101
 	INX
 	STX $0312
 	JSR $B84F ; FIXME      
-	INC $01  
+	INC RES+1  
 	DEC $C102 ; FIXME      
 	BNE loop102
 	JSR $C105 ; FIXME
@@ -704,19 +712,19 @@ next100
 loop105	
 address_b84F
 	LDA #$88
-	STA $0310
+	STA FDCCR
 	LDY #$04
 loop100
 	DEY
 	BNE loop100
 loop103
-	LDA $0310
+	LDA FDCCR
 	LSR
 	bcc end6
-	LDA $0318
+	LDA $0318 ; FIXE
 	bmi loop103
 	LDA FDCDR
-	STA ($00),Y
+	STA (RES),Y
 	INY
 address_b86a	
 	JMP $B85F ; address_b85f
@@ -738,7 +746,7 @@ end7
 	rts
 	nop
 end6
-	LDA $0310
+	LDA FDCCR
 	AND #$1C
 	BEQ end7
 	BNE loop105
@@ -757,7 +765,7 @@ ROUTINE_TO_DEFINE_40
 	LDA data_to_define_7,X 
 	STA RES
 	LDA $C6B0,X ; FIXME
-	STA $01
+	STA RES+1
 	
 	LDA $C6B1,X ; CORRECTME
 	LDY $C6B2,X ; CORRECTME
@@ -925,7 +933,7 @@ data_to_define_4
 	rts
 	sec
 	rts
-	
+LC5FE	
 	sta RESB
 	sty $03
 	
@@ -933,7 +941,7 @@ data_to_define_4
 	sbc RES
 	sta $c08a,x
 	tya
-	sbc $01
+	sbc RES+1
 	sta $c08b,x
 	
 	txa
@@ -941,43 +949,89 @@ data_to_define_4
 	tax
 	ldy #3
 Lc614	
-	lda $0000,y
-	sta $c07f,x
+	lda $0000,y ; FIXME
+	sta $c07f,x ; FIXME
 	dex
 	dey
 	bpl  Lc614
 	
 	lda #0
-	sta $c088,x
-	sta $c089,x
-	lda $c082,x
-	sta $c084,x
-	sta $c086,x
-	lda $c083,x
-	sta $c085,x
-	sta $c087,x
+	sta $c088,x ; FIXME
+	sta $c089,x ; FIXME
+	lda $c082,x ; FIXME
+	sta $c084,x ; FIXME
+	sta $c086,x ; FIXME
+	lda $c083,x ; FIXME
+	sta $c085,x ; FIXME
+	sta $c087,x ; FIXME
 	rts
 	
-	bvs $c661 ; FIXME
+	bvs LC661 
 	jsr $c507 ; FIXME
-
+	bcs $c660 ; FIXME
+	lda $c086,x ; FIXME
+	ldy $c087,x ; FIXME
+	jsr $c5a6 ; FIXME
+	sta $c086,x ; FIXME
+	tya
+	sta $c087,x ; FIXME
+	lda $c088,x ; FIXME
+	bne LC658 
+	dec $c089,x; FIXME
+LC658	
+	dec $c088,x ; FIXME
+	ldy #0
+	lda ($24),y
+	clc
+	rts
 	
-	.byt $b0,$20
-	.byt $bd,$86,$c0,$bc,$87,$c0,$20,$a6,$c5,$9d,$86,$c0,$98,$9d,$87,$c0
-	.byt $bd,$88,$c0,$d0,$03,$de,$89,$c0,$de,$88,$c0,$a0,$00,$b1,$24,$18
-	.byt $60,$48,$bd,$88,$c0,$dd,$8a,$c0,$bd,$89,$c0,$fd,$8b,$c0,$b0,$1f
-	.byt $bd,$84,$c0,$bc,$85,$c0,$20,$a6,$c5,$9d,$84,$c0,$98,$9d,$85,$c0
-	.byt $fe,$88,$c0,$d0,$03,$fe,$89,$c0,$a0,$00,$68,$91,$24,$18,$60,$68
-	.byt $60,$18,$69,$01,$90,$01,$c8,$dd,$82,$c0,$85
+LC661
+	PHA
+	LDA $C088,X ; FIXME
+	CMP $C08A,X ; FIXME
+	LDA $C089,X ; FIXME
+	SBC $C08B,X ; FIXME
+	BCS LC68F 
+	LDA $C084,X ; FIXME
+	LDY $C085,X ; FIXME
+	JSR $C5A6 ; FIXME
+	STA $C084,X ; FIXME
+	TYA
+	STA $C085,X ; FIXME
+	INC $C088,X ; FIXME
+	BNE LC688
+	INC $C089,X ; FIXME
+LC688	
+	LDY #$00
+	PLA
+	STA (IRQSVP),Y
+	CLC
+	RTS
+LC68F	
+	PLA
+	RTS
+LC691
+	clc
+	adc #1
+	bcc LC697 
+	iny
+LC697	
+	cmp $c082,x ; FIXME
+	
+	sta $24 ; FIXME
+	
+	
+
 routine_to_define_16
-	BIT $98
+LC69C
+	tya
 	SBC $C083,X ; FIXME
 	BCC next36 
 	LDA $C080,X ; FIXME
 	LDY $C081,X ; FIXME
 	STA IRQSVP
 next36
-	STY $25
+	STY $25 ; FIXME
 	LDA IRQSVP
 	RTS
 
@@ -1018,7 +1072,7 @@ next40
 
 XCRLF_ROUTINE
 	lda #$0a
-	jsr XWR0_ROUTINE ; FALSE
+	jsr XWR0_ROUTINE 
 	lda #$0d
 
 
@@ -1030,10 +1084,10 @@ Lc75d
 #include "functions/XWRD.asm"	
 	
 
-	
+send_command_A	
 Lc81c
-	STY $17
-	STY $18
+	STY $17 ;FIXME
+	STY $18 ;FIXME
 	PHA
 	TXA
 	ASL
@@ -1132,7 +1186,7 @@ next200
 	PHA ; push P flag to return in correct state
 LC8B6		
 	SEC
-	ROR $1E
+	ROR TRANSITION_RS232
 LC8B9
 	JSR LC8BF
 	JMP LC9b9  
@@ -1147,7 +1201,7 @@ routine_to_define_12
 	PHA
 	LDA ACIASR 
 	BPL next23
-	LSR $1E
+	LSR TRANSITION_RS232
 	PHA
 	AND #$08
 	BEQ next24
@@ -1155,10 +1209,12 @@ routine_to_define_12
 	PLA
 	PHA
 	AND #$07
-	BEQ next25+1 ; ? Don't know yet
+	BEQ next25
 	ORA #$B0
-next25
-	BIT $8A
+	.byt $24
+next25	
+	txa
+
 	LDX #$0C
 	JSR LC51D
 
@@ -1204,10 +1260,10 @@ Lc91d
 	RTS
 	
 Lc91e
-	DEC $0215
+	DEC FLGCLK_FLAG
 	BNE Lc973
 	LDA #$04
-	STA $0215
+	STA FLGCLK_FLAG
 	BIT FLGLPR
 	BPL Lc930
 	JSR Lca2f 
@@ -1339,7 +1395,7 @@ next112
 	LDA V1IFR
 	AND #$02
 	BEQ Lca1c
-	BIT $0301
+	BIT V1DRA
 	JSR Lca2f 
 	JMP LC8B9
 manage_printer	
@@ -1352,14 +1408,14 @@ Lca2f
 	ROR FLGLPR ; printer
 	RTS
 Lca3e
-	sta $0301
-	lda $300
+	sta V1DRA
+	lda V1DRB
 	and #$ef
-	sta $0300
+	sta V1DRB
 	ora #$10
-	sta $0300
-	asl $028a
-	lsr $028a
+	sta V1DRB
+	asl FLGLPR
+	lsr FLGLPR
 	rts
 reset_clock
 	lda #0
@@ -1369,7 +1425,7 @@ Lda59
 	dex
 	bpl Lda59
 	lda #1
-	sta $0215
+	sta FLGCLK_FLAG
 	rts
 switch_off_clock
 	lsr $0214
@@ -1469,26 +1525,55 @@ vectors_telemon
 	.byt <XADRES_ROUTINE,>XADRES_ROUTINE ; XADRES
 	.byt <XDIVIS_ROUTINE,>XDIVIS_ROUTINE ; 
 	.byt <XNOMFI_ROUTINE,>XNOMFI_ROUTINE ; XNOMFI 
-	.byt <XCRLF_ROUTINE,>XCRLF_ROUTINE
-	.byt $49,$e7 ; XDECAY FIXME
-	.byt $00,$00 ; nothing 
-	.byt <XBINDX_ROUTINE,>XBINDX_ROUTINE ; XBINDX
+	.byt <XCRLF_ROUTINE,>XCRLF_ROUTINE ; $25
+	.byt <XDECAY_ROUTINE,>XDECAY_ROUTINE ; XDECAY  $26
+	.byt $00,$00 ; nothing  $27 
+	.byt <XBINDX_ROUTINE,>XBINDX_ROUTINE ; XBINDX $28
 	.byt <XDECIM_ROUTINE,>XDECIM_ROUTINE
 	.byt <XHEXA_ROUTINE,>XHEXA_ROUTINE
-	.byt $9b,$f4 ; XA1AFF FIXME
+	.byt <XA1AFF_ROUTINE,>XA1AFF_ROUTINE ; XA1AFF 
 	.byt <XMENU_ROUTINE,>XMENU_ROUTINE ; XMENU
-	.byt $35,$e4 ; XEDT FIXME
-	.byt $b0,$e6 ; XINSER FIXME
-	.byt $80,$e6 ; XSCELG FIXME
-	.byt $40,$d1 ; control_videotex : no name FIXME
-	.byt $11,$d7
-	.byt $37,$e5,$6c,$e6,$1e,$de,$20,$de
-	.byt $fb,$de,$54,$de,$5c,$de,$f7,$fe,$42,$d4,$f1,$d4,$55,$ca,$65,$ca
-	.byt $69,$ca,$00,$00,$e9,$d9,$1a,$da,$d8,$dd,$0d,$eb,$73,$eb,$5a,$eb
-	.byt $ec,$eb
-	.byt $df,$eb
-	.byt $72,$da,$e4,$da,$b9,$e1,$09,$e2,$50,$e2,$00,$00
-	.byt $00,$00,$00,$00,$03,$d9,$1f,$d8,$4c,$ff,$00,$00,$1d,$c5,$18,$c5
+	.byt <XEDT_ROUTINE,>XEDT_ROUTINE ; XEDT 
+	.byt <XINSER_ROUTINE,>XINSER_ROUTINE ; XINSER 
+	.byt <XSCELG_ROUTINE,>XSCELG_ROUTINE ; XSCELG $2f
+	.byt <XVDTCT_ROUTINE,>XVDTCT_ROUTINE ; control_videotex : no name FIXME $30 MINITEL
+	.byt <XVDTG2_ROUTINE,>XVDTG2_ROUTINE ; $31 FIXME
+	.byt <XEDTIN_ROUTINE,>XEDTIN_ROUTINE; XEDTIN $32
+	.byt <XECRPR_ROUTINE,>XECRPR_ROUTINE; XECRPR $33 $ece6
+	.byt <XCOSCR_ROUTINE,>XCOSCR_ROUTINE  ;XCOSCR $34
+	.byt <XCSSCR_ROUTINE,>XCSSCR_ROUTINE ; $35 XCSSCR 
+	.byt $fb,$de ; $36 FIXME
+	.byt <XSCROH_ROUTINE,>XSCROH_ROUTINE ; $37
+	.byt $5c,$de ; $38 FIXME
+	.byt $f7,$fe ; $39
+	.byt $42,$d4 ; $3a
+	.byt $f1,$d4 ; $3b
+	.byt $55,$ca ; $3c
+	.byt $65,$ca ; $3d
+	.byt $69,$ca ; $3e
+	.byt $00,$00 ; $3f
+	.byt $e9,$d9 ; $40
+	.byt <XEPSG_ROUTINE,>XEPSG_ROUTINE ; $41
+	.byt <XOUPS_ROUTINE,>XOUPS_ROUTINE ; $42 XOUPS ddd8
+	.byt <XPLAY_ROUTINE,>XPLAY_ROUTINE ;XPLAY
+	.byt <XSOUND_ROUTINE,>XSOUND_ROUTINE
+	.byt <XMUSIC_ROUTINE,>XMUSIC_ROUTINE
+	.byt <XZAP_ROUTINE,>XZAP_ROUTINE
+	.byt <XSHOOT_ROUTINE,>XSHOOT_ROUTINE ; 47
+	.byt $72,$da ; $48
+	.byt $e4,$da ; $49
+	.byt $b9,$e1 ; $4a
+	.byt $09,$e2 ; $4b
+	.byt $50,$e2 ; $4c
+	.byt $00,$00 ; $4d
+	.byt $00,$00 ; $4e
+	.byt $00,$00 ; $4f
+	.byt $03,$d9 ; $50
+	.byt $1f,$d8 ; $51
+	.byt $4c,$ff ; $52
+	.byt $00,$00
+	.byt $1d,$c5
+	.byt $18,$c5
 	.byt $0f,$c5,$0c,$c5,$07,$c5,$ea,$c4,$b1,$cf,$00,$00,$9a,$ed,$77,$ed
 	.byt $e5,$ed,$ca,$ed,$fc,$ed,$d7,$ed,$a5,$ee,$4a,$ef,$20,$ef,$3f,$ef
 	.byt $7a,$ef,$85,$ef,$a5,$f4,$1e,$f9,$b2,$ef,$9b,$ef,$8b,$f1,$8a,$f2
@@ -1497,10 +1582,11 @@ vectors_telemon
 	.byt $87,$f3,$77,$f3,$ed,$f3,$23,$f3,$a6,$f3,$52,$f3,$96,$f3,$cd,$f8
 	.byt $12,$fa,$00,$00,$e7,$e7,$d9,$e7,$c1,$e7,$cd,$e7,$92,$e7,$66,$e8
 	.byt $85,$e8,$cb,$e9,$2f,$e9,$3c,$e9,$5d,$e9,$5f,$e9,$19,$e8,$2c,$e8
-	.byt $73,$ea,$af,$ea,$93,$ea
-	.byt $00,$00 ; nothing
-	.byt $00,$00 ; nothing
-	.byt $00,$00 ; nothing
+	.byt $73,$ea,$af,$ea
+	.byt <XSCHAR_ROUTINE,>XSCHAR_ROUTINE ; 98
+	.byt $00,$00 ; nothing $99
+	.byt $00,$00 ; nothing $9a
+	.byt $00,$00 ; nothing $9b
 	.byt <XEXPLO_ROUTINE,>XEXPLO_ROUTINE ; $9c
 	.byt <XPING_ROUTINE,>XPING_ROUTINE ; $9d
 
@@ -1512,7 +1598,7 @@ menu_deroulant
 	sta $66
 	stx $63
 	ldx #0
-	jsr lde1e ;  switch off cursor
+	jsr XCOSCR_ROUTINE ;  switch off cursor
 Lcbeb	
 	ldy $62
 	ldx $66
@@ -1586,7 +1672,7 @@ Lcc4d
 	bvs Lcbeb 
 	ldx $62
 	ldy $63
-	jsr $de54 ; FIXME
+	jsr XSCROH_ROUTINE 
 Lcc63	
 	ldy $63
 Lcc65	
@@ -1606,7 +1692,7 @@ Lcc6d
 	dec $66
 	dec $67 
 	dec VARMNB 
-	bit $020d ; Minitel ?
+	bit FLGTEL ; Minitel ?
 	bvs Lcc97 
 	ldx $62
 	ldy $63
@@ -1661,7 +1747,7 @@ Lccd0
 display_bar_in_inverted_video_mode
 Lccd3
 	jsr $cd5a ; FIXME
-	bit $020d ; Minitel ?
+	bit FLGTEL ; Minitel ?
 	bvc Lccea 
 	ldx #2
 Lccdd	
@@ -1904,7 +1990,9 @@ loop33
 	BNE loop34+1
 	LDA DEFAFF
 loop34
-	BIT $3009 ; CORRECTME
+	.byt $2c,$09,$30 ; FIXME
+	
+	;BIT $3009 ; CORRECTME
 	JSR lce32 
 	DEX
 	BPL loop35
@@ -1960,23 +2048,23 @@ Lce69
 mult_by_40
 	ldy #0
 	sta RES
-	sty $01
+	sty RES+1
 	asl
-	rol $01
+	rol RES+1
 	asl
-	rol $01
+	rol RES+1
 	adc RES
 	bcc Lce7b
-	inc $01
+	inc RES+1
 Lce7b
 	asl
-	rol $01
+	rol RES+1
 	asl
-	rol $01
+	rol RES+1
 	asl
-	rol $01
+	rol RES+1
 	sta RES
-	ldy $01
+	ldy RES+1
 	rts
 
 #include "functions/XADRES.asm"
@@ -2002,7 +2090,7 @@ XMULT_ROUTINE
 	adc $0c
 	sta $0c
 	
-	lda $01
+	lda RES+1
 	adc $0d
 	sta $0d
 	
@@ -2015,7 +2103,7 @@ XMULT_ROUTINE
 	sta $0f
 
 	asl RES
-	rol $01
+	rol RES+1
 	rol $02
 	rol $03
 	
@@ -2036,13 +2124,14 @@ XDIVIS_ROUTINE
 	ldx #$10
 Lcee8	
 	asl RES
-	rol $01
+	rol RES+1
 	rol $02
 	rol $03
 	sec
 	lda $02
 	sbc $0c
-	tay 
+	tay
+
 	lda $03
 	sbc $0d
 	bcc $cf02 ; FIXME
@@ -2057,7 +2146,7 @@ XEFFHI_ROUTINE
 	lda #00
 	ldy #$a0
 	sta RES
-	sty $01
+	sty RES+1
 	ldy #$68
 	ldx #$bf
 	lda #$40
@@ -2069,7 +2158,7 @@ XFILLM_ROUTINE
 	sbc RES
 	tay
 	txa
-	sbc $01
+	sbc RES+1
 	tax
 	sty $02
 	pla
@@ -2077,7 +2166,7 @@ XFILLM_ROUTINE
 Lcf23	
 	cpy $02
 	bcs Lcf2c
-	sta ($00),y
+	sta (RES),y
 	iny
 	bne Lcf23
 Lcf2c	
@@ -2085,16 +2174,16 @@ Lcf2c
 	tya
 	
 	ldy #0
-	jsr $ce89 ; FIXME
+	jsr XADRES_ROUTINE ; FIXME
 	pla
 	cpx #0
 	beq Lcf44 
 	ldy #0
 Lcf3a	
-	sta ($00),y
+	sta (RES),y
 	iny
 	bne Lcf3a
-	inc $01
+	inc RES+1
 	dex
 	bne Lcf3a
 Lcf44	
@@ -2106,16 +2195,17 @@ XHIRES_ROUTINE
 	sty $02aa ; pattern
 	iny
 	jsr Le7f3 
-	lda $020d ; we are already in Hires ?
+	lda FLGTEL ; we are already in Hires ?
 	bmi $cf06 ; FIXME 
 	ora #$80
-	sta $020d ; Set to Hires flag
+	
+	sta FLGTEL ; Set to Hires flag
 	
 	php 
 	sei
 	lda #$1f
 	sta $bf67 
-	jsr $cfa4 ; FIXME
+	jsr wait_0_3_seconds 
 	jsr $fed8 ; FIXME
 	lda #$5c
 	ldy #$02
@@ -2127,13 +2217,13 @@ XHIRES_ROUTINE
 	
 XTEXT_ROUTINE	
 switch_text
-	lda $020d
+	lda FLGTEL
 	bpl $cfa3 ; FIXME
 	php 
 	
 	sei
 	and #$7f
-	sta $020d
+	sta FLGTEL
 	jsr $fedb ; FIXME
 	lda #$56
 	ldy #$02
@@ -2142,7 +2232,7 @@ switch_text
 	
 	lda #$1a
 	sta $bfdf
-	jsr $cfa4 ; FIXME
+	jsr wait_0_3_seconds ; FIXME
 	ldx #$28
 	lda #$20
 
@@ -2150,7 +2240,7 @@ Lcf99
 	sta $bb7f,x
 	dex
 	bne Lcf99	
-	jsr $de20
+	jsr XCSSCR_ROUTINE
 	plp
 	rts
 	
@@ -2402,40 +2492,41 @@ init_vdt_table
 	ldy #0
 	lda #$90
 	sty RES
-	sta $01
+	sta RES+1
 	ldx #$94
 	lda #$0
-	jsr $cf14 ; FIXME
+	jsr XFILLM_ROUTINE 
 	ldy #0
 	lda #$94
 	sty RES
-	sta $01 
+	sta RES+1 
 	ldx #$98
 	lda #$87
-	jsr $cf14 ; FIXME
+	jsr XFILLM_ROUTINE
 	
 	ldy #0
 	lda #$a0
 	
 	sty RES
-	sta $01
+	sta RES+1
 	ldy #$3f
 	ldx #$bf
 	lda #$10
-	jmp $cf14 ; FIXME
+	jmp XFILLM_ROUTINE
 	
 	
 ; MINITEL
 manage_VDT_cursor
+XVDTCT_ROUTINE
 Ld140
-	lda $39
-	jsr $ce69 ; FIXME
+	lda VDTY
+	jsr XMUL40_ROUTINE 
 	pha
 	tya
 	pha
 	lda #0
 	ldy #$90
-	jsr $ce89 ; FIXME
+	jsr XADRES_ROUTINE
 	sta $2e
 	sty $2f
 	sta $30
@@ -2445,18 +2536,18 @@ Ld140
 	iny
 	sty $31
 	pla
-	sta $01
+	sta RES+1
 	pla
 	asl
-	rol $01
+	rol RES+1
 	asl
-	rol $01
+	rol RES+1
 	asl 
-	rol $01
+	rol RES+1
 	sta RES
 	lda #0
 	ldy #$a0
-	jsr $ce89
+	jsr XADRES_ROUTINE
 	sta $2c
 	sty $2d
 	jmp $d756 ; FIXME
@@ -2490,7 +2581,7 @@ Ld1f9
 	sta RES
 	lda #$d3
 	adc #$00
-	sta $01 ; CORRECTME
+	sta RES+1 ; CORRECTME
 	jmp ($0000)
 Ld20b
 
@@ -2564,7 +2655,7 @@ Ld26f
 	asl
 	adc $283
 	sbc #$2f
-	sta $39
+	sta VDTY
 	jsr CTRL_M_KEYBOARD 
 
 	jsr $d759 ; FIXME
@@ -2572,11 +2663,11 @@ Ld26f
 Ld2a3		
 	jsr $d759 ; FIXME
 	lda $0283
-	sta $38
-	dec $38
+	sta VDTX
+	dec VDTX
 	lda $0282 ; CORRECTME
 	and #$3f
-	sta $39
+	sta VDTY
 	jmp $d140 ; FIXME
 
 /*END routine */
@@ -2719,27 +2810,27 @@ Ld37e
 	RTS
 
 CTRL_G_KEYBOARD ; Send oups
-	jmp $ddd8 ; FIXME
+	jmp XOUPS_ROUTINE 
 CTRL_H_KEYBOARD 
 	jsr $d759 ; switch off cursor  Why not BRK ?
-	lda $38
+	lda VDTX
 	beq $d3be ; FIXME
 Ld389	
-	dec $38
+	dec VDTX
 Ld38b
 	jmp $d756 ; FIXME
 CTRL_I_KEYBOARD 	
 	jsr $d759 ; FIXME
-	inc $38
-	lda $38
+	inc VDTX
+	lda VDTX
 	cmp #$28
 	bcc Ld38b
-	lda $39
+	lda VDTY
 	beq Ld389	
 	jsr $d3d7
 CTRL_J_KEYBOARD ; 10 code
 	jsr $d759 ; FIXME
-	ldx $39
+	ldx VDTY
 	beq $d3b3 ; FIXME
 	cpx #$18
 	bne Ld3ad
@@ -2747,24 +2838,24 @@ CTRL_J_KEYBOARD ; 10 code
 Ld3ad	
 	inx
 Ld3ae
-	stx $39
+	stx VDTY
 	jmp $d140 ; FIXME
 	
 	lda $280
 	ldx $281
-	sta $38
+	sta VDTX
 	jmp  Ld3ae
 	lda #$27 
-	sta $38
+	sta VDTX
 	
 CTRL_K_KEYBOARD 
 	jsr $d759 ; FIXME
-	ldx $39
+	ldx VDTY
 	dex
 	bne Ld3cc
 	ldx #$18
 Ld3cc	
-	stx $39
+	stx VDTY
 	jmp $d140 ; FIXME
 	
 CTRL_L_KEYBOARD 
@@ -2774,7 +2865,7 @@ CTRL_L_KEYBOARD
 CTRL_M_KEYBOARD
 	jsr $d759 ; FIXME
 	lda #0
-	sta $38
+	sta VDTX
 	jmp $d756 ; FIXME
 	
 CTRL_N_KEYBOARD ; clear current line in prompt
@@ -2799,14 +2890,14 @@ CTRL_T_KEYBOARD
 	jmp $d74d ; FIXME
 	
 CTRL_X_KEYBOARD
-	lda $38
+	lda VDTX
 	pha
-	lda $39
+	lda VDTY
 	pha
 Ld407	
 	lda #$20
 	jsr send_A_to_video_screen 
-	lda $38
+	lda VDTX
 	beq Ld419
 	cmp #$27
 	bne Ld407
@@ -2815,9 +2906,9 @@ Ld407
 Ld419	
 	jsr $d759 ; FIXME
 	pla
-	sta $39
+	sta VDTY
 	pla
-	sta $38
+	sta VDTX
 	jmp $d140 ; FIXME
 CTRL_DOT_KEYBOARD	
 	jsr CTRL_M_KEYBOARD 
@@ -2920,8 +3011,8 @@ Ld763
 	lda $2c
 	ldy $2d
 	sta RES
-	sty $01
-	ldy $38
+	sty RES+1
+	ldy VDTX
 	lda ($30),y
 	bmi Ld77d
 	
@@ -2932,18 +3023,18 @@ Ld763
 	sta $02
 Ld77d	
 	ldx #$8
-	ldy $38
+	ldy VDTX
 Ld781	
-	lda ($00),y
+	lda (RES),y
 	and #$7f
 	ora $02 
-	sta ($00),y
+	sta (RES),y
 	clc
 	tya
 	adc #$28
 	tay
 	bcc Ld792 
-	inc $01
+	inc RES+1
 Ld792	
 	dex
 	bne Ld781	 
@@ -2990,7 +3081,7 @@ table_of_char_videotex_special
 	
 
 
-	
+
 manage_keyboard
 	jsr d903 
 	beq Ld812
@@ -3001,7 +3092,7 @@ manage_keyboard
 	bne Ld807
 Ld7f1	
 	dey
-	lda $0268,y
+	lda KBDCOL,y
 	sta $0271
 	tya
 	ora #$80
@@ -3309,7 +3400,7 @@ init_keyboard
 	STA $0272
 	LDA #$3F
 	LDY #$FA
-	STA $2A
+	STA ADKBD
 	STY $2B
 	LSR $0270
 	LDA #$C0
@@ -3320,7 +3411,7 @@ init_keyboard
 send_14_paramaters_to_psg	
 ld9e7
 	CLC
-	BIT $38
+	BIT $38 ; FIXME
 	PHP
 	SEI
 	LDA $16
@@ -3343,7 +3434,7 @@ lda04
 	TAX
 	TYA
 	PHA
-	JSR lda1a 
+	JSR XEPSG_ROUTINE 
 	PLA
 	TAY
 	INY
@@ -3358,8 +3449,7 @@ lda04
 	RTS
 	
 	
-	
-lda1a
+XEPSG_ROUTINE	
 routine_to_define_11
 	PHA
 	STA $030F
@@ -3414,8 +3504,7 @@ routine_to_define_8
 	STY $0251 ; LPRVEC ?
 	rts
 Lda70	
-	.byt $30
-	rts
+	bmi $dad2 ; FIXME
 Lda72
 .(
 	PHA
@@ -3426,7 +3515,7 @@ Lda72
 	TSX
 	LDA $0102,X
 	JSR $DAA5 ; FIXME
-	BIT $028A
+	BIT FLGLPR
 	BVS next901
 	CMP #$20
 	BCS next900
@@ -3451,14 +3540,25 @@ next901
 	RTS
 
 .)	
+LDAA5
 
-	.byt $aa,$ad,$8a,$02
+	TAX         ;   Donn?e dans X                                    I
+	LDA FLGLPR   ;   mode RS232 ?                                     I
+	AND #$04    ;                                                    I
+	BEQ $DAB5   ;   non, parrall?le -------------------------------- I
+	JSR $DB2F   ;   oui, on pr?pare la RS232                       I I
+	TXA         ;   donn?e dans A                                  I I
+	LDX #$18    ;   X=buffer ACIA sortie                           I I
+	BNE LDABF  ;  --inconditionnel                                 I I
+	LDA FLGTEL   ; I imprimante d?tect?e ? <------------------------- I
+	AND #$02   ;  I                                                  I
+	BEQ $DAD1   ; I non, on sort                                     I
+	TXA         ; I oui, donn?e dans A                               I
+	LDX #$24    ; I X=buffer CENTRONICS sortie                       I
 
-	.byt $29,$04,$f0,$08,$20,$2f,$db
-	.byt $8a,$a2,$18,$d0,$0a,$ad,$0d,$02,$29,$02,$f0,$15,$8a,$a2,$24
-
+LDABF
 next906
-	BIT $028A	
+	BIT FLGLPR	
 	BVS next909
 
 	CMP #$7F
@@ -3476,7 +3576,7 @@ next909
 
 	
 	BCS next908
-	LDA $028A
+	LDA FLGLPR
 	AND #$04
 	BNE Ldae1	
 	
@@ -3493,7 +3593,7 @@ Ldae4
 	PHA
 	LDA #$0D
 	JSR Lda72 
-	LDA $028A
+	LDA FLGLPR
 	LSR
 	BCS Ldaf5
 	LDA #$0A
@@ -3516,15 +3616,53 @@ Ldb09
 	STA ACIACR
 RTS
 Ldb12
+/*
+                        GESTION DE LA SORTIE MINITEL                       I
+                                                                               I
+                                                                               I
+Principe:N'?tant gu?re familiaris? avec les modes de fonctionnement de l'ACIA, I
+         je vous donne le source mais je serais bien incapable d'expliciter    I
+         les modifications d'ACIACR et d'ACIACT, registres de controle et de   I
+         commande de l'ACIA 6551.                                              I
+                                                                               I
+*/
+                                        ;                                     I
+	BMI $DB3A ;     ouverture-fermeture ---------------------------- I
+	TAX       ;     donn?e dans X                                  I I
+	BPL $DB26 ;      si <128, on passe ----------------------       I I
+	CMP #$C0  ;      sinon, c'est <128+64 ?                 I       I I
+	BCS $DB26 ;                                             I       I I
+	ORA #$40    ;    oui, on force b7                       I       I I
+	PHA                          ;                         I       I I
+	LDA #$1B   ;    et on envoie un ESC avant              I       I I
+	LDX #$18 ;      la donn?e                              I       I I
+	JSR $C51D ;                                            I       I I
+	PLA       ;                                            I       I I
+	PHA       ;     <---------------------------------------       I I
+	LDX #$18  ;     on envoie la donn?e                            I I
+	JSR $C51D ;     dans le BUFFER ACIA sortie                     I I
+	PLA                                                        ;   I I
+	BCS $DB26 ;     si la donn?e n'a pas ?t? ?crite, on boucle     I I
+	LDA $031E  ;    on prend V2IER                                 I I
+	AND #$F3  ;     %11110011 force b2 ? 0                         I I
+	ORA #$04 ;      et b3 ? 1                                      I I
+	STA $031E ;     dans ACIACR                                    I I
+	RTS                     ;                                      < I
+	BCS LDB53 ;     C=1 on ferme ==================================  I
+	LDA $031E ;     ouverture                                      > I
+	AND #$02 ;      ACIACR ? 0 sauf b1                             I I
+	ORA #$65 ;      %01101001, bits forc?s ? 1                     I I
+Ldb43
+	STA $031E ;     dans ACIACR <----------------------------------+--
+	LDA $0321 ;     V2DRA                                          I  
+	AND #$EF  ;     %11101111 force mode MINITEL                   I  
 
-.byt 	$30,$26,$aa,$10,$0f,$c9,$c0,$b0,$0b,$09,$40,$48,$a9,$1b
-	.byt $a2,$18,$20,$1d,$c5,$68,$48,$a2,$18,$20,$1d,$c5,$68,$b0,$f7,$ad
-	.byt $1e,$03,$29,$f3,$09,$04,$8d,$1e,$03,$60,$b0,$17,$ad,$1e,$03,$29
-	.byt $02,$09,$65
-Ldb43	
-	.byt $8d,$1e,$03,$ad,$21,$03,$29,$ef,$8d,$21,$03,$a9,$38
+	STA $0321 ;                                                    I  
+	LDA #$38  ;     %00111000 dans ACIACT                          I  
+	STA $031F ;                                                    I  
+LDB53
+	RTS       ;     et on sort--------------------------------------  
 
-	.byt $8d,$1f,$03,$60
 Ldb54	
 init_rs232
 	; RS232T: 
@@ -3539,14 +3677,74 @@ init_rs232
 	STA RS232C
 	rts
 
+	                                                                              
+               ;          GESTION DE L'ENTREE RS232                          
+LDB5D
+	BPL $DAF7    ;  lecture, voir MINITEL (pourquoi pas $DAF9 ?)      
+	BCS $DB09   ;   C=1, on ferme                                     
+	LDA $031E   ;   on ouvre                                          
+	AND #$0D     ;  on fixe le mode de controle                       
+	ORA $5A     ;   de la RS232                                       
+	STA $031E                                                        
+	LDA $0321                                                        
+	ORA #$10     ;  %00010000 on force RS232                          
+	STA $0321                                                        
+	LDA $59     ;   et on fixe le mode de transmission                
+	STA $031F   ;   dans ACIACR                                       
+	RTS                                                              
+                           
+                                                                                
+   ;                      GESTION DE LA SORTIE RS232                         
+LDB79
+	BPL $DB26     ; ?criture, comme MINITEL                           
+	BCS $DB53    ;;  pas de fermeture (RTS)                            
+	LDA $031E    ;  ouverture,on lit ACIACR                           
+	AND #$02     ;  isole b1                                          
+	ORA #$05     ;  %00000101 force b0 et b2 ? 1                      
+	BNE $DB66    ;  inconditionnel        	
 
-	.byt $10,$98,$b0
-	.byt $a8,$ad,$1e,$03,$29,$0d,$05,$5a,$8d,$1e,$03,$ad,$21,$03,$09,$10
-	.byt $8d,$21,$03,$a5,$59,$8d,$1f,$03,$60,$10,$ab,$b0,$d6,$ad,$1e,$03
-	.byt $29,$02,$09,$05,$d0,$e0,$48,$08,$a9,$00,$f0,$10,$48,$08,$a9,$01
-	.byt $d0,$0a,$48,$08,$a9,$02,$d0,$04,$48,$08,$a9,$03,$85,$28,$28,$10
-	.byt $03,$4c,$ce,$de,$68,$85,$29,$ad,$8a,$02,$29,$02,$f0,$05,$a5,$29
-	.byt $20,$72,$da,$a5,$29
+                                                                               
+     ;                 GESTION DES SORTIES EN MODE TEXT                      
+                                                                                
+;Principe:tellement habituel que ?a en devient monotone... mais bien pratique !  
+LDB86
+	PHA       ;     on sauve A et P                                   
+	PHP                                                              
+	LDA #$00    ;   fen?tre 0                                         
+	BEQ $DB9C   ;   inconditionnel                                    
+																	
+	PHA                                                              
+	PHP                                                              
+	LDA #$01    ;   fen?tre 1                                         
+	BNE $DB9C    ;                                                    
+																	
+	PHA                                                              
+	PHP                                                              
+	LDA #$02     ;  fen?tre 2                                         
+	BNE $DB9C                                                        
+																	
+	PHA                                                              
+	PHP                                                              
+	LDA #$03      ; fen?tre 3                                         
+																	
+	STA $28       ; stocke la fen?tre dans SCRNB                      
+	PLP          ;  on lit la commande                                
+	BPL $DBA4    ;  ?criture -------                                  
+	JMP $DECE    ;  ouverture      I                                  
+	PLA          ;  on lit la donn?e <                                
+	STA $29      ;  que l'on sauve                                    
+	LDA FLGLPR    ;  ?cho sur imprimante ?                             
+	AND #$02                                                         
+	BEQ LDBB3     ; non --------------------------------------        
+	LDA $29      ;  oui, on envoie le code sur imprimante    I        
+	JSR $DA72   ;                                            I  
+LDBB3
+	LDA $29      ;  <-----------------------------------------        
+                                                                                
+
+
+
+
 Ldbb5
 
 	STA SCRNB+1
@@ -3569,7 +3767,7 @@ Ldbce
 	LDA FLGSCR,X
 	PHA
 	
-	JSR lde1e 
+	JSR XCOSCR_ROUTINE 
 	LDA #$DC
 	PHA
 	LDA #$2A
@@ -3585,13 +3783,23 @@ Ldbce
 	SEC
 	RTS
 
+	
+TABLE_OF_SHORTCUT_KEYBOARD	
 Ldbeb
 	.byt $e9
 Ldbec
 	.byt $dc
-	
-	.byt $ea,$dc,$e9
-	.byt $dc,$e9,$dc,$0c,$dd,$e9,$dc,$e9,$dc,$d7,$dd,$46,$dd,$91,$dd,$9c
+LDBED	
+	.byt $ea,$dc ; CTRL A tabulation ; FIXME
+	.byt $e9,$dc ; FIXME
+	.byt $e9,$dc ; FIXME
+	.byt $0c,$dd ; FIXME
+	.byt $e9,$dc ; FIXME
+	.byt $e9,$dc ; FIXME
+	.byt $d7,$dd ; FIXME
+	.byt $46,$dd
+	.byt $91,$dd
+	.byt $9c  ; FIXME
 
 	.byt $dd,$54,$dd,$b7,$dd,$66,$dd,$73,$dd,$e9,$dc,$11,$dd,$12,$dd,$ce
 	.byt $dd,$cb,$dd,$e9,$dc,$e9,$dc,$10,$dd,$e9,$dc,$79,$dd,$e9,$dc,$e9
@@ -3650,41 +3858,320 @@ Ldc9a
 	cmp #$40
 	bcc $dc46 ; FIXME
 	and #$1f
-	;.byt $29,$08,$f0,$1a,$a5,$29
-	;.byt $30,$a4,$c9,$40,$90,$a0,$29,$1f
-	.byt $20,$69,$dc,$a9,$09,$20,$b5,$db
 
-	.byt $a9,$1b,$20,$b5,$db,$4c,$46,$dc,$bd,$48,$02,$48,$20,$1e,$de,$68
-	.byt $48,$4a,$b0,$18,$a5,$29,$29,$3f,$9d,$24,$02,$20,$07,$de,$9d,$18
-	.byt $02,$98,$9d,$1c,$02,$68,$09,$01,$48,$4c,$2b,$dc,$a5,$29,$29,$3f
-	.byt $9d,$20,$02,$68,$29,$fa,$48,$4c,$2b,$dc,$60,$bd,$20,$02,$29,$f8
-	.byt $69,$07,$dd,$2c,$02,$f0,$12,$90,$10,$20,$67,$dd,$20,$9d,$dd,$a6
-	.byt $28,$bd,$20,$02,$29,$07,$d0,$e3,$60,$9d,$20,$02,$60,$6a,$6a,$6a
-	.byt $6a,$6a,$6a,$6a,$a8,$ba,$5d,$03,$01,$9d,$03,$01,$85,$00,$98,$29
-	.byt $10,$d0,$01,$60,$a6,$28,$25,$00,$f0,$12,$fe,$28,$02,$fe,$28,$02
-	.byt $bd,$20,$02,$dd,$28,$02,$b0,$03,$4c,$67,$dd,$60,$de,$28,$02,$de
-	.byt $28,$02,$60,$de,$20,$02,$60,$bd,$20,$02,$dd,$28,$02,$d0,$f4,$bd
-	.byt $2c,$02,$9d,$20,$02,$bd,$24,$02,$dd,$30,$02,$d0,$11,$bd,$30,$02
-	.byt $bc,$34,$02,$aa,$20,$5c,$de,$bd,$28,$02,$9d,$20,$02,$60,$de,$24
-	.byt $02,$4c,$07,$de,$bc,$28,$02,$4c,$7d,$dd,$bc,$20,$02,$bd,$2c,$02
-	.byt $85,$29,$a9,$20,$91,$26,$c8,$c4,$29,$90,$f9,$91,$26,$60,$fe,$20
-	.byt $02,$60,$bd,$20,$02,$dd,$2c,$02,$d0,$f4,$20,$67,$dd,$bd,$24,$02
-	.byt $dd,$34,$02,$d0,$0d,$bd,$30,$02,$bc,$34,$02,$aa,$20,$54,$de,$4c
-	.byt $67,$dd,$fe,$24,$02,$4c,$07,$de,$20,$fb,$dd,$20,$74,$dd,$bd,$24
-	.byt $02,$dd,$34,$02,$f0,$35,$20,$9d,$dd,$4c,$bb,$dd,$4c,$b9,$e1,$a9
-	.byt $02,$4d,$8a,$02,$8d,$8a,$02,$60,$a2,$f0,$a0,$dd,$20,$e7,$d9,$a0
-	.byt $60,$a2,$00,$ca,$d0,$fd,$88,$d0,$fa,$a9,$07,$a2,$3f,$4c,$1a,$da
-	.byt $46,$00,$00,$00,$00,$00,$00,$3e,$0f,$00,$00,$bd,$28,$02,$9d,$20
-	.byt $02,$bd,$30,$02,$9d,$24,$02,$bd,$24,$02,$20,$12,$de,$85,$26,$84
-	.byt $27,$60,$20,$69,$ce,$bd,$38,$02,$bc,$3c,$02,$4c,$89,$ce
+	JSR $DC69   ;  on le place ? l'?cran                            I
+	LDA #$09     ;   on d?place le curseur ? droite                   I
+	JSR $DBB5  ;                                                     I
+	LDA #$1B   ;     on envoie un ESC (fin de ESC)                    I
+	JSR $DBB5   ;                                                    I
+	JMP $DC46   ;   et on sort                                       I
+	LDA $0248,X ;   US, on lit FLGSCR <-------------------------------
+	PHA         ;   que l'on sauve                                    
+	JSR $DE1E   ;   on ?teint le curseur                              
+	PLA         ;   on prend FLGSCR                                   
+	PHA                                                              
+	LSR         ;   doit-on envoyer Y ou X ?                          
+	BCS $DCDC   ;   X ------------------------------------------------
+	LDA $29     ;   on lit Y                                         I
+	AND #$3F    ;   on vire b4 (protocole US)                        I
+	STA SCRY,X ;   et on fixe Y                                     I
+	JSR $DE07   ;   on ajuste l'adresse dans la fen?tre              I
+	STA $0218,X ;   dans ADSCRL                                      I
+	TYA         ;                                                    I
+	STA $021C,X  ;  et ADSCRH                                        I
+	PLA         ;   on indique prochain code pour X                  I
+	ORA #$01    ;                                                    I
+	PHA        ;                                                     I
+	JMP $DC2B    ;  et on sort                                       I
+	LDA $29      ;  on lit X <----------------------------------------
+	AND #$3F    ;   on vire b4                                        
+	STA $0220,X ;   dans SCRX                                         
+	PLA                                                              
+	AND #$FA    ;   on indique fin de US                              
+	PHA                                                              
+	JMP $DC2B   ;   et on sort                                        
+	RTS                                                              	
+
+/*
+                                                                                
+                       GESTION DES CODES DE CONTROLE                        
+                                                                                
+                                                                  #A055         
+Principe:G?nial... la gestion des codes de controle est surement la partie la   
+         plus caract?ristique de l'esprit BROCHIEN (apr?s le BRK bien sur). La  
+         gestion est supr?mement optimis?e pour tout les codes, elle est        
+         surement le fruit d'une mure reflexion. Chapeau.                       
+         En entr?e de chaque routine, A=0, C=1 et la pile contient en son       
+         sommet -3, FLGSCR. Le RTS branche en fait en $DC2B, routine g?n?rale   
+         de fin de gestion de code de controle.                                 
+                                                                                
+                                                                                
+                              CODE 01 - CTRL A                              
+                                                                                
+Action:Place le curseur sur une tabulation, colonne multiple de 8.              
+  */                                                                              
+	LDA $0220,X ; ->on lit ala colonne                                
+	AND #$F8     ;I on la met ? 0                                     
+	ADC #$07     ;I on place sur une tabulation 8 (C=1)               
+	CMP $022C,X ; I est-on en fin de ligne ?                          
+	BEQ $DD09   ; I non                                               
+	BCC $DD09  ;  I --------------------------------------------------
+	JSR $DD67  ;  I oui, on ram?ne le curseur en d?but de ligne      I
+	JSR $DD9D  ;  I et on passe une ligne                            I
+	LDX $28     ; I                                                  I
+	LDA $0220,X ; I on prend la colonne                              I
+	AND #$07   ;  I est-on sur une tabulation                        I
+	BNE $DCEB  ;  --non, on tabule...                                I
+	RTS       ;                                                      I
+	STA $0220,X ;   on sauve la colonne <-----------------------------
+	RTS         ;   et on sort codes A                               I
+                                                                                
+;                             CODE 4 - CTRL D                               
+LDD0D                                                                                
+	ROR          ;  on pr?pare masque %00000010                       
+                                                                                
+ ;                               CODE 31 - US                                
+                              ;on pr?pare masque %00000100                       
+LDD0E							  
+	ROR                                                              
+;                               CODE 27 - ESC                                
+                                                                                
+ ;                             on pr?pare masque %00001000                       
+LDD0F
+	ROR                                                              
+ ;                             CODE 29 - CTRL ]                              
+                                                                                
+  ;                            on pr?pare masque %00010000                       
+LDD10  
+	ROR                                                              
+                                                                                
+    ;                          CODE 22 - CTRL V                              
+LDD11
+	ROR           ; on pr?pare masque %00100000                       
+                                                                                
+     ;                         CODE 16 - CTRL P                              
+LDD12
+	ROR  ;           on pr?pare masque %01000000                       
+                                                                                
+          ;                    CODE 17 - CTRL Q                              
+LDD13
+
+	ROR    ;        on pr?pare masque %10000000                       
+    /*                                                                            
+                                                         
+                                                                                
+ 
+                                                                                
+	*/																			
+LDD14
+	TAY           ; dans Y                                            
+	TSX          ;  on indexe FLGSCR dans la pile                     
+	EOR $0103,X  ;  on inverse le bit correspondant au code (bascule) 
+	STA $0103,X ;   et on replace                                     
+	STA RES      ;  et dans $00                                       
+	TYA                                                              
+	AND #$10    ;   mode 38/40 colonne ?                              
+	BNE $DD24   ;   oui ----------------------------------------------
+	RTS         ;   non on sort                                      I
+	LDX $28     ;   on prend le num?ro de fen?tre <-------------------
+	AND RES      ;  mode monochrome (ou 40 colonnes) ?                
+	BEQ $DD3C    ;  oui ----------------------------------------------
+	INC $0228,X  ;  non, on interdit la premi?re colonne             I
+	INC $0228,X  ;  et la deuxi?me                                   I
+	LDA $0220,X  ;  est-on dans une colonne                          I
+	CMP $0228,X  ;  interdite ?                                      I
+	BCS $DD3B  ;---non                                               I
+	JMP $DD67  ;I  oui,on en sort                                    I
+	RTS   ;  <---                                                    I
+	DEC $0228,X ;   on autorise colonne 0 et 1 <----------------------
+	DEC $0228,X                                                      
+	RTS     	
+LDD43	
+	DEC $0220,X  ;  on ram?ne le curseur un cran ? gauche  <----------
+	RTS  ;                                                           I
+
+ ;                             CODE 8 - CTRL H                              I
+ ;                                                                              I
+;Action:d?place le curseur vers la gauche                                       I
+LDD47  
+	LDA $0220,X   ; est-on d?ja au d?but de la fen?tre ?             I
+	CMP $0228,X  ;                                                   I
+	BNE LDD43    ;  non, on ram?ne ? gauche --------------------------
+	LDA $022C,X  ;  oui, on se place ? la fin de la fen?tre           
+	STA $0220,X                                                      
+
+
+	
+;                              CODE 11 - CTRL K                               
+                                                                                
+;Action:d?place le curseur vers le haut                                          
+LDD55                                                                                
+	LDA SCRY,X ;   et si on est pas                                  
+	CMP $0230,X    ;au sommet de la fen?tre,                          
+	BNE LDD6E   ;   on remonte d'une ligne ---------------------------
+	LDA $0230,X ;   X et Y contiennent le d?but et la                I
+	LDY SCRFY,X  ;  fin de la fen?tre X                              I
+	TAX          ;                                                   I
+	JSR $DE5C    ;  on scrolle l'?cran vers le bas ligne X ? Y       I
+	LDA $0228,X  ;  on place d?but de la fen?tre dans X              I
+	STA $0220,X  ;                                                   I
+	RTS          ;                                                   I
+LDD6E
+	DEC SCRY,X   ; on remontre le curseur <--------------------------
+	JMP $DE07    ;  et on ajuste ADSCR     	
+	
+	
+	
+;                              CODE 14 - CTRL N                              
+                                                                                
+;Action:efface la ligne courante                                                 
+LDD74                                                                              
+	LDY $0228,X ;    on prend la premi?re colonne de la fenetre        
+	JMP $DD7D   ;   et on efface ce qui suit (BPL aurait ?t? mieux...)
+                       
+                                                                          
+ ;                             CODE 24 - CTRL X                              
+                                                                                
+;Action:efface la fin de la ligne courante                                       
+LDD7A                                                                                
+	LDY $0220,X  ;  on prend la colonne du curseur                    
+	LDA $022C,X  ;  et la derni?re colonne de la fen?tre              
+	STA $29      ;  dans $29                                          
+	LDA #$20     ;  on envoie un espace                               
+	STA ($26),Y                                                      
+	INY           ; jusqu'? la fin de la ligne                        
+	CPY $29                                                          
+	BCC $DD84                                                        
+	STA ($26),Y   ; et ? la derni?re position aussi                   
+	RTS           ; (INC $29 avant la boucle aurait ?t? mieux !)      
+																	
+	INC $0220,X                                                      
+	RTS                                                              
+	
+	
+	
+ ;                             CODE 9 - CTRL I                               
+                                                                                
+;Action:d?place le curseur ? droite                                              
+LDD92                                                                              
+	LDA $0220,X  ;  on lit la colonne du curseur                      
+	CMP $022C,X   ; derni?re colonne ?                                
+	BNE $DD8E     ; non, on d?place le curseur                        
+	JSR $DD67   ;   oui, on revient ? la premi?re colonne     
+
+	
+
+                      ;        CODE 10 - CTRL J                              
+                                                                                
+;Action:d?place le curseur vers la droite                                        
+LDD9D                                                                               
+	LDA SCRY,X  ;  on est en bas de la fen?tre ?                     
+	CMP SCRFY,X  ;                                                    
+	BNE LDDB2    ;  non ----------------------------------------------
+	LDA $0230,X  ;  oui, X et Y contiennent d?but et fin de fen?tre  I
+	LDY SCRFY,X  ;                                                   I
+	TAX          ;                                                   I
+	JSR $DE54    ;  on scrolle la fen?tre                            I
+	JMP $DD67     ; on revient en d?but de ligne                     I
+LDDB2	
+	INC SCRY,X  ;  on incr?mente la ligne <-------------------------I 
+	JMP $DE07    ;  et on ajuste ADSCR                      
+     	
+	
+
+     ;                         CODE 12 - CTRL L                              
+                                                                                
+;Action:Efface la fen?tre                                                        
+LDDB8                                                                               
+	JSR $DDFB    ;  on remet le curseur en haut de la fen?tre         
+	JSR $DD74    ;  on efface la ligne courante                       
+	LDA SCRY,X   ; on est ? la fin de la fen?tre ?                   
+	CMP SCRFY,X  ;                                                    
+	BEQ $DDFB    ;  oui, on sort en repla?ant le curseur en haut      
+	JSR $DD9D    ;  non, on d?place le curseur vers le bas            
+	JMP $DDBB     ; et on boucle  (Et BPL, non ?!?!)                  
+		
+	
+	
+                            ;  CODE 19 - CTRL S                              
+LDDCC                                                                             
+	JMP $E1B9    ;  on ex?cute un HCOPY       	
+
+
+	; CODE 18 - CTRL R   	
+;Action:bascule l'?cho imprimante du clavier                                     
+LDDCF                                                                                
+	LDA #$02     ;  on inverse b1                                     
+	EOR FLGLPR    ;  de FLGLPR                                         
+	STA FLGLPR                                                        
+	RTS      	
+	
+XOUPS_ROUTINE
+LDDD8	
+/*                             CODE 7 - CTRL G                               
+
+Action:?met un OUPS                                                             
+ */
+	LDX #<XOUPS_DATA    ;   on indexe les 14 donn?es du OUPS                  
+	LDY #>XOUPS_DATA                                                         
+	JSR $D9E7   ;   et on envoie au PSG                               
+	LDY #$60    ;   I                                                 
+	LDX #$00    ;   I                                                
+LDDE3
+	DEX        ;    I D?lai d'une seconde                             
+	BNE LDDE3    ;  I                                                 
+	DEY          ;  I                                                 
+	BNE LDDE3    ;  I                                                 
+	LDA #$07     ;  un JMP $DA4F suffisait ...                        
+	LDX #$3F                                                         
+	JMP $DA1A
+XOUPS_DATA
+LDDF0                                                                               
+	.byt $46,00,00,00,00,00;  p?riode 1,12 ms, fr?quence 880 Hz (LA 4) 
+LDDF6
+	.byt  00,$3E,$0F,00,00  ;  canal 1, volume 15 musical  
+/*
+
+                           INITIALISE UNE FENETRE                           
+                                                                                
+Action:on place le curseur en (0,0) et on calcule son adresse                   
+  */ 
+LDDFB
+	LDA $0228,X  ;  on prend la premi?re colonne                      
+	STA $0220,X  ;  dans SCRX                                         
+	LDA $0230,X  ;  la premi?re ligne dans                            
+	STA $0224,X  ;  SCRY                                              
+	LDA $0224,X  ;  et on calcule l'adresse                           
+	JSR LDE12    ;  de la ligne                                       
+	STA $26      ;  dans ADSCR                                        
+	STY $27      ;                                                    
+	RTS    	
+
+/*
+	CALCULE L'ADRESSE DE LA LIGNE A                       
+                                                                                
+                                                                                
+Action:En entr?e, A contient le num?ro de la ligne et en sortie, RES contient   
+       l'adresse ? l'?cran de cette ligne.                                      
+  */                                                                              
+LDE12
+	JSR $CE69    ;  RES=A*40   FIXME                                        
+	LDA $0238,X  ;  AY=adresse de la fen?tre                          
+	LDY $023C,X                                                      
+	JMP $CE89     ; on calcule dans RES l'adresse de la ligne   FIXME
+	
+XCOSCR_ROUTINE
 lde1e
 	CLC
-	BIT $38
+	.byt $24
+XCSSCR_ROUTINE	
+LDE20	
+	sec
 	PHP
 	ASL $0248,X
 	PLP
 	ROR $0248,X
-	bmi lde54
+	bmi lde53
 	LDA #$80
 	AND $0248,X
 	AND #$80
@@ -3694,10 +4181,10 @@ lde1e
 	PHA
 	LDA $0248,X
 	AND #$02
-	beq lde53
-	LDA $0224,X
-	CMP $0234,X
-	BEQ lde53
+	beq lde52
+	LDA SCRY,X
+	CMP SCRFY,X
+	BEQ lde52
 	TYA
 	ADC #$28
 	TAY
@@ -3705,25 +4192,123 @@ lde1e
 	STA (ADSCR),Y
 	RTS
 
-lde53
+lde52
 	pla
-lde54	
+lde53	
 	rts
-	.byt $a9,$00,$85,$07,$a9,$28,$d0,$06,$a9,$ff,$85,$07
+Lde54
+XSCROH_ROUTINE
+  /*                                                                             
+                      SCROLLE UNE FENETRE VERS LE BAS                       
+                                                                                
+                                                                                
+Action:scrolle vers le bas de la ligne X ? la ligne Y la fen?tre courante.      
+                                                                                
+    */                                                                            
+	LDA #$00     ;  on prend $0028, soit 40                           
+	STA $07                                                          
+	LDA #$28                                                         
+	BNE LDE62    ;  inconditionnel                                    
+ /*                                                                               
+                                                                              
+                      SCROLLE UNE FENETRE VERS LE HAUT                      
+                                                                                
+                                                                                
+Action:scrolle vers le haut de la ligne X ? la ligne Y la fen?tre courante.     
+                                                                                
+                                                                                */
+LDE5C																				
+	LDA #$FF   ;    on prend $FFD8, soit -40 en compl?ment ? 2        
+	STA $07                                                          
+	LDA #$D8                                                         
+LDE62																	
+	STA $06     ;   $06-07 contiennent le d?placement                 
+	STX RES    ;    on met la ligne de d?part en RES                  
+	TYA                                                              
+	SEC                                                              
+	SBC RES     ;   on calcule le nombre de lignes                    
+	PHA        ;    on sauve le nombre de lignes                      
+	TXA        ;    ligne de d?but dans A                             
+	BIT $06                                                          
+	BPL LDE71  ;    d?placement n?gatif ?                             
+	TYA        ;    oui, ligne de fin dans A
+LDE71	
+	LDX $28                                                          
+	JSR $DE12   ;   on calcule l'adresse de la ligne   FIXME                
+	CLC                                                              
+	ADC $0228,X ;   l'adresse exacte de la ligne dans la fen?tre      
+	BCC LDE7D                                                       
+	INY
+LDE7D	
+	STA $08      ;  est dans $08-09                                   
+	STY $09                                                          
+	CLC           ; on ajoute le d?placement                          
+	ADC $06                                                          
+	STA $04                                                          
+	TYA                                                              
+	ADC $07                                                          
+	STA $05     ;   dans $04-05                                       
+	PLA         ;   on sort le nombre de lignes                       
+	STA RES     ;   dans RES                                          
+	BEQ LDEC4   ;   si nul on fait n'importe quoi ! on devrait sortir!
+	BMI LDECD    ;  si n?gatif, on sort ------------------------------
+	SEC          ;  on calcule                                       I
+	LDX $28     ;                                                    I
+	LDA $022C,X   ; la largeur de la fen?tre                         I
+	SBC $0228,X  ;                                                   I
+	STA $01      ;  dans RES+1                                       I
+LDE9D
+	LDY $01 
+LDE9F ;                                                  I
+	LDA ($04),Y ;   on transf?re une ligne                           I
+	STA ($08),Y ;                                                    I
+	DEY         ;                                                    I
+	BPL LDE9F    ;                                                    I
+	CLC        ;                                                     I
+	LDA $04     ;   on ajoute le d?placement                         I
+	ADC $06     ;   ? l'adresse de base                              I
+	STA $04     ;                                                    I
+	LDA $05     ;                                                    I
+	ADC $07     ;                                                    I
+	STA $05      ;                                                   I
+	CLC          ;                                                   I
+	LDA $08     ;   et ? l'adresse d'arriv?e                         I
+	ADC $06     ;                                                    I
+	STA $08     ;                                                    I
+	LDA $09     ;                                                    I
+	ADC $07      ;                                                   I
+	STA $09      ;                                                   I
+	DEC RES      ;  on d?compte une ligne de faite                   I
+	BNE LDE9D    ;  et on fait toutes les lignes                     I
+LDEC4
+	LDY $01      ;  on remplit la derni?re ligne                     I
+	LDA #$20     ;                                                   I
+LDEC8
+	STA ($08),Y  ;  avec de espaces                                  I
+	DEY          ;                                                   I
+	BPL LDEC8    ;                                                   I
+LDECD
+	RTS          ;  <-------------------------------------------------
+ 
+/*
+                                     ???                                     
+                                                                                
+Action:inconnue... ne semble pas ?tre appel?e et utilise des variables          
+       IRQ dont on ne sait rien.                                                
+ */                                                                               
+	BCC LDED7    ;  si C=0 on passe ------------                      
+	LDX $28      ;                             I                      
+	JSR $DE1E    ;  on ?teint le curseur       I                      
+	PLA         ;   et on sort A de la pile    I                      
+	RTS          ;                             I    
+LDED7
+	LDA #$01     ;  on met 1 en $216 <----------                      
+	STA $0216                                                        
+	LDA #$80      ; on force b7 ? 1 dans $217                         
+	STA $0217                                                        
+	PLA           ; on sort A                                         
+	RTS           ; et on sort    
 
-	.byt $a9,$d8,$85,$06,$86,$00,$98,$38,$e5,$00,$48,$8a,$24,$06,$10,$01
-
-	.byt $98,$a6,$28,$20,$12,$de,$18,$7d,$28,$02,$90,$01,$c8,$85,$08,$84
-	.byt $09,$18,$65,$06,$85,$04,$98,$65,$07,$85,$05,$68,$85,$00,$f0,$34
-	.byt $30,$3b,$38,$a6,$28,$bd,$2c,$02,$fd,$28,$02,$85,$01,$a4,$01,$b1
-	.byt $04,$91,$08,$88,$10,$f9,$18,$a5,$04,$65,$06,$85,$04,$a5,$05,$65
-
-	.byt $07,$85,$05,$18,$a5,$08,$65,$06,$85,$08,$a5,$09,$65,$07,$85,$09
-	.byt $c6,$00,$d0,$d9,$a4,$01,$a9,$20,$91,$08,$88,$10,$fb,$60,$90,$07
-	.byt $a6,$28
-
-	.byt $20,$1e,$de,$68,$60,$a9,$01,$8d,$16,$02,$a9,$80,$8d,$17
-	.byt $02,$68,$60
 ldee3	
 data_to_define_2
 	; text mode  Text mode bytes it will  fill SCRTXT
@@ -3963,28 +4548,31 @@ Action:G?re la souris comme pr?c?demment le joystick gauche, ? ceci pr?s qu'il
        clavier, l'octet KBDSHT ajout? au codes ASCII souris est 8, soit b3 ? 1. 
   */                                                                              
                                                                                 
-	JSR $DF99    ;  on lit la valeur souris     FIXME                       
+	JSR Ldf99    ;  on lit la valeur souris                         
 	AND #$1B    ;   on isole les directions                           
 	STA $58     ;   dans $58                                          
 	CMP #$1B    ;   la souris bouge ?                                 
-	BNE $E095   ;   non ---------------------------------------------- FIXME
+	BNE LE095   ;   non ---------------------------------------------- 
 	DEC $02A4   ;   on d?place ?                                     I
-	BNE $E084   ;   non, on sort.                                    I FIXME
+	BNE Le084   ;   non, on sort.                                    I 
+LE095	
 	LDA $02A5    ;  on place vitesse d?placement dans  <--------------
 	STA $02A4    ;  $2A4                                              
 	LDA $58     ;   on lit le code                                    
 	CMP #$1B    ;   souris fixe ?                                     
-	BEQ $E0B5    ;  oui ---------------------------------------------- FIXME
+	BEQ LE0B5    ;  oui ----------------------------------------------
 	AND #$1B     ;  non, on isole les valeurs direction              I
 	EOR $028E   ;   et on retourne les bits de JCDVAL                I
 	AND #$1B   ;    en isolant les bits direction                    I
-	BNE $E0B5  ;    ce ne sont pas les m?mes exactement -------------O FIXME
+	BNE LE0B5  ;    ce ne sont pas les m?mes exactement -------------O 
 	DEC $0292  ;    on r?p?te ?                                      I
-	BNE $E0E0  ;    non                                              I FIXME
+	BNE LE0E0  ;    non                                              I 
 	LDX $0299 ;     oui, on met le diviseur r?p?tition               I
-	JMP $E0BB ;  ---dans le compteur                                 I FIXME
-	JSR $DF99  ; I  on lit la souris <-------------------------------- FIXME
-	LDX $029A ;  I  on place le compteur avant r?p?tition             
+	JMP LE0BB ;  ---dans le compteur                                 I 
+LE0B5
+	JSR Ldf99  ; I  on lit la souris <-------------------------------- 
+	LDX $029A ;  I  on place le compteur avant r?p?tition   
+LE0BB
 	STX $0292 ;  -->dans le d?compteur                                
 	AND #$1B  ;     on isole les bits de direction                    
 	STA $58  ;      dans $58                                          
@@ -3998,12 +4586,14 @@ Action:G?re la souris comme pr?c?demment le joystick gauche, ? ceci pr?s qu'il
 Le0d2
 	LSR                                                              
 	PHA                                                              
-	BCS $E0DC     ;                           FIXME                        
-	LDA $029D,X   ; et on envoie les valeurs ASCII dans le buffer     
-	JSR $E19D      ;                                                    FIXME
+	BCS LE0DC     ;                                              
+	LDA JCKTAB,X   ; et on envoie les valeurs ASCII dans le buffer     
+	JSR Le19d      ;                                                    
+LE0DC
 	PLA                                                              
 	DEX                                                              
-	BPL Le0d2                                                       
+	BPL Le0d2
+LE0E0
 	RTS                                                              
 
 Le0e1
@@ -4119,7 +4709,7 @@ Le1b7
 	LDX $28
 	LDA $0220,X
 	PHA
-	LDA $0224,X
+	LDA SCRY,X
 	PHA
 
 	LDA #$1E
@@ -4148,8 +4738,8 @@ Le1eb
 .(
 	JSR Ldae4  
 	LDX $28
-	LDA $0224,X
-	CMP $0234,X
+	LDA SCRY,X
+	CMP SCRFY,X
 	BNE Le1e3  
 	LDA #$1F
 	JSR Ldbb5 
@@ -4167,7 +4757,7 @@ Le1eb
 	LDA #$1E
 	JSR Ld178  
 Le21a
-	LDY $38
+	LDY VDTX
 	LDA ($30),Y
 	BMI Le226  
 	LDA ($2E),Y
@@ -4179,9 +4769,9 @@ Le228
 	JSR Lda72  
 	LDA #$09
 	JSR Ld178  
-	LDA $38
+	LDA VDTX
 	BNE Le21a 
-	LDY $39
+	LDY VDTY
 	DEY
 	BNE Le21a 
 	JSR Ldae4  
@@ -4200,10 +4790,10 @@ execute_hard_copy_hires
 hard_copy_hires
 
 	LDX #$05
-	LDA $028A ; fixme
+	LDA FLGLPR ; fixme
 	PHA
 	ORA #$40
-	STA $028A
+	STA FLGLPR
 	LDA $E240,X ; fixme
 	JSR $DA72 ; fixme
 	DEX
@@ -4221,7 +4811,7 @@ hard_copy_hires
 	ASL
 	ASL
 	ASL
-	JSR $CE69 ; fixme
+	JSR XMUL40_ROUTINE ; fixme
 	STA $11
 	TYA
 	CLC
@@ -4271,14 +4861,14 @@ hard_copy_hires
 	DEX
 	BNE $E2D0 ; fixme
 	PLA
-	STA $028A
+	STA FLGLPR
 	RTS
 Le2de
 put_cursor_on_last_char_of_the_line
 	LDY $022C,X
 	.byt $24
 	dey
-	LDA ($00),Y
+	LDA (RES),Y
 	CMP #$20
 	BNE $E2F0 ; FIXME
 	TYA
@@ -4296,12 +4886,13 @@ Le2f8
 	rts
 Le2f9
 	LDY $0228,X
-	LDA ($00),Y
+	LDA (RES),Y
 	CMP #$7F
 	RTS
+LE301
 Le2e6
 	LDX $28
-	LDA $0224,X
+	LDA SCRY,X
 	STA $61
 Le2ed	
 	LDA $61
@@ -4324,22 +4915,22 @@ Le306
 put_cursor_on_beginning_of_the_line	
 Le322	
 	LDX $28
-	LDA $0224,X
+	LDA SCRY,X
 	STA $63
 	JSR $DE12 ; FIXME
-	JSR $E2DE ; FIXME
+	JSR put_cursor_on_last_char_of_the_line ; FIXME
 Le32f	
 	STY $62
 	BEQ Le34e 
 	LDA $63
-	CMP $0234,X
+	CMP SCRFY,X
 	BEQ Le34d 
 	INC $63
 	LDA $63
 	JSR $DE12 ; FIXME
 	JSR $E2F9 ; FIXME
 	BEQ Le34b 
-	JSR $E2DE ; FIXME
+	JSR put_cursor_on_last_char_of_the_line ; FIXME
 	BNE Le32f 
 Le34b	
 	DEC $63
@@ -4350,16 +4941,16 @@ Le34e
 
 
 
-	JSR $E301 ; FIXME
+	JSR LE301 
 	JMP $E361 ; FIXME
 send_the_end_of_line_in_bufedt	
 	
 	LDX $28
 	LDA $0220,X
 	STA $60
-	LDA $0224,X
+	LDA SCRY,X
 	STA $61
-	JSR $E322 ; FIXME
+	JSR Le322 
 	LDA $61
 	STA $65
 	CMP $63
@@ -4368,7 +4959,7 @@ send_the_end_of_line_in_bufedt
 	CMP $60
 	BCS Le378
 	LDA #$00
-	STA $0590
+	STA BUFEDT
 	RTS
 Le378	
 
@@ -4385,7 +4976,7 @@ Le37e
 	LDX $28
 	LDY $0228,X
 Le390	
-	LDA ($00),Y
+	LDA (RES),Y
 	CMP #$20
 	BCS Le398
 	ORA #$80
@@ -4394,10 +4985,10 @@ Le398
 	BIT $66
 	BPL Le3a4
 	LDA #$20
-	STA ($00),Y
+	STA (RES),Y
 	BNE Le3b1
 Le3a4
-	STA $0590,X
+	STA BUFEDT,X
 	INC $64
 	CPX $67
 	BCC Le3b1
@@ -4413,7 +5004,7 @@ Le3b1
 	BNE Le390
 	LDX $64
 	LDA #$00
-	STA $0590,X
+	STA BUFEDT,X
 	RTS
 Le3c5	
 
@@ -4432,26 +5023,26 @@ display_bufedt_content
 	LDA $26
 	LDY $27
 	STA RES
-	STY $01
+	STY RES+1
 	LDX $28
 	LDY $0220,X
 
 Le3e3
 	LDX $64
-	LDA $0590,X
+	LDA BUFEDT,X
 	BEQ Le41c 
 	LDA #$20
 	BIT $66
 	BMI Le3fb
-	LDA $0590,X
+	LDA BUFEDT,X
 	BPL Le3fb
 	CMP #$A0
 	BCS Le3fb
 	AND #$1F
 Le3fb	
-	STA ($00),Y
+	STA (RES),Y
 
-	BIT $020D ; Minitel ?
+	BIT FLGTEL ; Minitel ?
 	BVC Le405
 	JSR $E656 ; FIXME
 Le405	
@@ -4462,16 +5053,16 @@ Le405
 	BNE Le418
 	LDA #$28
 	LDY #$00
-	JSR $CE89 ; FIXME
+	JSR XADRES_ROUTINE ; FIXME
 	LDY $0228,X
 Le418	
 	INC $64
 	BNE Le3e3
 Le41c	
-	BIT $020D ; Minitel ?
+	BIT FLGTEL ; Minitel ?
 	BVC Le42a 
 	LDX $0220
-	LDY $0224
+	LDY SCRY
 
 	JSR $E62A ; FIXME
 Le42a		
@@ -4480,21 +5071,22 @@ Le42a
 	LDX $28
 	STA $024C,X
 	RTS
-edit_line_in_bufedt
 
+XEDT_ROUTINE	
+edit_line_in_bufedt
 	STA $67
 	TXA
 	PHA
 	TYA
 	BPL Le446
-	JSR $E301 ; FIXME
+	JSR LE301 ; FIXME
 	LDX $60
 	LDY $61
 	JSR $E62A  ; FIXME
 Le446	
 	LDA #$0D
 	JSR $E648  ; FIXME
-	JSR $E66C  ; FIXME
+	JSR XECRPR_ROUTINE  
 	PLA
 	TAX
 	BEQ Le45a
@@ -4537,7 +5129,7 @@ Le494
 	LDX #$FF
 Le496	
 	INX
-	LDA $0590,X
+	LDA BUFEDT,X
 	CMP #$20
 	BEQ Le496 
 	TXA
@@ -4548,14 +5140,14 @@ Le4a3
 	inx
 	iny
 
-	LDA $0590,X
-	STA $0590,Y
+	LDA BUFEDT,X
+	STA BUFEDT,Y
 	BNE Le4a3 
 	LDA #$90
 	LDY #$05
-	JSR $E749  ; FIXME
+	JSR XDECAY_ROUTINE  
 	STA RES
-	STY $01
+	STY RES+1
 	PLA
 	TAY
 	PLA
@@ -4570,7 +5162,7 @@ Le4bc
 	BEQ Le479
 	CMP #$0E
 	BNE Le4d1
-	JSR $E301 ; FIXME
+	JSR LE301 ; FIXME
 	LDX $60
 	LDY $61
 	JSR $E62A ; FIXME
@@ -4581,7 +5173,7 @@ Le4d1
 	JSR $E355 ; FIXME
 	SEC
 	JSR $E3D0 ; FIXME
-	JMP $E45A ; FIXME
+	JMP Le45a ; FIXME
 Le4df	
 	CMP #$7F
 	BNE Le52a
@@ -4602,17 +5194,17 @@ Le4f3
 	CMP #$7F
 	BEQ Le4ee 
 	JSR $E355 ; FIXME
-	LDA $0590
+	LDA BUFEDT
 	BNE Le511
 	LDA #$20
 	JSR $E648 ; FIXME
 	LDA #$08
 	JSR $E648 ; FIXME
-	JMP $E45A ; FIXME
+	JMP Le45a ; FIXME
 Le511	
 	LDX #$01
 Le513	
-	LDA $0590,X
+	LDA BUFEDT,X
 	BEQ Le51e
 	STA $058F,X
 	INX
@@ -4622,16 +5214,17 @@ Le51e
 	STA $058F,X
 	CLC
 	JSR $E3D0 ; FIXME
-	JMP $E45A ; FIXME
+	JMP Le45a ; FIXME
 Le52a	
 	CMP #$20
 	BCC Le534
-	JSR $E537 ; FIXME
-	JMP $E45A ; FIXME
+	JSR XEDTIN_ROUTINE ; FIXME
+	JMP Le45a ; FIXME
 Le534	
 	JMP $E5B9 ; FIXME
 manage_normal_char
 
+XEDTIN_ROUTINE
 	TAY
 	TXA
 	PHA
@@ -4639,7 +5232,7 @@ manage_normal_char
 	PHA
 	JSR $E355 ; FIXME
 	LDA $62
-	LDY $0590
+	LDY BUFEDT
 	BNE  Le548
 	LDA $60
 Le548	
@@ -4647,17 +5240,17 @@ Le548
 	CMP $022C,X
 	BNE Le5ae
 	LDA $63
-	CMP $0234,X
+	CMP SCRFY,X
 	BEQ Le5ae
 	ADC #$01
 	JSR $DE12 ; FIXME
 	JSR $E2F9 ; FIXME
 	BNE Le5ae
-	LDY $0234,X
+	LDY SCRFY,X
 	LDX $63
 	INX
 	JSR $DE5C ; FIXME
-	BIT $020D ; Minitel ?
+	BIT FLGTEL ; Minitel ?
 	BVC Le5ae
 	LDX #$00
 	LDY $63
@@ -4672,14 +5265,14 @@ Le580
 	LDA $024C,X
 	CMP #$7F
 	BNE Le58f
-	JSR $E66C ; FIXME
+	JSR XECRPR_ROUTINE ; FIXME
 	JMP $E597 ; FIXME
 Le58f	
 	JSR $E656 ; FIXME
 	LDA #$09
 	JSR $DBB5 ; FIXME
-	LDA $0224
-	CMP $0234,X
+	LDA SCRY
+	CMP SCRFY,X
 	BNE Le580
 	LDA $0220
 	CMP $022C,X
@@ -4708,9 +5301,9 @@ Le5b9
 Le5c4	
 	PLA
 	JSR $E648 ; FIXME
-	JMP $E45A ; FIXME
+	JMP Le45a ; FIXME
 Le5cb	
-	JSR $E301 ; FIXME
+	JSR LE301 
 	LDX $60
 Le5d2	
 	LDY $61
@@ -4722,30 +5315,30 @@ Le5d5
 	LDA $0278
 	LSR
 	BCC Le5c4
-	JSR $E322 ; FIXME
+	JSR Le322 ; FIXME
 	LDX $62
 	LDY $63
 	PLA
 	JSR $E62A  ; FIXME
-	JMP $E45A  ; FIXME
+	JMP Le45a  
 Le5ee	
 	CMP #$0A
 	BNE Le604
 	LDX $28
-	LDA $0224,X
-	CMP $0234,X
+	LDA SCRY,X
+	CMP SCRFY,X
 	BNE Le615
 	LDA #$0A
 	.byt $2c
 Le5ff	
 	lda #$0b
 	
-	JMP $E479 ; FIXME
+	JMP Le479 
 Le604	
 	CMP #$0B
 	BNE Le617
 	LDX $28
-	LDA $0224,X
+	LDA SCRY,X
 	CMP $0230,X
 	BEQ Le5ff
 	LDA #$0B
@@ -4759,10 +5352,10 @@ Le617
 	
 	JSR Le648 
 	JSR Le66c 
-	JMP $E45A ; FIXME
+	JMP Le45a
 Le624	
 	JSR Le648 
-	JMP $E45A ; FIXME
+	JMP Le45a 
 
 
 
@@ -4782,7 +5375,7 @@ Le62a
 	TXA         ;   et X+64                                           
 	ORA #$40                                                         
 	JSR $DBB5        ; FIXME                                                
-	BIT $020D     ; mode minitel ?                                    
+	BIT FLGTEL     ; mode minitel ?                                    
 	BVC $E66B     ; non      ; FIXME                                          
 	INX           ; on ajoute une colonne                             
 	TXA           ; dans A                                            
@@ -4799,7 +5392,7 @@ Action:envoie un code sur l'?cran et ?ventuellement sur le minitel s'il est
        fen?tre.                                                                 
       */                                                                          
 Le648                                                                        
-	BIT $020D    ;  mode minitel ?                                    
+	BIT FLGTEL    ;  mode minitel ?                                    
 	BVC $E650    ;  non ---------------------------------------------- FIXME
 	JSR $E656    ;  oui, on envoie le code au minitel                I FIXME
 	BIT $E650    ;  V=0 et N=0 pour ?criture <------------------------ FIXME
@@ -4826,8 +5419,9 @@ Le648
 	/*																			
                              AFFICHE LE PROMPT                              
       */  
-Le66c	  
-	BIT $020D  ;    mode minitel ?                                    
+Le66c
+XECRPR_ROUTINE 
+	BIT FLGTEL  ;    mode minitel ?                                    
 	BVC $E67B   ;   non ---------------------------------------------- FIXME
 	LDA #$19   ;    on envoie SS2 2/E au minitel                     I
 	JSR $E656  ;                            FIXME                         I
@@ -4848,7 +5442,7 @@ Action:Recherche la ligne num?ro RES ? partir de l'adresse SCEDEB.
        En sortie, C=1 si la ligne a ?t? trouv?e (adresse dans RESB), 0 sinon.   
                                                                                 
 */																				
-
+XSCELG_ROUTINE
 Le680
 	LDA $5C   ;     AX=adresse de base de recherche                   
 	LDX $5D   ;                                                       
@@ -4859,7 +5453,7 @@ Le680
 	BEQ $E6AE   ;I  0, on sort --------------------------------------- FIXME
 	TAX         ;I  on sauve la longueur dans X                      I
 	LDY #$02    ;I  on lit le num?ro de la ligne                     I
-	LDA $01     ;I                                                   I
+	LDA RES+1     ;I                                                   I
 	CMP ($02),Y ;I  poids fort lu ?gal au demand? ?                  I
 	BCC $E6AE   ;I  sup?rieur, on sort ------------------------------O FIXME 
 	BEQ $E69B   ;I  ?gal, on continue le test                        I FIXME
@@ -4888,7 +5482,8 @@ Action:ins?re la ligne num?ro RES contenue ? l'adresse TR0-1, de longueur A
        SCEFIN la nouve fin du listing et TR3-4 la diff?rence de taille du       
        listing, en compl?ment ? 2. Tr?s pratique tout ?a !                      
                                                                                 
-*/                                                                       
+*/
+XINSER_ROUTINE                                                                     
 Le6b0
 	STA $0E     ;   sauve la longueur de la ligne                     
 	LDA #$00    ;   met 0 dans TR3-4                                  
@@ -4952,7 +5547,7 @@ Le6b0
 	LDA RES    ;                                                     I
 	STA ($02),Y ;   le poids faible du num?ro de ligne               I
 	INY         ;                                                    I
-	LDA $01      ;                                                   I
+	LDA RES+1      ;                                                   I
 	STA ($02),Y  ;  le poids fort du num?ro de ligne                 I
 	LDX #$00     ;                                                   I
 	INY          ;                                                   I
@@ -4986,14 +5581,15 @@ Principe:On lit un ? un les chiffres de la chaine stock?e en AY jusqu'? ce
          assimiler et la routine compacte. Un bon exemple d'optimisation.       
          En sortie, AY et RESB contient le nombre, AY l'adresse de la chaine,   
          et X le nombre de caract?res d?cod?s.                                  
- */                                                                               
+ */ 
+XDECAY_ROUTINE 
 Le749                                                                                
 	STA RES     ;   on sauve l'adresse du nombre                      
-	STY $01    ;    dans RES                                          
+	STY RES+1    ;    dans RES                                          
 	LDY #$00   ;    et on met RESB ? 0                                
 	STY $02                                                          
 	STY $03                                                          
-	LDA ($00),Y ;   on lit le code <------------------------------    
+	LDA (RES),Y ;   on lit le code <------------------------------    
 	CMP #$30    ;   inf?rieur ? 0 ?                              I    
 	BCC $E785  ;    oui -----------------------------------------+---- FIXME
 	CMP #$3A    ;   sup?rieur ? 9 ?                              I   I
@@ -5139,7 +5735,7 @@ Le7f3
 	STX $46   ;     X dans HRSX                                       
 	TYA       ;     et Y dans A                                       
 	LDY #$00  ;     AY=A, ligne du curseur                            
-	JSR $CE69  ;    on calcule 40*ligne               FIXME                 
+	JSR XMUL40_ROUTINE  ;    on calcule 40*ligne               FIXME                 
 	STA $4B    ;                                           
 	CLC                                                              
 	TYA                                                              
@@ -5148,7 +5744,7 @@ Le7f3
 	STX RES    ;    on met la colonne dans RES                        
 	LDA #$06   ;    A=6                                               
 	LDY #$00   ;    et Y=0  (dans RES+1)                              
-	STY $01   ;     AY=6 et RES=colonne                               
+	STY RES+1   ;     AY=6 et RES=colonne                               
 	JSR $CEDC ;     on divise la colonne par 6       FIXME                  
 	LDA RES   ;     on sauve colonne/6 dans HSRX40                    
 	STA $49  ;                                                        
@@ -5351,7 +5947,7 @@ Le885
 	;   CALCUL LA TANGENTE (*256) D'UN TRAIT                    
 Le921
 
-	STX $01     ;   dX (ou dY)*256 dans RES+1                         
+	STX RES+1     ;   dX (ou dY)*256 dans RES+1                         
 	LDY #$00    ;   dY (ou dX) dans AY                                
 	STY RES                                                          
 	JSR $CEDC    ;  calcul dX*256/dY (ou dY/dX)   FIXME                    
@@ -5447,15 +6043,15 @@ Le960
 	JSR $DBB5    ;  (on envoie CHR$(29))                          I  I FIXME
 	LDX $28      ;  on prend X=num?ro de fen?tre                  I  I
 	LDA $0230,X  ;  on prend la ligne 0 de la fen?tre <------------  I
-	JSR $CE69    ;  *40 dans RES                                     I FIXME
-	LDA $0238,X  ;  AY=adresse de base de la fen?tre                 I
+	JSR XMUL40_ROUTINE    ;  *40 dans RES                                     I FIXME
+	LDA SCRBAL,X  ;  AY=adresse de base de la fen?tre                 I
 	LDY $023C,X  ;                                                   I
-	JSR $CE89   ;   on ajoute l'adresse ? RES (ligne 0 *40) dans RES I FIXME
+	JSR XADRES_ROUTINE   ;   on ajoute l'adresse ? RES (ligne 0 *40) dans RES I FIXME
 	LDY $0228,X  ;  on prend la premi?re colonne de la fen?tre       I
 	DEY         ;   on enl?ve deux colonnes                          I
 	DEY         ;                                                    I
 	SEC         ;                                                    I
-	LDA $0234,X ;   on calcule le nombre de lignes                   I
+	LDA SCRFY,X ;   on calcule le nombre de lignes                   I
 	SBC $0230,X ;   de la fen?tre                                    I
 	TAX         ;   dans X                                           I
 	INX         ;                                                    I
@@ -5464,21 +6060,21 @@ Le960
 	LDA #$00     ;  <----------------------------------------------+--
 	LDX #$A0     ;                                                 I  
 	STA RES      ;  RES=$A000 , adresse HIRES                      I  
-	STX $01     ;                                                  I  
+	STX RES+1     ;                                                  I  
 	LDX #$C8    ;   X=200 pour 200 lignes                          I  
 	LDA #$00    ;   A=0 pour colonne de d?but = colonne 0          I  
 	PLP         ;   on sort C <-------------------------------------  
 	ADC #$00    ;   A=A+C                                             
 	TAY        ;    dans Y                                            
 	PLA        ;    on sort le code                                   
-	STA ($00),Y; -->on le place dans la colonne correspondante        
+	STA (RES),Y; -->on le place dans la colonne correspondante        
 	PHA        ; I  on le sauve                                       
 	CLC        ; I                                                    
 	LDA RES    ; I  on passe 28 colonnes                              
 	ADC #$28    ;I  (donc une ligne)                                  
 	STA RES     ;I                                                    
 	BCC $E9C6  ; I         FIXME                                            
-	INC $01    ; I                                                    
+	INC RES+1    ; I                                                    
 	PLA        ; I  on sort le code                                   
 	DEX        ; I  on compte X lignes                                
 	BNE $E9B8   ;---                          FIXME                        
@@ -5650,7 +6246,7 @@ FILL_ROUTINE
 	lda $4b
 	ldy $4c
 	sta RES 
-	sty $01
+	sty RES+1
 Lea7b
 	ldx $4f
 	ldy $49
@@ -5668,7 +6264,7 @@ Lea81
 Lea92	
 	rts
 	
-SCHAR_ROUTINE
+XSCHAR_ROUTINE
 	sta $51
 	sty $52
 	stx $4f
@@ -5809,7 +6405,7 @@ Lec4f
 	sty $0d
 	pha
 	bit $5b
-	bpl Lec5e ; FIXME
+	bpl Lec5e 
 	jsr send_a_to_minitel
 	jmp $ec61
 Lec5e	
@@ -5908,7 +6504,7 @@ Lecdf
 	LDA $052D
 	LDY $052E
 	STA RES
-	STY $01
+	STY RES+1
 	rts
 
 send_serial_header_file
@@ -6071,22 +6667,22 @@ Lee0a
 	LDA $052A
 	BEQ $EE2F ; FIXME
 	LDY #$00
-	LDA ($00),Y
+	LDA (RES),Y
 	JSR $EC4F ; FIXME
 	DEC $052A
 	INC RES
 	BNE $EE18 ; FIXME
-	INC $01
+	INC RES+1
 	BNE $EE18 ; FIXME
 	LDA $052B
 	BEQ $EE51 ; FIXME
 	LDY #$00
-	LDA ($00),Y
+	LDA (RES),Y
 	JSR $EC4F ; FIXME
 	INY
 	BNE $EE36 ; FIXME
 	DEC $052B
-	INC $01
+	INC RES+1
 	BIT $5B
 	BPL $EE2F ; FIXME
 	LDA #$30 
@@ -6112,20 +6708,20 @@ Lee56
 	LDA $052A
 	BEQ $EE86  ; FIXME
 	JSR $EC6B  ; FIXME
-	STA ($00),Y
+	STA (RES),Y
 	DEC $052A
 	INC RES
 	BNE $EE70  ; FIXME
-	INC $01
+	INC RES+1
 	JMP $EE70  ; FIXME
 	LDA $052B
 	BEQ $EE9D  ; FIXME
 	LDY #$00
 	JSR $EC6B  ; FIXME
-	STA ($00),Y
+	STA (RES),Y
 	INY
 	BNE $EE8D  ; FIXME
-	INC $01
+	INC RES+1
 	DEC $052B
 	JMP $EE86  ; FIXME
 	JSR $EC6B  ; FIXME
@@ -6345,7 +6941,7 @@ next800
 	bmi mantisse_A
 	tay
 	lda $66
-	lsr $01,x
+	lsr RES+1,x
 	
 	jsr $f0fc ; FIXME
 next802	
@@ -6369,7 +6965,7 @@ next802
 	sbc $02,x
 	sta $62
 	lda $0001,y
-	sbc $01,x
+	sbc RES+1,x
 	sta $61
 
 	bcs Lf022 ; FIXME
@@ -6494,10 +7090,10 @@ LF0D1:  ldy     $04,x
         sty     $04,x
         ldy     $02,x
         sty     $03,x
-        ldy     $01,x
+        ldy     RES+1,x
         sty     $02,x
         ldy     $67
-        sty     $01,x
+        sty     RES+1,x
 LF0E5:  adc     #$08
         bmi     LF0D1
         beq     LF0D1
@@ -6505,11 +7101,11 @@ LF0E5:  adc     #$08
         tay
         lda     $66
         bcs     LF106
-LF0F2:  asl     $01,x
+LF0F2:  asl     RES+1,x
         bcc     LF0F8
-        inc     $01,x
-LF0F8:  ror     $01,x
-        ror     $01,x
+        inc     RES+1,x
+LF0F8:  ror     RES+1,x
+        ror     RES+1,x
 LF0FC:  ror     $02,x
         ror     $03,x
         ror     $04,x
@@ -7061,6 +7657,7 @@ LF491
 	ldx #$90
 	sec
 	jmp $f3de ; FIXME
+XA1AFF_ROUTINE	
 LF49B
 	jsr $f4a5 ; FIXME
 	lda #0
@@ -7404,73 +8001,448 @@ LF730
 	.byt $68,$28,$b1,$46,$20 ;3.927678 E-08
 	
 RND_ROUTINE
-LF735	
-	.byt $20,$bd,$f3,$aa,$30,$18,$a9,$ef,$a0,$02,$20
-	.byt $23,$f3,$8a,$f0,$e5,$a9,$2b,$a0,$f7,$20,$84,$f1,$a9,$30,$a0,$f7
-	.byt $20,$af,$ef,$a6,$64,$a5,$61,$85,$64,$86,$61,$a9,$00,$85,$65,$a5
-	.byt $60,$85,$66,$a9,$80,$85,$60,$20,$22,$f0,$a2,$ef,$a0,$02,$4c,$52
-	.byt $f3
+LF735
+	JSR $F3BD
+	TAX
+	BMI $F753
+	LDA #$EF
+	LDY #$02
+	JSR $F323
+	TXA
+	BEQ $F72A
+	LDA #$2B
+	LDY #$F7
+	JSR $F184
+	LDA #$30
+	LDY #$F7
+	JSR $EFAF
+	LDX $64
+	LDA $61
+	STA $64
+	STX $61
+	LDA #$00
+	STA $65
+	LDA $60
+	STA $66
+	LDA #$80
+	STA $60
+	JSR $F022 ; FIXME
+	LDX #$EF ; FIXME
+	LDY #$02 ; FIXME
+	JMP $F352 ; FIXME
+
+RAND_ROUTINE
+LF771
+	JSR $F348 ; FIXME
+	JSR $F735 ; FIXME
+	LDA #$73
+	LDY #$00
+	JSR $F184 ; FIXME
+	JMP $F46A ; FIXME
+
+COS_ROUTINE
+LF781
+	JSR $F8B1 ; FIXME
+	LDA #<CONST_PI_DIVIDED_BY_TWO ; FIXME
+	LDY #>CONST_PI_DIVIDED_BY_TWO ; FIXME
+	JSR $EFAF ; FIXME
+	JMP $F791 ; FIXME
+
+
+LF78E
+	JSR $F8B1 ; FIXME
+	JSR $F387 ; FIXME
+	LDA #$E1 ; FIXME
+	LDY #$F7 ; FIXME
+	LDX $6D
+	JSR $F267 ; FIXME
+	JSR $F387 ; FIXME
+	JSR $F46A ; FIXME
+	LDA #$00
+	STA $6E
+	JSR $EF9B ; FIXME
+	LDA #$E6
+	LDY #$F7
+	JSR $EF98 ; FIXME
+	LDA $65
+	PHA
+	BPL $F7C5
+	JSR $EF90 ; FIXME
+	LDA $65
+	BMI $F7C8 ; FIXME
+	LDA $8A
+	EOR #$FF
+	STA $8A
+	BIT $48
+	JSR $F653 ; FIXME
+	LDA #$E6 ; FIXME
+	LDY #$F7 ; FIXME
+	JSR $EFAF ; FIXME
+	PLA
+	BPL $F7D5 ; FIXME
+	JSR $F653 ; FIXME
+	LDA #<coef_polynome_sin
+	LDY #>coef_polynome_sin
+	JMP $F6E1 ; FIXME
+
+
+
 	
-	.byt $20,$48,$f3,$20,$35,$f7,$a9,$73,$a0,$00,$20,$84,$f1,$4c,$6a
-	.byt $f4,$20,$b1,$f8,$a9,$dc,$a0,$f7,$20,$af,$ef,$4c,$91,$f7,$20,$b1
-	.byt $f8,$20,$87,$f3,$a9,$e1,$a0,$f7,$a6,$6d,$20,$67,$f2,$20,$87,$f3
-	.byt $20,$6a,$f4,$a9,$00,$85,$6e,$20,$9b,$ef,$a9,$e6,$a0,$f7,$20,$98
-	.byt $ef,$a5,$65,$48,$10,$0f,$20,$90,$ef,$a5,$65,$30,$0b,$a5,$8a,$49
-	.byt $ff,$85,$8a,$24,$48,$20,$53,$f6,$a9,$e6,$a0,$f7,$20,$af,$ef,$68
-	.byt $10,$03,$20,$53,$f6,$a9,$eb,$a0,$f7,$4c,$e1,$f6,$81,$49,$0f,$da
-	.byt $a2,$83,$49,$0f,$da,$a2,$7f,$00,$00,$00,$00,$05,$84,$e6,$1a,$2d
-	.byt $1b,$86,$28,$07,$fb,$f8,$87,$99,$68,$89,$01,$87,$23,$35,$df,$e1
-	.byt $86,$a5,$5d,$e7,$28,$83,$49,$0f,$da,$a2,$20,$b1,$f8,$20,$48,$f3
-	.byt $a9,$00,$85,$8a,$20,$91,$f7,$a2,$80,$a0,$00,$20,$52,$f3,$a9,$73
-	.byt $a0,$00,$20,$23,$f3,$a9,$00,$85,$65,$a5,$8a,$20,$c4,$f7,$a9,$80
-	.byt $a0,$00,$4c,$87,$f2,$a5,$65,$48,$10,$03,$20,$53,$f6,$a5,$60,$48
-	.byt $c9,$81,$90,$07,$a9,$a5,$a0,$f8,$20,$87,$f2,$a9,$6d,$a0,$f8,$20
-	.byt $e1,$f6,$68,$c9,$81,$90,$07,$a9,$dc,$a0,$f7,$20,$98,$ef,$68,$10
-	.byt $03,$20,$53,$f6,$20,$c7,$f8,$f0,$03,$4c,$aa,$f8,$60,$0b,$76,$b3
-	.byt $83,$bd,$d3,$79,$1e,$f4,$a6,$f5,$7b,$83,$fc,$b0,$10,$7c,$0c,$1f
-	.byt $67,$ca,$7c,$de,$53,$cb,$c1,$7d,$14,$64,$70,$4c,$7d,$b7,$ea,$51
-	.byt $7a,$7d,$63,$30,$88,$7e,$7e,$92,$44,$99,$3a,$7e,$4c,$cc,$91,$c7
-	.byt $7f,$aa,$aa,$aa,$13,$81,$00,$00,$00,$00,$a9,$bd,$a0,$f8,$4c,$84
-	.byt $f1,$20,$c7,$f8,$f0,$16,$a9,$c2,$a0,$f8,$4c,$84,$f1,$86,$65,$2e
-	.byt $e0,$d8,$7b,$0e,$fa,$35,$19,$ad,$0d,$02,$29,$20,$60,$85,$00,$84
-	.byt $01,$20,$af,$ef,$a6,$00,$a4,$01,$4c,$52,$f3,$20,$fc,$f9,$90,$07
-	.byt $c9,$41,$90,$31,$e9,$37,$2c,$e9,$2f,$c9,$10,$b0,$28,$0a,$0a,$0a
-	.byt $0a,$a2,$04,$0a,$26,$62,$26,$61,$b0,$18,$ca,$d0,$f6,$f0,$dc,$20
-	.byt $fc,$f9,$b0,$11,$c9,$32,$b0,$0d,$c9,$31,$26,$62,$26,$61,$b0,$02
-	.byt $90,$ed,$4c,$c7,$f0,$a2,$90,$38,$20,$de,$f3,$a2,$00,$60,$85,$00
-	.byt $84,$01,$ba,$86,$89,$a9,$00,$85,$02,$85,$03,$85,$66,$a2,$05,$95
-	.byt $60,$95,$73,$ca,$10,$f9,$20,$fe,$f9,$90,$16,$c9,$23,$f0,$9c,$c9
-	.byt $25,$f0,$bc,$c9,$2d,$f0,$05,$c9,$2b,$d0,$08,$2c,$86,$03,$20,$fc
-	.byt $f9,$90,$7a,$c9,$2e,$f0,$4f,$c9,$45,$f0,$04,$c9,$65,$d0,$4d,$a6
-	.byt $02,$20,$fc,$f9,$90,$10,$c9,$2d,$f0,$05,$c9,$2b,$d0,$2a,$2c,$66
-	.byt $77,$20,$fc,$f9,$b0,$24,$a5,$75,$c9,$0a,$90,$09,$a9,$64,$24,$77
-	.byt $30,$11,$4c,$c7,$f0,$0a,$0a,$18,$65,$75,$0a,$18,$a4,$02,$71,$00
-	.byt $38,$e9,$30,$85,$75,$4c,$71,$f9,$86,$02,$24,$77,$10,$0e,$a9,$00
-	.byt $38,$e5,$75,$4c,$ae,$f9,$66,$76,$24,$76,$50,$a2,$a5,$75,$38,$e5
-	.byt $74,$85,$75,$f0,$12,$10,$09,$20,$5e,$f2,$e6,$75,$d0,$f9,$f0,$07
-	.byt $20,$42,$f2,$c6,$75,$d0,$f9,$a5,$03,$30,$16,$10,$17,$48,$24,$76
-	.byt $10,$02,$e6,$74,$20,$42,$f2,$68,$38,$e9,$30,$20,$e9,$f9,$4c,$4e
-	.byt $f9,$20,$53,$f6,$a2,$00,$4c,$96,$f3,$48,$20,$87,$f3,$68,$20,$d1
-	.byt $f3,$a5,$6d,$45,$65,$85,$6e,$a6,$60,$4c,$b2,$ef,$e6,$02,$a4,$02
-	.byt $b1,$00,$20,$f0,$d0,$c9,$20,$f0,$f3,$c9,$30,$90,$03,$c9,$3a,$60
-	.byt $38,$60,$20,$87,$f3,$a5,$68,$f0,$19,$10,$21,$38,$a9,$a1,$e5,$68
-	.byt $90,$1a,$aa,$ca,$f0,$13,$46,$69,$66,$6a,$66,$6b,$66,$6c,$90,$f3
-	.byt $b0,$0a,$a2,$03,$95,$69,$ca,$10,$ea,$a9,$01,$60,$a9,$00,$60,$37
-	.byt $6a,$6d,$6b,$20,$75,$79,$38,$6e,$74,$36,$39,$2c,$69,$68,$6c,$35
+CONST_SIN_AND_COS
+CONST_PI_DIVIDED_BY_TWO
+LF7DC
+	.byt $81,$49,$0f,$da,$a2
+const_pi_mult_by_two
+	.byt $83,$49,$0f,$da,$a2 ; 6.283185307
+const_0_dot_twenty_five ; 0.25
+	.byt $7f,$00,$00,$00,$00
+coef_polynome_sin
+	.byt $05 ; 6 coef
+	.byt $84,$e6,$1a,$2d,$1b
+	.byt $86,$28,$07,$fb,$f8
+	.byt $87,$99,$68,$89,$01
+	.byt $87,$23,$35,$df,$e1
+	.byt $86,$a5,$5d,$e7,$28
+	.byt $83,$49,$0f,$da,$a2
+LF80A
+TAN_ROUTINE
+	JSR $F8B1 ; FIXME
+	JSR $F348 ; FIXME
+	LDA #$00
+	STA $8A
+	JSR $F791 ; FIXME
+	LDX #$80
+	LDY #$00
+	JSR $F352 ; FIXME
+	LDA #$73
+	LDY #$00
+	JSR $F323 ; FIXME
+	LDA #$00
+	STA $65
+	LDA $8A
+	JSR $F7C4 ; FIXME
+	LDA #$80
+	LDY #$00
+	JMP $F287 ; FIXME
+
+
+	
+ATN_ROUTINE
+LF835
+	LDA $65
+	PHA
+	BPL $F83D ; FIXME
+	JSR $F653 ; FIXME
+	LDA $60
+	PHA
+	CMP #$81
+	BCC $F84B ; FIXME
+	LDA #$A5 ; FIXME
+	LDY #$F8 ; FIXME
+	JSR $F287 ; FIXME
+	LDA #$6D ; FIXME
+	LDY #$F8 ; FIXME
+	JSR $F6E1 ; FIXME
+	PLA
+	CMP #$81 
+	BCC $F85E ; FIXME
+	LDA #$DC ; FIXME
+	LDY #$F7 ; FIXME
+	JSR $EF98 ; FIXME
+	PLA
+	BPL $F864 ; FIXME
+	JSR $F653 ; FIXME
+	JSR $F8C7 ; FIXME
+	BEQ $F86C ; FIXME
+	JMP $F8AA ; FIXME
+	RTS
+
+	
+const_coef_atn	
+	.byt $0b ; 11 coef
+	.byt $76,$b3,$83,$bd,$d3
+	.byt $79,$1e,$f4,$a6,$f5
+	.byt $7b,$83,$fc,$b0,$10
+	.byt $7c,$0c,$1f,$67,$ca
+	.byt $7c,$de,$53,$cb,$c1
+	.byt $7d,$14,$64,$70,$4c
+	.byt $7d,$b7,$ea,$51,$7a
+	.byt $7d,$63,$30,$88,$7e
+	.byt $7e,$92,$44,$99,$3a
+	.byt $7e,$4c,$cc,$91,$c7
+	.byt $7f,$aa,$aa,$aa,$13
+	.byt $81,$00,$00,$00,$00
+	
+LF8AA
+	; convert ACC1 in defree
+	lda #<const_180_divided_by_pi
+	ldy #>const_180_divided_by_pi 
+	jmp $f184 ; FIXME 
+
+LF8B1
+	jsr test_if_degree_mode  
+	beq $F8CC 	  ; FIXME 
+
+LF8B
+	lda #<const_pi_divided_by_180   
+	ldy #>const_pi_divided_by_180  
+	jmp $f184
+	
+const_180_divided_by_pi
+LF8BD
+	.byt $86,$65,$2e,$e0,$d8
+const_pi_divided_by_180	
+	.byt $7b,$0e,$fa,$35,$19
+
+test_if_degree_mode
+LF8C7
+	lda FLGTEL
+	and #$20
+	rts
+Lf8cd
+       sta     RES
+        sty     RES+1
+        jsr     $EFAF
+        ldx     RES
+        ldy     RES+1
+        jmp     $F352
+
+LF8DB:  jsr     $F9FC
+        bcc     LF8E7
+        cmp     #$41
+        bcc     LF915
+        sbc     #$37
+        .byte   $2C
+LF8E7:  sbc     #$2F
+        cmp     #$10
+        bcs     LF915
+        asl   
+        asl    
+        asl    
+        asl    
+        ldx     #$04
+LF8F3:  asl    
+        rol     $62
+        rol     $61
+        bcs     LF912
+        dex
+        bne     LF8F3
+        beq     LF8DB
+LF8FF:  jsr     $F9FC
+        bcs     LF915
+        cmp     #$32
+        bcs     LF915
+        cmp     #$31
+        rol     $62
+        rol     $61
+        bcs     LF912
+        bcc     LF8FF
+LF912:  jmp     $F0C7
+
+LF915:  ldx     #$90
+        sec
+        jsr     $F3DE
+        ldx     #$00
+        rts	
+
+;;;;;;;;;;;;;;; 
+
+
+        sta     RES
+        sty     RES+1
+        tsx
+        stx     $89
+        lda     #$00
+        sta     $02
+        sta     $03
+        sta     $66
+        ldx     #$05
+LF92F:  sta     $60,x
+        sta     $73,x
+        dex
+        bpl     LF92F
+        jsr     LF9FE
+        bcc     LF951
+        cmp     #$23
+        beq     LF8DB
+        cmp     #$25
+        beq     LF8FF
+        cmp     #$2D
+        beq     LF94C
+        cmp     #$2B
+        bne     LF953
+        .byte   $2C
+LF94C:  stx     $03
+LF94E:  jsr     LF9FC
+LF951:  bcc     LF9CD
+LF953:  cmp     #$2E
+        beq     LF9A6
+        cmp     #$45
+        beq     LF95F
+        cmp     #$65
+        bne     LF9AC
+LF95F:  ldx     $02
+        jsr     LF9FC
+        bcc     LF976
+        cmp     #$2D
+        beq     LF96F
+        cmp     #$2B
+        bne     LF998
+        .byte   $2C
+LF96F:  ror     $77
+LF971:  jsr     LF9FC
+        bcs     LF99A
+LF976:  lda     $75
+        cmp     #$0A
+        bcc     LF985
+        lda     #$64
+        bit     $77
+        bmi     LF993
+        jmp     LF0C7
+
+LF985:  asl    
+        asl    
+        clc
+        adc     $75
+        asl    
+        clc
+        ldy     $02
+        adc     (RES),y
+        sec
+        sbc     #$30
+LF993:  sta     $75
+        jmp     LF971
+
+LF998:  stx     $02
+LF99A:  bit     $77
+        bpl     LF9AC
+        lda     #$00
+        sec
+        sbc     $75
+        jmp     LF9AE
+
+LF9A6:  ror     $76
+        bit     $76
+        bvc     LF94E
+LF9AC:  lda     $75
+LF9AE:  sec
+        sbc     $74
+        sta     $75
+        beq     LF9C7
+        bpl     LF9C0
+LF9B7:  jsr     $F25E
+        inc     $75
+        bne     LF9B7
+        beq     LF9C7
+LF9C0:  jsr     $F242
+        dec     $75
+        bne     LF9C0
+LF9C7:  lda     $03
+        bmi     LF9E1
+        bpl     LF9E4
+LF9CD:  pha
+        bit     $76
+        bpl     LF9D4
+        inc     $74
+LF9D4:  jsr     $F242
+        pla
+        sec
+        sbc     #$30
+        jsr     LF9E9
+        jmp     LF94E
+
+LF9E1:  jsr     LF653
+LF9E4:  ldx     #$00
+        jmp     LF396
+
+LF9E9:  pha
+        jsr     LF387
+        pla
+        jsr     LF3D1
+        lda     $6D
+        eor     $65
+        sta     $6E
+        ldx     $60
+        jmp     $EFB2
+
+LF9FC:  inc     $02
+LF9FE:  ldy     $02
+        lda     (RES),y
+        jsr     $D0F0
+        cmp     #$20
+        beq     LF9FC
+        cmp     #$30
+        bcc     LFA10
+        cmp     #$3A
+        rts
+
+LFA10:  sec
+        rts
+
+        jsr     LF387
+        lda     $68
+        beq     LFA32
+        bpl     LFA3C
+        sec
+        lda     #$A1
+        sbc     $68
+        bcc     LFA3C
+        tax
+LFA23:  dex
+        beq     LFA39
+        lsr     $69
+        ror     $6A
+        ror     $6B
+        ror     $6C
+        bcc     LFA23
+        bcs     LFA3C
+LFA32:  ldx     #$03
+        sta     $69,x
+        dex
+        bpl     LFA23
+LFA39:  lda     #$01
+        rts
+
+LFA3C:  lda     #$00
+        rts
+
+
+/****** BEGIN CHARSET ********************/
+LFA3F
+table_chars_qwerty
+	.byt $37,$6a,$6d,$6b,$20,$75,$79,$38,$6e,$74,$36,$39,$2c,$69,$68,$6c,$35
 	.byt $72,$62,$3b,$2e,$6f,$67,$30,$76,$66,$34,$2d,$0b,$70,$65,$2f,$31
 	.byt $1b,$7a,$00,$08,$7f,$61,$0d,$78,$71,$32,$5c,$0a,$5d,$73,$00,$33
 	.byt $64,$63,$27,$09,$5b,$77,$3d,$26,$4a,$4d,$4b,$20,$55,$59,$2a,$4e
 	.byt $54,$5e,$28,$3c,$49,$48,$4c,$25,$52,$42,$3a,$3e,$4f,$47,$29,$56
-	.byt $46,$24,$5f,$0b,$50,$45,$3f,$21,$1b,$5a,$00,$08,$7f,$41,$0d,$58
-	.byt $51,$40,$7c,$0a,$7d,$53,$00,$23,$44,$43,$22,$09,$7b,$57,$2b,$37
+
+	.byt $46,$24,$5f,$0b,$50,$45,$3f,$21,$1b,$5a,$00,$08,$7f,$41,$0d
+	
+	.byt $58
+
+	.byt $51,$40,$7c,$0a,$7d,$53,$00,$23,$44,$43,$22,$09,$7b,$57,$2b
+LFAAF
+table_chars_azerty
+	.byt $37
+
 	.byt $6a,$3b,$6b,$20,$75,$79,$38,$6e,$74,$36,$39,$2c,$69,$68,$6c,$35
+
 	.byt $72,$62,$6d,$2e,$6f,$67,$30,$76,$66,$34,$2d,$0b,$70,$65,$2f,$31
 	.byt $1b,$77,$00,$08,$7f,$71,$0d,$78,$61,$32,$5c,$0a,$5d,$73,$00,$33
+
 	.byt $64,$63,$27,$09,$5b,$7a,$3d,$26,$4a,$3a,$4b,$20,$55,$59,$2a,$4e
 	.byt $54,$5e,$28,$3c,$49,$48,$4c,$25,$52,$42,$4d,$3e,$4f,$47,$29,$56
-	.byt $46,$24,$5f,$0b,$50,$45,$3f,$21,$1b,$57,$00,$08,$7f,$51,$0d,$58
-	.byt $41,$40,$7c,$0a,$7d,$53,$00,$23,$44,$43,$22,$09,$7b,$5a,$2b,$7d
+
+	.byt $46,$24,$5f,$0b,$50,$45,$3f,$21,$1b,$57,$00,$08,$7f,$51,$0d
+	
+	.byt $58
+	.byt $41,$40,$7c,$0a,$7d,$53,$00,$23,$44,$43,$22,$09,$7b,$5a,$2b
+LFB1F		
+table_chars_french_table
+table_chars_bwana_table
+	.byt $7d
 	.byt $6a,$2c,$6b,$20,$75,$79,$21,$6e,$74,$7e,$5c,$3b,$69,$68,$6c,$28
+
 	.byt $72,$62,$6d,$3a,$6f,$67,$40,$76,$66,$2f,$29,$0b,$70,$65,$3d,$26
 	.byt $1b,$77,$00,$08,$7f,$71,$0d,$78,$61,$7b,$3c,$0a,$24,$73,$00,$22
 	.byt $64,$63,$7c,$09,$60,$7a,$2d,$37,$4a,$3f,$4b,$20,$55,$59,$38,$4e
@@ -7523,12 +8495,15 @@ LF735
 	.byt $a2,$1e,$02,$1c,$40,$3e,$04,$08,$10,$fe,$0e,$58,$30,$58,$ce,$88
 	.byt $88,$48,$38,$4c,$06,$4c,$f8,$2a,$15,$2a,$15,$2a,$15,$2a,$15,$40
 	.byt $08,$3c,$3e,$3c,$c8
+/****** END OF CHARSET ********************/	
+	
+codes_for_calc_alternates	
 Lfe45	
 	.byt $00,$38,$07,$3f
 Lfe49
 routine_to_define_22
 
-	LDA #%10111001 ; 
+	LDA #$b9 ;  index of alternate chars
 	BIT FLGTEL
 .(
 	BPL next
@@ -7581,13 +8556,14 @@ next
 	AND #$C0
 	BEQ loop70
 	CMP #$C0
-	BEQ loop71+1
+	BEQ loop71
 	CMP #$40
 	beq next76
 	JSR routine_to_define_23 
 	
+	
+	.byt $2c 
 loop71		
-	.byt $2c ; Is BIT $00A2 when $FE9F return
 	ldx #$00
 next76	
 	JSR routine_to_define_23
@@ -7645,7 +8621,7 @@ move_chars_hires_to_text
 	ldy #$0b
 	ldx #5
 Lfedf	
-	lda code_in_order_to_move_chars_tables,y ; FIXME
+	lda code_in_order_to_move_chars_tables,y 
 	sta $04,x
 	dey
 	dex
@@ -7735,26 +8711,26 @@ select_keyboard_mode
 	tax
 	lda $0275
 	and #$f9
-	ora $00
+	ora RES
 	sta $0275
 	lda Lff90,x
 	ldy Lff90+1,x
-	sta $2a
+	sta ADKBD
 	sty $2b
 	jsr routine_to_define_22 
 	lda $0275
 	and #$06
 	cmp #$04
 	bne Lff81
-	lda #$98
-	ldy #$ff
+	lda #<a_accent_circonflexe
+	ldy #>a_accent_circonflexe
 	jmp Lfef9 
 Lff81	
 	cmp #2
 	bne Lff8f
 Lff85	
-	lda #$aa ; FIXME
-	ldy #$ff ; FIXME
+	lda #<e_accent_aigu 
+	ldy #>e_accent_aigu 
 	jmp Lfef9 
 Lff8c	
 	jmp routine_to_define_22 
@@ -7762,23 +8738,46 @@ Lff8f
 	rts
 
 Lff90
-	.byt $3f,$fa ; QWERTY TABLE FIXME
-	.byt $af,$fa ; AZETY TABLE FIXME
-	.byt $1f,$fb ; FRENCH TABLE FIXME
-	.byt $1f,$fb ; French bwana FIXME
+	.byt <table_chars_qwerty,>table_chars_qwerty 
+	.byt <table_chars_azerty,>table_chars_azerty
+	.byt <table_chars_french_table,>table_chars_french_table 
+	.byt <table_chars_french_table,>table_chars_french_table
 Lff98	
 tab_accent_charset
 a_accent_circonflexe
+LFF98
 	.byt $5b ; Accent circonflexe
 	.byt $1c,$22,$1c,$02,$1e,$22,$1e,$00
 u_accent_circonflexe	
+LFFA1
 	.byt $60
 	.byt $1c,$22,$00,$22,$22,$26,$1a,$00
-	
-	.byt $7b,$04,$08,$1c,$22,$3e
-	.byt $20,$1e,$00,$7d,$10,$08,$1c,$22,$3e,$20,$1e,$00,$40,$10,$08,$1c
-	.byt $02,$1e,$22,$1e,$00,$5c,$00,$00,$1e,$20,$20,$20,$1e,$04,$7c,$10
-	.byt $08,$22,$22,$22,$26,$1a,$00,$7e,$1c,$22,$1c,$22,$3e,$20,$1c,$00
+LFFAA	
+e_accent_aigu	
+	.byt $7b
+	.byt $04,$08,$1c,$22,$3e,$20,$1e,$00
+LFFB3	
+e_accent_grave	
+	.byt $7d
+	.byt $10,$08,$1c,$22,$3e,$20,$1e,$00
+LFFBC	
+a_accent_grave	
+	.byt $40
+	.byt $10,$08,$1c,$02,$1e,$22,$1e,$00
+c_cedille	
+LFFC5
+	.byt $5c
+	.byt $00,$00,$1e,$20,$20,$20,$1e,$04
+u_accent_grave
+LFFCE
+	.byt $7c
+	.byt $10,$08,$22,$22,$22,$26,$1a,$00
+LFFD7	
+e_accent_circonflexe	
+	.byt $7e
+	.byt $1c,$22,$1c,$22,$3e,$20,$1c,$00
+
+free_bytes ; 28 bytes	
 	.byt $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
 	.byt $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
 ; fffa

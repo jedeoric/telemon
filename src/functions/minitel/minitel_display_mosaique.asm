@@ -1,6 +1,42 @@
-minitel_display_mosaique	
-	.byt $a9,$00,$a2,$03,$a4,$3b,$f0,$09,$ca,$a9,$03,$88,$f0,$03,$e8
-	.byt $a9,$05,$20,$69,$ce,$a5,$2c,$a4,$2d,$20,$89,$ce,$a9,$38,$a4,$3a
-	.byt $f0,$02,$a9,$07,$85,$02,$a4,$38,$b1,$00,$0a,$30,$02,$a9,$80,$6a
-	.byt $45,$02,$91,$00,$98,$18,$69,$28,$a8,$ca,$d0,$ec,$60
-	
+minitel_display_mosaique
+XVDTG2_ROUTINE
+	LDA #$00
+	LDX #$03
+	LDY $3B
+	BEQ LD722
+	DEX
+	LDA #$03
+	DEY
+	BEQ LD722
+	INX
+	LDA #$05
+LD722	
+	JSR XMUL40_ROUTINE
+	LDA $2C
+	LDY $2D
+	JSR XADRES_ROUTINE
+	LDA #$38
+	LDY $3A
+	BEQ LD734
+	LDA #$07
+LD734
+	STA RESB
+	LDY $38
+LD738	
+	LDA (RES),Y
+	ASL
+	BMI LD73F
+	LDA #$80
+LD73F
+	ROR
+	EOR RESB
+	STA (RES),Y
+	TYA
+	CLC
+	ADC #$28
+	TAY
+	DEX
+	BNE LD738
+	RTS
+
+

@@ -20,6 +20,7 @@
 #define TR3 $0f ; 
 #define TR4 $10 ; general usage 1 byte
 #define TR5 $11 ; general usage 1 byte
+#define TR5 $11 ; general usage 1 byte
 #define TR6 $12 ; general usage 1 byte
 #define TR7 $13 ; general usage 1 byte
 
@@ -35,13 +36,15 @@
 
 #define i_o_save $1b
 
+#define TRANSITION_RS232 $1e 
+
 /// @brief [VALUE_PAGE_0] save Accumulator used when there is an IRQ
 #define IRQSVA $21 
 /// @brief [VALUE_PAGE_0] save X used when there is an IRQ
 #define IRQSVX $22 
 /// @brief [VALUE_PAGE_0] save Y used when there is an IRQ
 #define IRQSVY $23 
-/// @brief [VALUE_PAGE_0] save P used when there is an IRQ
+/// @brief [VALUE_PAGE_0] save P used when there is an IRQ but also used for some others backup values
 #define IRQSVP $24 
 
 /// @brief [VALUE_PAGE_0] low Adress of begin line display (16 bits)
@@ -64,11 +67,20 @@
 
 #define VDTASC $33 ; VDT work
 
+
+#define VDTX $38
+#define VDTY $39
+#define VDTGX $3a
+#define VDTGY $3b
+/// @brief [VALUE_PAGE_0] ?
+#define FLGVD0 $3c
+
+
+
 /// @brief [VALUE_PAGE_0] address to display clock
 #define ADCLK $40 
 
-/// @brief [VALUE_PAGE_0] ?
-#define FLGVD0 $3c
+
 
 /// @brief [VALUE_PAGE_0] decompteur utilisateur en secondes (16 bits)
 #define TIMEUS $42
@@ -81,7 +93,12 @@
 
 
 /// @brief [VALUE_PAGE_0] 48 bytes 
-#define VARMNB $60 
+#define VARMNB $60
+
+#define MENDDX $61
+#define MENDDY $62
+#define MENDFY $63
+
 
 /// @brief [VALUE_PAGE_0] 68 bytes for language
 #define VARLNG $8c
@@ -96,20 +113,8 @@
 /// @brief [VALUE_PAGE_2]  Activating drive 0 if not connected, b7 equal double side
 #define TABDRV $0208 
 
-/// @brief [VALUE_PAGE_2]  horloge 1/10
-#define TIMED $210
-/// @brief [VALUE_PAGE_2]  clock seconds
-#define TIMES $211
 
-/// @brief [VALUE_PAGE_2]  clock minutes
-#define TIMEM $212
 
-/// @brief [VALUE_PAGE_2]  clock hours
-#define TIMEH $213
-
-/// @brief [VALUE_PAGE_2]  clock flag
-/// b7 display clock every seconds
-#define FLGCLK $214
 
 /// @brief [VALUE_PAGE_2]  Default drive
 #define DRVDEF $20C
@@ -127,6 +132,30 @@
 
 #define KOROM $020E	; Ko ROM total
 #define KORAM $020f ; total Max ram Bytes	
+
+/// @brief [VALUE_PAGE_2]  horloge 1/10
+#define TIMED $210
+/// @brief [VALUE_PAGE_2]  clock seconds
+#define TIMES $211
+
+/// @brief [VALUE_PAGE_2]  clock minutes
+#define TIMEM $212
+
+/// @brief [VALUE_PAGE_2]  clock hours
+#define TIMEH $213
+
+/// @brief [VALUE_PAGE_2]  clock flag
+/// b7 display clock every seconds
+#define FLGCLK $214
+
+#define FLGCLK_FLAG $215 
+
+/// @brief [VALUE_PAGE_2]  cursor management flag
+#define FLGCUR $216
+
+/// @brief [VALUE_PAGE_2]  cursor state flag
+#define FLGCUR_STATE $217
+
 
 /// @brief [VALUE_PAGE_2] low address of the screen 0 
 #define ADSCRL $218
@@ -212,7 +241,12 @@
 #define SCRTRA $0262 ; desc 6 bytes for trace
 
 /// @brief [VALUE_PAGE_2]  image of 8x8 keyboard matrix (8 bytes)
-#define KBDCOL $268 
+#define KBDCOL $268
+/// @brief [VALUE_PAGE_2]  0 if no key pressed
+#define KBDFLG_KEY $270
+
+/// @brief [VALUE_PAGE_2]  contains key pressed
+#define KBDKEY $271 
 
 #define FLGKBD $0275	;Keyboard flag : b7 majn b6 if sound
 
@@ -273,8 +307,8 @@
 /********************************************************************** PAGE 5 VARIABLES */
 
 #define BUFNOM $517
-
-
+/// @brief [VALUE_PAGE_2]  edition buffer
+#define BUFEDT $590
 
 /********************************************************************** VECTORS used with brk */
 
@@ -445,19 +479,26 @@
 
 #define XMENU $2c ; manage a menu AY
 
-#define XMENU $2d ; edit
+#define XEDT $2d
 
 #define XINSER $2e ; insert a line
 
 #define XSCELG $2f ; search line
 
+#define XVDTCT $30 ; VDT Control MINITEL
+
+/// @brief [PRIMITIVE] Minitel : display mosaic
+#define XVDTG2 $31
+
 #define XEDTIN $32
 
-#define XECRPR $33
+/// @brief [PRIMITIVE] Display prompt
+#define XECRPR $33 ; display prompt
 
 #define XCOSCR $34
 
-#define XCSSCR $35 ; display cursor (prompt)	, X equal to 0 : No window
+/// @brief [PRIMITIVE] Display cursor (prompt)	, X equal to 0 : No window
+#define XCSSCR $35 
 
 #define XSCRSE $36
 
@@ -526,7 +567,7 @@
 #define XPING $9d
 
 
-; PAGE 0 ? 
+
 
 #define XMDS $8f ; minitel output
 
@@ -543,8 +584,14 @@
 
 ; others
 #define BUFROU $C500 ; Routines for buffers gestion
+#define XECRBU $C51D 
+#define XLISBU $C518
 
-
+#define XTSTBU $c50f
 
 
 #define FUFTRV $0100; working Buffer 
+
+
+
+

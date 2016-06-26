@@ -1,4 +1,4 @@
-PLAY_ROUTINE
+XPLAY_ROUTINE
 	lda $4f
 	asl
 	asl
@@ -9,22 +9,22 @@ PLAY_ROUTINE
 	tax
 	
 	lda #7
-	jsr lda1a 
+	jsr XEPSG_ROUTINE 
 	asl $53
 	rol $54
 
 	ldx $53
 	lda #$0b
-	jsr lda1a
+	jsr XEPSG_ROUTINE
 	
 
 	ldx $54
 	lda #$0c
-	jsr lda1a 
+	jsr XEPSG_ROUTINE 
 	ldy $51
 	ldx enveloppes_play_0_to_7,y
 	lda #$0d
-	jmp lda1a 
+	jmp XEPSG_ROUTINE 
 
 enveloppes_play_0_to_7
 Leb38
@@ -36,7 +36,7 @@ periods_note_octave_0
 	.byt $f6,$09,$66,$09,$e0,$08,$60,$08,$e8,$07
 /*End of period*/
 
-MUSIC_ROUTINE
+XMUSIC_ROUTINE
 	LDY $4F
 	LDA $51
 	ASL
@@ -52,7 +52,7 @@ Leb68
 	STA $50
 	LDX $53
 	.byt $2c
-SOUND_ROUTINE
+XSOUND_ROUTINE
 	LDX $51
 	TXA
 	BNE Leb7a
@@ -109,7 +109,7 @@ XEXPLO_ROUTINE
 Lebe9	
 	jmp send_14_paramaters_to_psg 
 	
-ZAP_ROUTINE	
+XZAP_ROUTINE	
 	ldx #<ZAP_DATA
 	ldy #>ZAP_DATA
 	jsr send_14_paramaters_to_psg
@@ -119,7 +119,7 @@ Lebf6
 	txa
 	pha
 	lda #$0
-	jsr lda1a  
+	jsr XEPSG_ROUTINE  
 	ldx #0
 Lebff	
 	dex
@@ -131,6 +131,6 @@ Lebff
 	bne Lebf6 
 	lda #08
 	ldx #00
-	jmp lda1a
+	jmp XEPSG_ROUTINE
 	
 	
