@@ -501,18 +501,34 @@
 #define XCSSCR $35 
 
 #define XSCRSE $36
-
+/// @brief [PRIMITIVE] Scroll high
 #define XSCROH $37
 
+/// @brief [PRIMITIVE] Scroll bottom
 #define XSCROB $38
 
-#define XSCRNE $39
+/// @brief [PRIMITIVE] Load charset from rom to ram 
+#define XSCRNE $39 
 
+/// @brief [PRIMITIVE] Minitel Manage a videotext data 
+#define XVDTDA $3a
+
+/// @brief [PRIMITIVE] Send A from hires vdt to videotex
+#define XVDTAH $3b
+
+/// @brief [PRIMITIVE] Reset clock
+
+#define XRECLK $3c 
+/// @brief [PRIMITIVE] Close clock (delete display)
 #define XCLCL $3d
 
+/*Clock*/
+
+
+/// @brief [PRIMITIVE] Update clock
 #define XWRCLK $3e
 
-
+/// @brief [PRIMITIVE] Send 14 data (set in xy) in psg register (R0 to r13)
 #define XSONPS $40
 
 #define XEPSG $41
@@ -531,9 +547,174 @@
 /// @brief [PRIMITIVE] Send SHOOT sound in PSG
 #define XSHOOT $47
 
+/// @brief [PRIMITIVE] Send A to the printer (or any hardware on parallel port)
+#define XLPRBI $48
+
+
+/// @brief [PRIMITIVE] Send CR/LF to the printer (or any hardware on parallel port)
+#define XLPCRM $49
+
+/// @brief [PRIMITIVE] hard copy of text window
+#define XHCSCR $4a
+
+/// @brief [PRIMITIVE] hard copy of videotex window
+#define XHCVDT $4b
+
+/// @brief [PRIMITIVE] hard copy of hires window
+#define XHCHRS $4c
+
 #define XALLKB $50 ; Get keyboard, --> KBDCOL
 
+/// @brief [PRIMITIVE] Get keyboard with funct, ctrl or shift pressed
+#define XKBDAS $51
+
+/// @brief [PRIMITIVE] Change the keyboard type (A contains the keyboard)
+#define XGOKBD $52
+
+/// @brief [PRIMITIVE] Write A or AY in the buffer
+#define XECRBU $54
+
+/// @brief [PRIMITIVE] Read A or AY in the buffer
+#define XLISBU $55
+
+#define XTSTBU $56
+
+/// @brief [PRIMITIVE] Flush the buffer 
+#define XVIDBU $57
+
+/// @brief [PRIMITIVE] Initialize the buffer X
+#define XINIBU $58 
+
+/// @brief [PRIMITIVE] Reset all value of the buffer
+#define XDEFBU $59
+
+/// @brief [PRIMITIVE] Test if the buffer is empty
+#define XBUSY $5a
+
+/// @brief [PRIMITIVE] Do a rs232 dump
+#define XSDUMP $5c
+
+/// @brief [PRIMITIVE] Do a rs232 dump and send it to the screen
+#define XCONSO $5d
+
+/// @brief [PRIMITIVE] Load a file from RS232
+#define XSLOAD $5e
+
+
+/// @brief [PRIMITIVE] Save a file to RS232
+#define XSSAVE $5f
+
+/// @brief [PRIMITIVE] Same as XSLOAD but input is minitel
+#define XMLOAD $60
+
+/// @brief [PRIMITIVE] Same as XSSAVE but input is minitel
+#define XMSAVE $61
+
+
+/// @brief [PRIMITIVE] Waiting for ring (minitel)
+#define XRING $62
+
+/// @brief [PRIMITIVE] Waiting for cnx/end from minitel (minitel)
+#define XWCXFI $63
+
+/// @brief [PRIMITIVE] Get the line (minitel)
+#define XLIGNE $64
+
+/// @brief [PRIMITIVE] Cut off the line (minitel)
+#define XDECON $65
+
+/// @brief [PRIMITIVE] Send A to the minitel (minitel)
+#define XMOUT $66
+
+/// @brief [PRIMITIVE] Send A to the rs232
+#define XSOUT $67
+
+
+/// @brief [PRIMITIVE] Convert ACC1 in BUFTRV
+#define XA1DEC $68
+
+
+/// @brief [PRIMITIVE] Convert un ACC1 the ascii number in AY. Binary value is converted quicker in this routine
+#define XDECA1 $69
+
+/// @brief [PRIMITIVE] Acc1+Acc2 = acc1
 #define XA1PA2 $6A ; A1+A2 --> A1
+
+/// @brief [PRIMITIVE] Acc1-Acc2 = acc1
+#define XA2NA1 $6b
+
+
+/// @brief [PRIMITIVE] Acc1*Acc2 = acc1
+#define XA1MA2 $6c
+
+/// @brief [PRIMITIVE] Acc2/Acc1 = acc1
+#define XA2DA1 $6d
+
+/// @brief [PRIMITIVE] Acc2^Acc1 = acc1
+#define XA2EA1 $6e
+
+/// @brief [PRIMITIVE] -ACC1
+#define XNA1 $6f
+
+#define XSIN $70
+
+#define XCOS $71
+
+#define XTAN $72
+
+#define XATN $73
+
+#define XEXP $74
+
+#define XLN $75
+
+#define XLOG $76
+
+#define XRND $77
+
+#define XSQR $78
+
+#define XRAD $79
+
+#define XDEG $7a
+
+#define XINT $7b
+
+#define XPI $7c
+
+#define XRAND $7d
+
+#define XA1A2 $7e
+
+#define XA2A1 $7f
+
+#define XIYAA1 $80
+
+#define XAYA1 $81
+
+#define XA1IAY $82
+
+#define XA1XY $83
+
+#define XAA1 $84
+
+#define XADNXT $85
+
+#define XINTEG $86
+
+#define XHRSCG $88
+
+#define XHRSCD $89
+
+#define XHRSCB $8a
+
+#define XHRSCH $8b
+
+#define XHRSSE $8c
+
+#define XDRAWA $8d
+
+#define XDRAWR $8e
 
 /* GRAPHICS WORKING*/
 /// @brief [PRIMITIVE] Do a circle un HIRES

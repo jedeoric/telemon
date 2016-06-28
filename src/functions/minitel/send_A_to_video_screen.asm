@@ -42,7 +42,7 @@ Ld1b1
 Ld1bb
 	PHA
 	JSR Ld530 
-	JSR $D5DC ; FIXME
+	JSR display_in_videotex_mode 
 	PLA
 	PHA
 	BMI Ld1d0
@@ -61,13 +61,13 @@ Ld1d0
 	JSR $D3A0 ; FIXME
 Ld1e1
 	LDA $0285
-	STA $00
+	STA RES
 Ld1e6	
 	PLA
 	TAX
 	PLA
 	TAY
-	LDA $00
+	LDA RES
 	RTS
 
 /* 102 Bytes end */

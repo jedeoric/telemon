@@ -1,3 +1,4 @@
+XVDTDA_ROUTINE
 send_a_data_to_videotex_screen
 	ldy $37 
 	bit $37
@@ -97,7 +98,7 @@ char_accent
 	.byt $95
 	
 
-
+XVDTAH_ROUTINE
 Ld4f1
 vdt_to_hires
 

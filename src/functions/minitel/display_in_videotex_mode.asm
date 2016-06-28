@@ -1,23 +1,179 @@
-L5dc
-display_in_videotex_mode	
-	.byt $46,$3d,$08,$26
-	.byt $3d,$28,$b0,$2b,$a4,$38,$f0,$27,$48,$8a,$48,$88,$b1,$2e,$30,$1b
-	.byt $aa,$b1,$30,$30,$06,$e0,$20,$d0,$12,$f0,$05,$8a,$29,$3f,$d0,$0b
-	.byt $a5,$34,$29,$07,$c6,$38,$20,$48,$d6,$e6,$38,$68,$aa,$68,$18,$a8
-	.byt $10,$41,$8a,$30,$25,$a0,$00,$a9,$9c,$84,$00,$85,$01,$8a,$85,$03
-	.byt $20,$b2,$fe,$a2,$07,$bd,$00,$9c,$24,$03,$70,$03,$3d,$09,$d7,$09
-	.byt $40,$9d,$00,$9c,$ca,$10,$ee,$4c,$b0,$d6,$a9,$00,$b0,$02,$a5,$32
-	.byt $4a,$4a,$4a,$4a,$29,$07,$09,$10,$a2,$0f,$9d,$00,$9c,$ca,$10,$fa
-	.byt $4c,$9f,$d6,$8a,$a2,$13,$86,$03,$0a,$26,$03,$0a,$26,$03,$0a,$26
-	.byt $03,$85,$02,$a0,$07,$b1,$02,$09,$40,$99,$00,$9c,$88,$10,$f6,$a4
-	.byt $38,$b1,$2e,$10,$06,$29,$04,$d0,$07,$f0,$0a,$88,$10,$f3,$30,$05
-	.byt $a9,$3f,$8d,$07,$9c,$24,$36,$10,$16,$a2,$07,$bd,$00,$9c,$85,$02
-	.byt $20,$f5,$d6,$9d,$08,$9c,$20,$f5,$d6,$9d,$00,$9c,$ca,$10,$ec,$24
-	.byt $34,$50,$0d,$a0,$0f,$b9,$00,$9c,$09,$80,$99,$00,$9c,$88,$10,$f5
-	.byt $a5,$2c,$a4,$2d,$24,$36,$50,$07,$38,$e9,$40,$88,$b0,$01,$88,$85
-	.byt $00,$84,$01,$a2,$00,$46,$03,$a4,$38,$bd,$00,$9c,$91,$00,$24,$36
-	.byt $10,$06,$bd,$08,$9c,$c8,$91,$00,$18,$a5,$00,$69,$28,$85,$00,$90
-	.byt $02,$e6,$01,$24,$36,$50,$08,$a5,$03,$49,$80,$85,$03,$30,$d8,$e8
-	.byt $e0,$08,$d0,$d3,$60
+LD5dc
+display_in_videotex_mode
+	LSR $3D
+	PHP
+	ROL $3D
+	PLP
+	BCS LD60F
+	LDY $38
+	BEQ LD60F
+	PHA
+	TXA
+	PHA
+	DEY
+	LDA ($2E),Y
+	BMI LD60B
+	TAX
+	LDA ($30),Y
+	BMI LD5FB
+	CPX #$20
+	BNE LD60B
+	BEQ LD600
+LD5FB	
+	TXA
+	AND #$3F
+	BNE LD60B
+LD600	
+	LDA $34
+	AND #$07
+	DEC $38
+	JSR $D648 ; FIXME
+	INC $38
+LD60B	
+	PLA
+	TAX
+	PLA
+	CLC
+LD60F	
+	TAY
+	BPL LD653	 
+	TXA
+	BMI LD63A 
+	LDY #$00
+	LDA #$9C
+	STY RES
+	STA RES+1
+	TXA
+	STA $03
+	JSR routine_to_define_24 
+	LDX #$07
+LD625	
+	LDA $9C00,X
+	BIT $03
+	BVS LD62F
+	AND table_conversion_G1,X
+LD62F	
+	ORA #$40
+	STA $9C00,X
+	DEX
+	BPL LD625
+	JMP LD6B0 
+LD63A	
+	LDA #$00
+	BCS LD640
+	LDA $32
+LD640	
+	LSR
+	LSR
+	LSR
+	LSR
+	AND #$07
+	ORA #$10
+	LDX #$0F
+LD64A	
+	STA $9C00,X
+	DEX
+	BPL LD64A 
+	JMP $D69F ; FIXME
+LD653	
+	TXA
+	LDX #$13
+	STX $03
+	ASL
+	ROL $03
+	ASL
+	ROL $03
+	ASL
+	ROL $03
+	STA RESB
+	LDY #$07
+LD665	
+	LDA (RESB),Y
+	ORA #$40
+	STA $9C00,Y
+	DEY
+	BPL LD665 ;
+LD66F	
+	LDY $38
+LD671	
+	LDA ($2E),Y
+	BPL LD67B 
+	AND #$04
+	BNE LD680 
+	BEQ LD685	
+LD67B	
+	DEY
+	BPL LD671 
+	BMI LD685
+LD680	
+	LDA #$3F
+	STA $9C07
+LD685	
+	BIT $36
+	BPL LD69F 
+	LDX #$07
+LD68B	
+	LDA $9C00,X
+	STA $02
+	JSR compute_A_and_02_for_double_width
+	STA $9C08,X
+	JSR compute_A_and_02_for_double_width
+	STA $9C00,X
+	DEX
+	BPL LD68B 
+LD69F	
+	BIT $34
+	BVC LD6B0
+	LDY #$0F
+LD6A5
+	LDA $9C00,Y
+	ORA #$80
+	STA $9C00,Y
+	DEY
+	BPL LD6A5
+LD6B0	
+	LDA $2C
+	LDY $2D
+	BIT $36
+	BVC LD6BF
+	SEC
+	SBC #$40
+	DEY
+	BCS LD6BF 
+	DEY
+LD6BF	
+	STA RES
+	STY RES+1
+	LDX #$00
+	LSR $03
+LD6c7	
+	LDY $38
+	LDA $9C00,X
+	STA (RES),Y
+	BIT $36
+	BPL LD6D8 
+	LDA $9C08,X
+	INY
+	STA (RES),Y
+LD6D8	
+	CLC
+	LDA RES
+	ADC #$28
+	STA RES
+	BCC LD6E3 
+	INC RES+1
+LD6E3	
+	BIT $36
+	BVC LD6EF 
+	LDA $03
+	EOR #$80
+	STA $03
+	BMI LD6c7
+LD6EF	
+	INX
+	CPX #$08
+	BNE LD6c7 
+	RTS
+
 	
 	
