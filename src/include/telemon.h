@@ -88,17 +88,35 @@
 /// @brief [VALUE_PAGE_0] decompteur utilisateur en dixieme de secondes (16 bits)
 #define TIMEUD $44
 
+/// @brief [VALUE_PAGE_0] Used to backup value in buffer routine and joystick and to do some operation
+
+#define VABKP1 $58
+
 #define RS232T $59
 #define RS232C $5A
 
 
-/// @brief [VALUE_PAGE_0] 48 bytes 
-#define VARMNB $60
+
+
+/// @brief [VALUE_PAGE_0] Floating variables also for menu vars
+#define ACC1E $60
+
+
 
 #define MENDDX $61
 #define MENDDY $62
 #define MENDFY $63
 
+/// @brief [VALUE_PAGE_0] Working flag menu
+#define FLGMEN $68
+
+/// @brief [VALUE_PAGE_0] choice table
+#define ADMEN $69
+
+
+/// @brief [VALUE_PAGE_0] RS indicator b7=1 if minitel mode. 0= rs232
+/// b6=1 entête or not
+#define INDRS $5b
 
 /// @brief [VALUE_PAGE_0] 68 bytes for language
 #define VARLNG $8c
@@ -108,6 +126,7 @@
 
 /********************************************************************** PAGE 2 VARIABLES */
 
+/// @brief [VALUE_PAGE_2]  Save 8 bytes of the eack bank
 #define BNKST $0200 ; RESB 8 value of bytes $fffb of each bank
 
 /// @brief [VALUE_PAGE_2]  Activating drive 0 if not connected, b7 equal double side
@@ -773,6 +792,7 @@
 
 #define FUFTRV $0100; working Buffer 
 
-
+/// @brief [PRIMITIVE] Buffer minitel VDT attributes
+#define BVDTAS $9000
 
 

@@ -239,9 +239,9 @@ Ld5b6
 
 ; MINITEL
 stop_videotex_emulation
-	jsr $cf75 ; FIXME
-	jmp $d74d  ; FIXME
-	
+	jsr switch_text
+	jmp switch_off_cursor_videotex 
+
 	
 
 	

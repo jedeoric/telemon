@@ -41,7 +41,7 @@ Lc707
 	ldy #$80
 	tax
 	
-	jsr Lc81c ; FIXME
+	jsr Lc81c 
 
 	ldx $19
 	pla

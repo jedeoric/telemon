@@ -31,7 +31,7 @@ Lc740
 	bpl Lc740
 	tax
 	ldy #$81
-	jmp Lc81c ; FIXME
+	jmp Lc81c
 Lc74e	
 	lsr IOTAB0,x
 	inx

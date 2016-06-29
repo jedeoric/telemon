@@ -19,18 +19,30 @@ Lc7da
 	PHA
 	TYA
 	PHA
+LC7E4	
 	LDX $19
-	LDA $02AE,X
+	LDA $02AE,X ; FIXME
+	bpl LC7F9
 
-	.byt $10,$0e ; FIXME
 	cmp #$88
-	.byt $b0,$0a ; bcs FIXME
+	bcs  LC7F9
+
 	tax
 	ldy #$40
 	jsr Lc81c
 	sta $1d
-	.byt $90,$06,$e6,$19,$c6,$1a,$d0,$e5,$68
-	.byt $a8,$68,$aa,$a5,$1d
+	bcc LC7FF 
+LC7F9	
+	inc $19
+	dec $1a
+	bne LC7E4 
+LC7FF	
+	pla
+	tay
+	pla
+	tax
+	lda $1d
+
 .)	
 	rts
 	
