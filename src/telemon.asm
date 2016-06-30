@@ -919,7 +919,7 @@ code_adress_4AF
 	AND #%11111000
 	ORA $0410 
 	STA V2DRA
-	LDA ($15),Y
+	LDA (ADDRESS_READ_BETWEEN_BANK),Y
 	PHA
 	LDA V2DRA
 	ORA #%00000111
@@ -1175,9 +1175,9 @@ LC87A
 	SEC
 	SBC #$01
 	PHA
-	STA $15
+	STA ADDRESS_READ_BETWEEN_BANK
 	LDA $0102,X
-	STA $16
+	STA ADDRESS_READ_BETWEEN_BANK+1
 	LDA $040F
 	STA $0410
 	LDY #$00
@@ -1375,25 +1375,25 @@ next110
 	BVC next112
 	BIT V1T1
 	JSR Lc91e 
-	DEC $02A6
+	DEC KEYBOARD_COUNTER
 	BNE next113 
 	JSR manage_keyboard 
 	JSR LC8BF
 	BIT $0270 ; CORRECTME
 	BPL next114 
 	LDA #$14 
-	STA $02A7 ; CORRECTME
+	STA KEYBOARD_COUNTER+1 ; CORRECTME
 	BNE LC9FB 
 next114	
-	LDA $02A8 ; CORRECTME
-	BIT $02A7 ; CORRECTME
+	LDA KEYBOARD_COUNTER+2 ; CORRECTME
+	BIT KEYBOARD_COUNTER+1 ; CORRECTME
 	BMI lc9fd 
-	DEC $02A7 ; CORRECTME
+	DEC KEYBOARD_COUNTER+1 ; CORRECTME
 LC9FB
 next115	
 	LDA #$01
 lc9fd	
-	STA $02A6 ; CORRECTME
+	STA KEYBOARD_COUNTER ; CORRECTME
 Lca00
 next113	
 	BIT FLGJCK
@@ -1863,8 +1863,8 @@ display_x_choice
 	inx
 	lda $69
 	ldy $6a
-	sta $15
-	sty $16
+	sta ADDRESS_READ_BETWEEN_BANK
+	sty ADDRESS_READ_BETWEEN_BANK+1
 	ldy #0
 Lcd0c	
 	dex
@@ -1872,20 +1872,20 @@ Lcd0c
 Lcd0f
 	iny 
 	bne Lcd14
-	inc $16
+	inc ADDRESS_READ_BETWEEN_BANK+1
 Lcd14	
 	jsr $0411
 	bne Lcd0f
 	
 	iny
 	bne Lcd0c
-	inc $16
+	inc ADDRESS_READ_BETWEEN_BANK+1
 	bne Lcd0c
 Lcd20	
-	ldx $16
+	ldx ADDRESS_READ_BETWEEN_BANK+1
 	clc
 	tya
-	adc $15
+	adc ADDRESS_READ_BETWEEN_BANK
 	bcc Lcd29 
 	inx
 Lcd29	
@@ -2364,7 +2364,7 @@ test_if_all_buffers_are_empty
 	.byt $24 ; jump
 XBUSY_ROUTINE	
 	clc
-	ror $15
+	ror ADDRESS_READ_BETWEEN_BANK
 	ldx #0
 Lcfb6	
 	jsr XTSTBU_ROUTINE 
@@ -2379,10 +2379,10 @@ Lcfc3
 	lda #<table_to_define_prompt_charset
 	ldy #>table_to_define_prompt_charset
 	bcs Lcfce 
-	lda #$e6
-	ldy #$cf
+	lda #<table_to_define_prompt_charset_empty
+	ldy #>table_to_define_prompt_charset_empty
 Lcfce	
-	bit $15
+	bit ADDRESS_READ_BETWEEN_BANK
 	bpl Lcfd7 
 	jsr Lfef9 
 	plp
@@ -2404,8 +2404,8 @@ table_to_define_prompt_charset_empty
 	
 
 XNOMFI_ROUTINE
-	sta $15
-	sty $16
+	sta ADDRESS_READ_BETWEEN_BANK
+	sty ADDRESS_READ_BETWEEN_BANK+1
 	stx RES
 	inc RES
 	ldy $020c
@@ -2735,7 +2735,7 @@ LD261
 	LDA #$07
 	STA $34
 	LDA #$00
-	STA $32
+	STA VDTPAR
 	RTS
 Ld26a
 	lsr $3c
@@ -2866,14 +2866,14 @@ Ld330
 	ASL
 	ASL
 	STA $36
-	LDA $32
+	LDA VDTPAR
 	AND #$84
 	ORA $36
 	BIT $34
 	BMI Ld348
 	ORA #$80
 Ld348
-	STA $32
+	STA VDTPAR
 Ld34a
 	RTS
 Ld34b	
@@ -2891,13 +2891,13 @@ Ld35c
 	STA $33
 	RTS
 Ld34f
-	LDA $32
+	LDA VDTPAR
 	AND #$70
 	BCS Ld367
 	ORA #$04
 Ld367
 	ORA #$80
-	STA $32
+	STA VDTPAR
 Ld36b
 	RTS
 Ld36c
@@ -2980,9 +2980,9 @@ CTRL_M_KEYBOARD
 CTRL_N_KEYBOARD ; clear current line in prompt
 	lda #$40
 	sta $33
-	lda $32
+	lda VDTPAR
 	and #$74
-	sta $32
+	sta VDTPAR
 	lda $34
 	and #$0f
 	ora #$80
@@ -3503,14 +3503,14 @@ routine_to_define_4
 init_keyboard
 	LDA #$FF
 	STA $0303
-	STA $02A7
+	STA KEYBOARD_COUNTER+1
 	LDA #$F7
 	STA $0302
 	LDA #$01
 	STA $0273
 	STA $0274
-	STA $02A8
-	STA $02A6
+	STA KEYBOARD_COUNTER+2
+	STA KEYBOARD_COUNTER
 	LDA #$0E
 	STA $0272
 	LDA #$3F
@@ -3531,19 +3531,19 @@ XSONPS_ROUTINE
 	sec
 	PHP
 	SEI
-	LDA $16
+	LDA ADDRESS_READ_BETWEEN_BANK+1
 	PHA
-	LDA $15
+	LDA ADDRESS_READ_BETWEEN_BANK
 	PHA
-	STX $15
-	STY $16
+	STX ADDRESS_READ_BETWEEN_BANK
+	STY ADDRESS_READ_BETWEEN_BANK+1
 	PHP
 	LDY #$00
 ld9f9
 	PLP
 	PHP
 	BCS lda01
-	LDA ($15),Y
+	LDA (ADDRESS_READ_BETWEEN_BANK),Y
 	BCC lda04
 lda01
 	JSR $0411
@@ -3559,9 +3559,9 @@ lda04
 	BNE ld9f9
 	PLP
 	PLA
-	STA $15
+	STA ADDRESS_READ_BETWEEN_BANK
 	PLA
-	STA $16
+	STA ADDRESS_READ_BETWEEN_BANK+1
 	PLP
 	RTS
 	
@@ -4557,8 +4557,8 @@ ldefd
 ROUTINE_TO_DEFINE_7
 	CLC
 	PHP
-	STA $15 ; CORRECTME
-	STY $16 ; CORRECTME
+	STA ADDRESS_READ_BETWEEN_BANK ; CORRECTME
+	STY ADDRESS_READ_BETWEEN_BANK+1 ; CORRECTME
 	TXA
 	CLC
 	ADC #$18
@@ -4568,7 +4568,7 @@ next18
 	PLP
 	PHP
 	BCS next16
-	LDA ($15),Y
+	LDA (ADDRESS_READ_BETWEEN_BANK),Y
 	BCC next17
 next16
 	JSR $0411
@@ -9152,8 +9152,8 @@ XSCRNE_ROUTINE
 Lfef9	
 	sec
 	ror RES
-	sta $15
-	sty $16
+	sta ADDRESS_READ_BETWEEN_BANK
+	sty ADDRESS_READ_BETWEEN_BANK+1
 
 	
 
@@ -9162,9 +9162,9 @@ Lff00
 	jsr Lff27 
 	beq Lff26
 	jsr Lff31
-	inc $15
+	inc ADDRESS_READ_BETWEEN_BANK
 	bne Lff10
-	inc $16
+	inc ADDRESS_READ_BETWEEN_BANK+1
 Lff10
 	jsr Lff27 
 	sta (RESB),y
@@ -9173,10 +9173,10 @@ Lff10
 	bne Lff10
 	tya
 	clc
-	adc $15
-	sta $15
+	adc ADDRESS_READ_BETWEEN_BANK
+	sta ADDRESS_READ_BETWEEN_BANK
 	bcc Lff00
-	inc $16
+	inc ADDRESS_READ_BETWEEN_BANK+1
 	bcs Lff00
 Lff26	
 	rts
@@ -9184,7 +9184,7 @@ read_a_code_in_15_and_y
 Lff27
 	bit RES
 	bpl Lff2e
-	lda ($15),y
+	lda (ADDRESS_READ_BETWEEN_BANK),y
 	rts
 Lff2e	
 	jmp $411

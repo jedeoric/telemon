@@ -29,6 +29,8 @@
 
 #define DEFAFF $14 ; default value for decimal conversion
 
+#define ADDRESS_READ_BETWEEN_BANK $15
+
 
 #define work_channel $19
 
@@ -289,6 +291,8 @@
 /// @brief [VALUE_PAGE_2] value of joystick by default : $0b $0a $20 $08 $09 $03 $03 these value must be verifyed 
 #define JCKTAB $029d
 
+
+#define KEYBOARD_COUNTER $02a6
 
 /// @brief [VALUE_PAGE_2]  Activating channel 0
 #define IOTAB0 $02ae ; activating channel 0
@@ -795,4 +799,5 @@
 /// @brief [PRIMITIVE] Buffer minitel VDT attributes
 #define BVDTAS $9000
 
-
+/// @brief [PRIMITIVE] Work on numeric and alphanumeric
+#define BUFTRV $100 
