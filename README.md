@@ -12,7 +12,7 @@ CPU : 6502
 
 ### 2016-06-30
 2.4 version is almost disassembled. Some labels are missing (Page 0, page 2 etc has still the true address)
-
+Md5sum of the rom : 9a432244d9ee4a49e8ddcde64af94e05
 
 
 Goal : trying to change some features
