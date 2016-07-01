@@ -11,7 +11,7 @@ rem ..\..\..\osdk\bin\xa.exe -C -W -DHAVE_USBDRIVE=YES  -e error.txt -l xa_label
 rem copy ..\release\telemon2_5.rom ..\release\telemon2_5.rom
 copy ..\release\telemon2_5.rom ..\..\..\oricutron\roms\telemon2_5.rom
 cd ..\..\..\oricutron\
-oricutron -mt -d teledisks\Teledisk04.dsk
+oricutron -mt -d teledisks\Teledisk05.dsk
 cd ..\projets\telemon
 
  

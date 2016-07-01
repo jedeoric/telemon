@@ -59,7 +59,7 @@ loop1
 	LSR IOTAB0,X ; init channels (0 to 3)
 	DEX
 	bpl loop1
-	
+
 	LDA #$D0 ; send command to FDC 
 	JSR routine_to_define_2
 	LDA VIRQ ; testing if VIRQ low byte is $4C ?
@@ -242,7 +242,7 @@ next6
 	BRK_TELEMON(XOP0)
 	lda #XSCR ; Setup screen !  on channel 0
 	BRK_TELEMON(XOP0) 
-	BRK_TELEMON($3C)  ; Don't know this vector
+	BRK_TELEMON(XRECLK)  ; Don't know this vector
 	lda #XMDS
 	BRK_TELEMON(XOP1)
 
@@ -679,8 +679,7 @@ str_default_extention
 ; ERROR for BONJOURCOM
 
 
-	
-	
+
 data_to_define_6
 Lc45f
 	; FIVE Bbytes to load in CSRND
@@ -749,9 +748,11 @@ loop103
 	INY
 address_b86a	
 	JMP $B85F ; address_b85f
-	
+
 	
 routine_to_define_2	
+
+
 c4d1
 
 	STA FDCCR
@@ -773,7 +774,7 @@ end6
 	AND #$1C
 	BEQ end7
 	BNE loop105
-	
+
 
 XDEFBU_ROUTINE	
 
@@ -787,6 +788,8 @@ loop
 	INX
 	BCS loop
 .)
+
+
 ROUTINE_TO_DEFINE_40
 set_buffers	
 	LDA data_to_define_7,X 
@@ -813,9 +816,7 @@ lc50e
 	.byt $2c
 XTSTBU_ROUTINE	
 	lda #1
-
-	.byt $2c 
-	bit $c5
+	bit code_adress_400
 
 
 next19
@@ -832,7 +833,7 @@ LC51D
 next20
 	CLC
 	JMP $0409
-	
+
 ;*********************************************************************************	
 ; CODE INSERTED IN PAGE 4	
 ;*********************************************************************************	
@@ -1005,6 +1006,8 @@ LC61E
 	sta $c085,x ; FIXME
 	sta $c087,x ; FIXME
 	rts
+
+	
 LC639	
 	bvs LC661 
 	jsr $c507
@@ -1060,8 +1063,7 @@ LC697
 	cmp $c082,x ; FIXME
 	
 	sta $24 ; FIXME
-	
-	
+
 
 routine_to_define_16
 LC69C
@@ -1113,7 +1115,7 @@ next40
 	ora #$02
 	sta FLGTEL
 	rts
-	
+
 	
 #include "functions/XOP.asm"
 #include "functions/XCL.asm"
@@ -1190,6 +1192,9 @@ data_to_define_1
 	.byt <ROUTINE_I_O_NOTHING,>ROUTINE_I_O_NOTHING ; not used 
 	.byt <ROUTINE_I_O_NOTHING,>ROUTINE_I_O_NOTHING ; not used 
 	.byt <ROUTINE_I_O_NOTHING,>ROUTINE_I_O_NOTHING ; not used 
+	
+
+	
 LC868
 	; management of BRK $XX
 	; on the stack we have 
@@ -1205,13 +1210,13 @@ LC868
 	TSX ; yes we get Stack pointer
 	PLA ; we pull pointer program +2 
 	BNE LC87A
-	DEC $0102,X ; CORRECTME
+	DEC BUFTRV+2,X ; CORRECTME
 LC87A
 	SEC
 	SBC #$01
 	PHA
 	STA ADDRESS_READ_BETWEEN_BANK
-	LDA $0102,X
+	LDA BUFTRV+2,X
 	STA ADDRESS_READ_BETWEEN_BANK+1
 	LDA $040F
 	STA $0410
@@ -1280,7 +1285,7 @@ next24
 	AND #$10
 	BEQ next23
 	LDX #$18 
-	JSR lc50e+1; CORRECTME
+	JSR XTSTBU_ROUTINE; CORRECTME
 	BCS next26
 	LDA ACIASR
 	AND #$20
@@ -1315,7 +1320,7 @@ Lc91c
 	TAY
 Lc91d	
 	RTS
-	
+
 Lc91e
 	DEC FLGCLK_FLAG
 	BNE Lc973
@@ -1386,7 +1391,7 @@ Lc992
 	bcc C9b1
 	jsr le085 
 	jmp LC8B9 
-	
+
 routine_todefine_1:
 C9b1
 	LDA #$FF
@@ -1501,6 +1506,7 @@ XWRCLK_ROUTINE
 	plp
 	rts
 
+	
 	
 Lca75
 	LDY #$00
@@ -1867,7 +1873,7 @@ Lccd0
 	
 	
 .)	
-	
+
 
 display_bar_in_inverted_video_mode
 Lccd3
@@ -2359,7 +2365,7 @@ XHIRES_ROUTINE
 	jsr XEFFHI_ROUTINE 
 	plp
 	rts
-	
+
 XTEXT_ROUTINE	
 switch_text
 	lda FLGTEL
