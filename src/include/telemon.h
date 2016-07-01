@@ -334,6 +334,8 @@
 #define BUFNOM $517
 /// @brief [VALUE_PAGE_2]  edition buffer
 #define BUFEDT $590
+/// @brief [VALUE_PAGE_2]  Default extention, it usually contains .COM (init from telemon)
+#define BUFDEF $55d
 
 /********************************************************************** VECTORS used with brk */
 

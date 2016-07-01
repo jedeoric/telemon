@@ -5,6 +5,12 @@
 /* telemon 2.4                                                         */
 /***********************************************************************/
 
+/*
+issues if you modify someting :
+
+1) BONJOUR.COM does not load, and can't be load : in BUFNOM, something is wrong : it try to loads BONJOUR.XXX X is a char of str_bonjour
+
+*/
 
 #include "include/telemon.h"
 #include "include/via6522_1.h"
@@ -378,10 +384,10 @@ loop58
 	BRK_TELEMON(XWSTR0)
 
 next54
-	LDX #$02
+	LDX #$02 ; store default extension
 loop55	
-	LDA $C45C,X ; CORRECTME
-	STA $055D,X ; CORRECTME
+	LDA str_default_extention,X ;
+	STA BUFDEF,X ; CORRECTME
 	DEX
 	BPL loop55
 	JSR $0600 ; CORRECTME
@@ -396,7 +402,7 @@ loop55
 	BRK_TELEMON(XNOMFI)
 	ldx #$00
 	lda #$7d
-	LDY #$FF
+	LDY #$FF 
 	JSR next57
 	beq display_cursor ; Display cursor
 	LDA FLGTEL ; something is wrong
@@ -624,11 +630,11 @@ display_developper
 /**************************** BEGIN LOOP ON DEVELOPPER NAME !*/
 	LDA #<str_license
 	LDY #>str_license
-	BRK_TELEMON($14)
+	BRK_TELEMON(XWSTR0)
 loop_str_licence	
 	jmp loop_str_licence 
 /**************************** END LOOP ON DEVELOPPER NAME !*/
-	
+
 str_telestrat	
 	.asc $0c,$97,$96,$95,$94,$93,$92,$91,$90," TELESTRAT ",$90,$91,$92,$93,$94,$95,$96,$97,$90,$00
 str_KORAM	
@@ -637,31 +643,51 @@ str_KOROM
 	.asc " Ko ROM",$0d,$0a,$00
 str_drive
 	.asc "Drive:",0
+	
+	
 str_telemon
 	.asc $0d,$0a,"TELEMON V2.4"
 
+	
+	
 
 str_oric_international
 	.asc $0d,$0a,"(c) 1986 ORIC International",$0d,$0a,$00
 str_printer
 	.asc $0a,"Imprimante",0
+
 store_str1	
 	.byt $1b,$3a,$69
 	.byt $43,$11,$00
 store_str2	
 	.byt $1b,$3a,$6a,$43,$14,$00
+
+	
 str_insert_disk	
 	.asc $8c,"Inserez une disquette",0 ; 8c for blink
 str_tofix
 	.byt	$0d,$18,$00
 str_license	
 	.asc "Logiciel ecrit par Fabrice BROCHE",0
+
+
 str_loading_bonjour	
-	.asc "BONJOURCOM"
+	.asc "BONJOUR"
+str_default_extention
+	.asc "COM";
+	
+; ERROR for BONJOURCOM
+
+
+	
+	
 data_to_define_6
 Lc45f
 	; FIVE Bbytes to load in CSRND
 	.byt $80,$4f,$c7,$52,$58
+
+
+	
 loading_vectors_b800
 	LDA #%11101000
 	STA V2DRA
@@ -723,6 +749,8 @@ loop103
 	INY
 address_b86a	
 	JMP $B85F ; address_b85f
+	
+	
 routine_to_define_2	
 c4d1
 
@@ -745,6 +773,8 @@ end6
 	AND #$1C
 	BEQ end7
 	BNE loop105
+	
+
 XDEFBU_ROUTINE	
 
 	STX RESB
@@ -769,7 +799,10 @@ set_buffers
 	
 	LDX RESB
 
+
 XINIBU_ROUTINE
+
+
 	BIT XLISBU_ROUTINE
 
 	BVC next19
@@ -974,7 +1007,7 @@ LC61E
 	rts
 LC639	
 	bvs LC661 
-	jsr XINIBU_ROUTINE 
+	jsr $c507
 	bcs LC660 
 	lda $c086,x ; FIXME
 	ldy $c087,x ; FIXME
@@ -1087,7 +1120,6 @@ next40
 
 
 
-
 XCRLF_ROUTINE
 	lda #$0a
 	jsr XWR0_ROUTINE 
@@ -1194,8 +1226,8 @@ LC87A
 	LDA vectors_telemon+1,X ; fetch vector of brk
 	LDY vectors_telemon,X 
 	BCC LC8A6
-	LDA $CBA5,X ; CORRECTME
-	LDY $CBA4,X ; CORRECTME
+	LDA vectors_telemon_second_table+1,X ; Second table because X >127 
+	LDY vectors_telemon_second_table,X ;
 LC8A6
 	PHA
 	TYA
@@ -1443,6 +1475,7 @@ Lca3e
 	lsr FLGLPR
 	rts
 
+
 XRECLK_ROUTINE	
 reset_clock
 	lda #0
@@ -1467,7 +1500,7 @@ XWRCLK_ROUTINE
 	ror $214
 	plp
 	rts
-	
+
 	
 Lca75
 	LDY #$00
@@ -1608,6 +1641,7 @@ vectors_telemon
 	.byt <XINIBU_ROUTINE,>XINIBU_ROUTINE	
 	.byt <XDEFBU_ROUTINE,>XDEFBU_ROUTINE
 	.byt <XBUSY_ROUTINE,>XBUSY_ROUTINE
+
 	.byt $00,$00
 	.byt <XSDUMP_ROUTINE,>XSDUMP_ROUTINE
 	.byt <XCONSO_ROUTINE,>XCONSO_ROUTINE
@@ -1645,10 +1679,12 @@ vectors_telemon
 	.byt <XRAND_ROUTINE,>XRAND_ROUTINE
 	.byt <XA1A2_ROUTINE,>XA1A2_ROUTINE
 	.byt <XA2A1_ROUTINE,>XA2A1_ROUTINE
+vectors_telemon_second_table	
 	.byt <XIYAA1_ROUTINE,>XIYAA1_ROUTINE
 	.byt <XAYA1_ROUTINE,>XAYA1_ROUTINE
 	.byt <XA1IAY_ROUTINE,>XA1IAY_ROUTINE
 	.byt <XA1XY_ROUTINE,>XA1XY_ROUTINE
+
 	.byt <XAA1_ROUTINE,>XAA1_ROUTINE
 	.byt <XADNXT_ROUTINE,>XADNXT_ROUTINE
 	.byt <XINTEG_ROUTINE,>XINTEG_ROUTINE
@@ -1675,6 +1711,7 @@ vectors_telemon
 	.byt $00,$00 ; nothing $9b
 	.byt <XEXPLO_ROUTINE,>XEXPLO_ROUTINE ; $9c
 	.byt <XPING_ROUTINE,>XPING_ROUTINE ; $9d
+
 
 
 XMENU_ROUTINE
@@ -1719,6 +1756,8 @@ Lcbfd
 	lda #$20
 	jsr Lc75d 
 	jmp Lcc2e 
+
+	
 Lcc20	
 	ldy $61
 	ldx $65
@@ -1921,7 +1960,7 @@ Lcd51
 	bit $68
 	rts
 	
-	
+
 
 put_cursor_in_61_x	
 	lda #$1f
@@ -2169,6 +2208,8 @@ Lce7b
 	rts
 
 #include "functions/XADRES.asm"
+
+
 	
 XMULT_ROUTINE
 
@@ -2216,6 +2257,7 @@ LCECA
 	bne LCEAB 
 Lcedb	
 	rts
+
 
 XDIVIS_ROUTINE	
 	sta TR0
@@ -2411,7 +2453,7 @@ XNOMFI_ROUTINE
 	stx RES
 	inc RES
 	ldy $020c
-	sty $517
+	sty BUFNOM
 	sty $500
 	ldy #$0c
 	lda #$3f
@@ -2477,9 +2519,9 @@ Ld05c
 Ld060	
 	jsr Ld0df 
 	bcs Ld082
-	cmp #$2e
+	cmp #"."
 	beq Ld082
-	cmp #$2a ; is it '*' ?
+	cmp #"*" ; is it '*' ?
 	beq Ld08f 
 Ld06d	
 	jsr test_if_a_is_valid_in_a_filename 
@@ -2522,7 +2564,7 @@ Ld098
 Ld0a1	
 	jmp Ld022 
 Ld0a4	
-	cmp #$2e ; is it '.' ?
+	cmp #"." ; is it '.' ?
 	bne Ld072
 	jsr Ld0df 
 	bcs Ld08e
@@ -2531,11 +2573,12 @@ Ld0ae
 	jsr Ld0df 
 	bcc Ld0c1 
 	lda #$20
+LD0B5	
 	cpx #3
-	beq Ld0a1 
+	beq Ld0a1
 	sta $0521,x
 	inx
-	bne $d0b5
+	bne LD0B5
 	beq Ld0a1
 Ld0c1
 	cmp #$2a
@@ -2658,7 +2701,7 @@ Ld140
 	sta $2c
 	sty $2d
 	jmp display_cursor_videotex 
-	
+
 
 /**** MINITEL **/
 /* 102 Bytes begin */
@@ -3707,7 +3750,7 @@ LDAD2
 next908
 	RTS
 
-	
+
 Ldae1
 	jmp LDB7D 
 
@@ -3750,7 +3793,7 @@ Principe:N'?tant gu?re familiaris? avec les modes de fonctionnement de l'ACIA, I
          commande de l'ACIA 6551.                                              I
                                                                                I
 */
-                                        ;                                     I
+                                      ;                                     I
 	BMI LDB3A ;     ouverture-fermeture ---------------------------- I
 	TAX       ;     donn?e dans X                                  I I
 	BPL LDB26 ;      si <128, on passe ----------------------       I I
@@ -3872,7 +3915,7 @@ LDBA4
 	JSR Lda72   ;                                           I  
 LDBB3
 	LDA $29      ;  <-----------------------------------------        
-
+ 
 
 Ldbb5
 	STA SCRNB+1
@@ -3912,8 +3955,7 @@ Ldbce
 	RTS
 
 
-	
-	
+
 TABLE_OF_SHORTCUT_KEYBOARD	
 Ldbeb
 	.byt <KEYBOARD_NO_SHORTCUT-1,>KEYBOARD_NO_SHORTCUT-1  ; Nothing
@@ -3950,7 +3992,11 @@ LDBED
 	.byt <CTRL_HOME_START-1  ,>CTRL_HOME_START  -1 ;  HOME
 	.byt <CTRL_US_START-1,>CTRL_US_START-1 ;  US 
 
-LDC2B	
+
+	
+	
+LDC2B
+	
 	ldx $28
 	ldy $0220,x
 	lda ($26),y
@@ -4011,6 +4057,8 @@ Ldc76
 	TAY
 	LDA CURSCR,X
 	STA (ADSCR),Y
+ 	
+	
 Ldc99
 	RTS
 Ldc9a
@@ -4077,6 +4125,8 @@ Principe:G?nial... la gestion des codes de controle est surement la partie la
                                                                                 
 Action:Place le curseur sur une tabulation, colonne multiple de 8.              
   */
+  
+  
 CTRL_A_START
 LDCEB
 	LDA SCRX,X ; ->on lit ala colonne                                
@@ -4219,19 +4269,23 @@ LDD74
                        
                                                                           
  ;                             CODE 24 - CTRL X                              
-                                                                                
+
+ 
+                                                                             
 ;Action:efface la fin de la ligne courante                                       
 CTRL_X_START
 LDD7A                                                                                
 	LDY SCRX,X  ;  on prend la colonne du curseur                    
 LDD7D
 	LDA $022C,X  ;  et la derni?re colonne de la fen?tre              
-	STA $29      ;  dans $29                                          
+	STA $29      ;  dans $29 
+
 	LDA #$20     ;  on envoie un espace                               
+LDD84
 	STA (ADSCR),Y                                                      
 	INY           ; jusqu'? la fin de la ligne                        
 	CPY $29                                                          
-	BCC $DD84                                                        
+	BCC LDD84                                                       
 	STA (ADSCR),Y   ; et ? la derni?re position aussi                   
 	RTS           ; (INC $29 avant la boucle aurait ?t? mieux !)      
 LDD8E
@@ -4423,6 +4477,8 @@ Action:scrolle vers le bas de la ligne X ? la ligne Y la fen?tre courante.
 Action:scrolle vers le haut de la ligne X ? la ligne Y la fen?tre courante.     
                                                                                 
                                                                                 */
+
+
 
 																				
 LDE5C																				
@@ -5127,7 +5183,7 @@ LE2E2
 	CMP SCRDX,X
 	BNE LE2E2 
 	RTS
-
+	
 test_if_prompt_is_on_beginning_of_the_line
 
 	cmp #$7f
@@ -5457,6 +5513,7 @@ Le4f3
 	LDA #$08
 	JSR Le648 
 	JMP Le45a
+
 Le511	
 	LDX #$01
 Le513	
@@ -6168,7 +6225,10 @@ Principe:Le principe du trac? des droites est en fait assez complexe. On aurait
          Le cas dX=dY (d?placements ?gaux) est trait? avec t=-1, de plus les    
          poids fort des d?placements gardent le signe car on prend la valeur    
          absolue de dX et dY pour les calculs.                                  
-   */   
+   */
+
+; NOERROR
+   
 XDRAWR_ROUTINE
 Le885                                                                             
 	LDA $02AA  ;    sauve le pattern                                  
@@ -6901,15 +6961,19 @@ Led34
 	LDX #$0A
 LED3D	
 	JSR Lec6b 
+
 	CMP #$16
 	BNE read_header_file
+
 	DEX
 	BNE LED3D 
+LED47		
 	JSR Lec6b
 	CMP #$16
-	BEQ $ED47
+	BEQ LED47
 	CMP #$24
 	BNE read_header_file
+	
 	LDA #$00
 	STA $0E
 LED56	
@@ -7938,7 +8002,7 @@ LF396:
     beq     LF395
     asl     $66
     bcc     LF395
-    jsr     $F0B8 
+    jsr     LF0B8 
     bne     LF395
     jmp     LF083
 
@@ -8588,7 +8652,6 @@ LF7D5
 	LDA #<coef_polynome_sin
 	LDY #>coef_polynome_sin
 	JMP LF6E1
-
 
 
 	
