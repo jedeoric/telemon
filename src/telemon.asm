@@ -54,7 +54,7 @@ loop1
 	DEX
 	bpl loop1
 	
-	LDA #$D0
+	LDA #$D0 ; send command to FDC 
 	JSR routine_to_define_2
 	LDA VIRQ ; testing if VIRQ low byte is $4C ?
 	CMP #$4C
@@ -638,13 +638,8 @@ str_KOROM
 str_drive
 	.asc "Drive:",0
 str_telemon
-	.asc $0d,$0a,"TELEMON V2."
-#ifdef HAVE_MINITEL	
-	.byt "4"
-#endif	
-#ifdef HAVE_USBDRIVE	
-	.byt "5"
-#endif	
+	.asc $0d,$0a,"TELEMON V2.4"
+
 
 str_oric_international
 	.asc $0d,$0a,"(c) 1986 ORIC International",$0d,$0a,$00
@@ -979,7 +974,7 @@ LC61E
 	rts
 LC639	
 	bvs LC661 
-	jsr $c507 ; FIXME
+	jsr XINIBU_ROUTINE 
 	bcs LC660 
 	lda $c086,x ; FIXME
 	ldy $c087,x ; FIXME
@@ -1099,13 +1094,20 @@ XCRLF_ROUTINE
 	lda #$0d
 
 
-
 Lc75d	
+; NOERROR
+
 #include "functions/XWRx.asm"
+
 #include "functions/XWSTRx.asm"
+
+
+
 #include "functions/XRDW.asm"
+
+
 #include "functions/XWRD.asm"	
-	
+
 
 send_command_A	
 Lc81c
@@ -1123,6 +1125,7 @@ Lc81c
 	LSR $17
 	BIT $18
 	JMP $02F7
+
 
 
 
@@ -1215,8 +1218,6 @@ LC8B9
 	JMP LC9b9  
 
 
-
-
 ; routine BRK ?
 LC8BF
 routine_to_define_12
@@ -1275,6 +1276,7 @@ next29
 	STA ACIACR
 Lc91b
 next23
+
 
 	PLA
 Lc91c
@@ -1352,7 +1354,7 @@ Lc992
 	bcc C9b1
 	jsr le085 
 	jmp LC8B9 
-
+	
 routine_todefine_1:
 C9b1
 	LDA #$FF
@@ -1402,7 +1404,7 @@ next113
 	BIT FLGJCK
 Lca0b	
 	BVC Lca10
-		
+	
 	JSR Ldffb
 Lca10
 	LDA FLGJCK
@@ -1440,7 +1442,7 @@ Lca3e
 	asl FLGLPR
 	lsr FLGLPR
 	rts
-	
+
 XRECLK_ROUTINE	
 reset_clock
 	lda #0
@@ -1589,7 +1591,7 @@ vectors_telemon
 	.byt <XLPRBI_ROUTINE,>XLPRBI_ROUTINE ; $48
 	.byt <XLPCRL_ROUTINE,>XLPCRL_ROUTINE ; $49
 	.byt <XHCSCR_ROUTINE,>XHCSCR_ROUTINE ; $4a
-	.byt $09,$e2 ; FIXME
+	.byt <XHCVDT_ROUTINE,>XHCVDT_ROUTINE 
 	
 	.byt <XHCHRS_ROUTINE,>XHCHRS_ROUTINE ; $4c
 	.byt $00,$00 ; $4d
@@ -2682,9 +2684,9 @@ Ld1f9
 	tax
 	clc
 	lda table_code_control	,x 
-	adc #$7e ; CORRECTME adress Aaddind to d37e
+	adc #<Ld37e ; CORRECTME adress Aaddind to d37e
 	sta RES
-	lda #$d3
+	lda #>Ld37e
 	adc #$00
 	sta RES+1 ; CORRECTME
 	jmp ($0000)
@@ -2934,7 +2936,7 @@ LD391
 	bcc Ld38b
 	lda VDTY
 	beq Ld389	
-	jsr $d3d7
+	jsr CTRL_M_KEYBOARD
 CTRL_J_KEYBOARD ; 10 code
 	jsr Ld759
 	ldx VDTY
@@ -3513,8 +3515,8 @@ init_keyboard
 	STA KEYBOARD_COUNTER
 	LDA #$0E
 	STA $0272
-	LDA #$3F
-	LDY #$FA
+	LDA #<LFA3F
+	LDY #>LFA3F
 	STA ADKBD
 	STY $2B
 	LSR $0270
@@ -3894,9 +3896,9 @@ Ldbce
 	PHA
 	
 	JSR XCOSCR_ROUTINE 
-	LDA #$DC ; FIXME ?
+	LDA #>LDC2B-1 ; FIXME ?
 	PHA
-	LDA #$2A ; FIXME ?
+	LDA #<LDC2B-1 ; FIXME ?
 	PHA
 	LDA SCRNB+1
 	ASL ; MULT2 in order to get vector 
@@ -4398,6 +4400,8 @@ lde52
 	pla
 lde53	
 	rts
+	
+
 Lde54
 XSCROH_ROUTINE
   /*                                                                             
@@ -4423,7 +4427,7 @@ Action:scrolle vers le haut de la ligne X ? la ligne Y la fen?tre courante.
 																				
 LDE5C																				
 XSCROB_ROUTINE
-	LDA #$FF   ;    on prend $FFD8, soit -40 en compl?ment ? 2        
+	LDA #$FF   ;    on prend $FFD8, soit -40 en compl?ment ? 2        fixme 
 	STA DECFIN+1                                                          
 	LDA #$D8                                                         
 LDE62																	
@@ -4629,8 +4633,8 @@ loop17
 	BPL loop17
 	ASL FLGTEL
 	LSR FLGTEL
-	LDA #$F5
-	LDY #$DE
+	LDA #<LDEF5
+	LDY #>LDEF5
 	BIT FLGTEL
 	BVS next14
 	LDA #$56
@@ -4983,7 +4987,7 @@ Le1eb
 	ORA #$40
 	JMP Ldbb5
 LE209
-XHCVDT_ROUTINE
++XHCVDT_ROUTINE
 	JSR XLPCRL_ROUTINE 
 	LDA $0288
 	PHA
@@ -7578,6 +7582,9 @@ LF149:  jsr     LF3BD
         jsr     LF9E9  
         lda     #<const_ln_2	 
         ldy     #>const_ln_2	 
+
+
+
 		
 LF184:  jsr     LF1EC 
         beq     LF140
@@ -8292,7 +8299,6 @@ LF5D0
 	LDY #$01
 	RTS
 
-
 LF5d5	
 const_for_decimal_convert
 const_one_billion	
@@ -8958,7 +8964,7 @@ table_chars_bwana_table
 	.byt $54,$36,$39,$2e,$49,$48,$4c,$35,$52,$42,$4d,$5d,$4f,$47,$30,$56
 	.byt $46,$34,$27,$0b,$50,$45,$2b,$31,$23,$57,$00,$08,$7f,$51,$0d,$58
 	.byt $41,$32,$3e,$0a,$2a,$53,$00,$33,$44,$43,$25,$09,$5b,$5a,$5e
-
+LFB8F
 	.byt $1c
 	.byt $22,$10,$48,$00,$c8,$1c,$22,$1c,$22,$3e,$22,$e2,$08,$10,$3e,$20
 	.byt $3c,$20,$fe,$0e,$90,$3c,$10,$fe,$d4,$3e,$20,$3c,$20,$fe,$1c,$22
@@ -9044,9 +9050,9 @@ loop
 	STA TR0
 	SBC #$04
 	STA RES+1
-	LDA #$8F
+	LDA #<LFB8F 
 
-	LDY #$FB
+	LDY #>LFB8F 
 	STA RESB
 	STY RESB+1
 	LDY #$00
@@ -9287,10 +9293,10 @@ e_accent_circonflexe
 	.byt $7e
 	.byt $1c,$22,$1c,$22,$3e,$20,$1c,$00
 
-free_bytes ; 28 bytes	
-	.byt $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	.byt $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+free_bytes ; 26 bytes
+	.dsb $ffff-free_bytes-5,0 ; 5 because we have 5 bytes after
 ; fffa
+END_ROM
 NMI:
 	.byt $00,$2f
 ; fffc

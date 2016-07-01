@@ -252,6 +252,8 @@
 /// b0 : counter for us
 #define FLGSCR $248
 
+#define HARD_COPY_HIRES_VECTOR $250
+
 
 #define CURSCR $24c ; char on the cursor
 

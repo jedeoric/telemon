@@ -37,7 +37,8 @@ next39
 	LDA $02BF,X
 	STA $02F9 ; FIXME
 	LDA i_o_save
-	BIT $C795 ; FIXME
+LC795	
+	BIT LC795 ; FIXME
 	JSR $02F7 ; FIXME
 Lc79b	
 next38
