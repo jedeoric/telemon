@@ -1184,7 +1184,7 @@ data_to_define_1
 	.byt <Lda70,>Lda70 ;30
 	.byt <Ldb12,>Ldb12
 	.byt <LDB79,>LDB79 
-	.byt <LD5C6,>LD5C6 
+	.byt <ROUTINE_I_O_NOTHING,>ROUTINE_I_O_NOTHING ; not used 
 	.byt <ROUTINE_I_O_NOTHING,>ROUTINE_I_O_NOTHING ; not used 
 	.byt <ROUTINE_I_O_NOTHING,>ROUTINE_I_O_NOTHING ; not used 
 
@@ -1603,8 +1603,10 @@ vectors_telemon
 	.byt <XEDT_ROUTINE,>XEDT_ROUTINE ; XEDT 
 	.byt <XINSER_ROUTINE,>XINSER_ROUTINE ; XINSER 
 	.byt <XSCELG_ROUTINE,>XSCELG_ROUTINE ; XSCELG $2f
-	.byt <XVDTCT_ROUTINE,>XVDTCT_ROUTINE ; control_videotex : no name $30 MINITEL
-	.byt <XVDTG2_ROUTINE,>XVDTG2_ROUTINE ; $31 
+	.byt $00,$00 ; 
+
+	.byt $00,$00 ; nothing  $31
+
 	.byt <XEDTIN_ROUTINE,>XEDTIN_ROUTINE; XEDTIN $32
 	.byt <XECRPR_ROUTINE,>XECRPR_ROUTINE; XECRPR $33 $ece6
 	.byt <XCOSCR_ROUTINE,>XCOSCR_ROUTINE  ;XCOSCR $34
@@ -1613,8 +1615,8 @@ vectors_telemon
 	.byt <XSCROH_ROUTINE,>XSCROH_ROUTINE ; $37
 	.byt <XSCROB_ROUTINE,>XSCROB_ROUTINE ; $38 XSCROB
 	.byt <XSCRNE_ROUTINE,>XSCRNE_ROUTINE ; $39
-	.byt <XVDTDA_ROUTINE,>XVDTDA_ROUTINE ; $3a 
-	.byt <XVDTAH_ROUTINE,>XVDTAH_ROUTINE ; $3b
+	.byt $00,$00 ; $3a 
+	.byt $00,$00 ; $3b
 	.byt <XRECLK_ROUTINE,>XRECLK_ROUTINE ; $3c
 	.byt <XCLCL_ROUTINE,>XCLCL_ROUTINE ; $3d
 	.byt <XWRCLK_ROUTINE,>XWRCLK_ROUTINE ; $3e
@@ -1630,7 +1632,7 @@ vectors_telemon
 	.byt <XLPRBI_ROUTINE,>XLPRBI_ROUTINE ; $48
 	.byt <XLPCRL_ROUTINE,>XLPCRL_ROUTINE ; $49
 	.byt <XHCSCR_ROUTINE,>XHCSCR_ROUTINE ; $4a
-	.byt <XHCVDT_ROUTINE,>XHCVDT_ROUTINE 
+	.byt $00,$00
 	
 	.byt <XHCHRS_ROUTINE,>XHCHRS_ROUTINE ; $4c
 	.byt $00,$00 ; $4d
@@ -2643,448 +2645,22 @@ Ld10d
 Ld10f	
 	sec
 	rts
-	
-; BEGIN MINITEL *****************************************************	
-; MINITEL 
-init_vdt_table
-; MINITEL
-
-XVDTCT_ROUTINE
-Ld140
-	; REMOVEME minitel
-	rts
-
-Ld178
-; minitel 
-send_A_to_video_screen
-	; REMOVEME minitel
-Ld18a
-
-	JSR send_a_data_to_videotex_screen 
-	JSR Ld530 
-	JSR display_in_videotex_mode 
-
-	JSR LD391
-	JSR Ld759
-
-	JSR LD391 
-
-	JSR CTRL_J_KEYBOARD
-
-follow_a_sequence
-
-Ld1ed	; 
-	jsr manage_a_sequence 
-		; REMOVEME minitel
-manage_code_control_videotex
-Ld1f9
-Ld22b
-	jmp management_sequence_esc
-Ld22e
-manage_a_sequence
-
-	JSR send_A_to_video_screen 
-		; REMOVEME minitel
-	RTS	
-management_sequence_esc
-
-	RTS
-
-
-; END MINITEL *****************************************************	
-	
-	
-Ld24e	
-	LDA $36
-	BEQ Ld26f
-	LDA $3E
-	CMP #$30
-	BCC Ld26a
-	CMP #$59
-	BCS Ld26a
-	STA $0282
-	DEC $3C
-LD261	
-	LDA #$07
-	STA $34
-	LDA #$00
-	STA VDTPAR
-	RTS
-Ld26a
-	lsr $3c
-	jmp send_A_to_video_screen 
-Ld26f	
-	lsr $3c
-	lda $3e
-	cmp #$30
-	bcc Ld26a
-	cmp #$69
-	bcs Ld26a
-	and #$3f
-	sta $0283
-	lda $3e
-	cmp #$40
-	BCS Ld2a3 
-	lda $0282
-	and  #$03
-	asl
-	asl
-	adc $0282
-	sbc #$2f
-	asl
-	adc $283
-	sbc #$2f
-	sta VDTY
-	jsr CTRL_M_KEYBOARD 
-
-	jsr Ld759 
-	jmp Ld140 
-Ld2a3		
-	jsr Ld759 
-	lda $0283
-	sta VDTX
-	dec VDTX
-	lda $0282 ; CORRECTME
-	and #$3f
-	sta VDTY
-	jmp Ld140 
-
-/*END routine */
-
-/*Gestion de la sequence ESC*/
-Ld2b7
-
-
-
-Ld330
-	CMP #$58
-	BCS Ld34b
-	AND #$07
-	ASL
-	ASL
-	ASL
-	ASL
-	STA $36
-	LDA VDTPAR
-	AND #$84
-	ORA $36
-	BIT $34
-	BMI Ld348
-	ORA #$80
-Ld348
-	STA VDTPAR
-Ld34a
-	RTS
-Ld34b	
-	BNE Ld34d
-Ld34d
-	CMP #$5B
-	BCS Ld36c
-	LSR
-	BIT $34
-	BPL Ld34f
-	LDA #$00
-	BCC Ld35c
-	LDA #$40
-Ld35c
-	STA $33
-	RTS
-Ld34f
-	LDA VDTPAR
-	AND #$70
-	BCS Ld367
-	ORA #$04
-Ld367
-	ORA #$80
-	STA VDTPAR
-Ld36b
-	RTS
-Ld36c
-	BEQ Ld36b
-	CMP #$5E
-	BCS Ld37e
-	LSR
-	LDA $34
-	AND #$BF
-	BCC Ld37b
-	ORA #$40
-Ld37b
-	STA $34
-	RTS
-Ld37e
-	RTS
 
 CTRL_G_KEYBOARD ; Send oups
 	jmp XOUPS_ROUTINE 
-CTRL_H_KEYBOARD 
-	jsr Ld759 ; switch off cursor  Why not BRK ?
-	lda VDTX
-	beq LD3BE
-Ld389	
-	dec VDTX
-Ld38b
-	jmp display_cursor_videotex
-CTRL_I_KEYBOARD 	
-	jsr Ld759
-LD391	
-	inc VDTX
-	lda VDTX
-	cmp #$28
-	bcc Ld38b
-	lda VDTY
-	beq Ld389	
-	jsr CTRL_M_KEYBOARD
-CTRL_J_KEYBOARD ; 10 code
-	jsr Ld759
-	ldx VDTY
-	beq LD3B3 
-	cpx #$18
-	bne Ld3ad
-LD3AB	
-	ldx #$0
-Ld3ad	
-	inx
-Ld3ae
-	stx VDTY
-	jmp Ld140 
-LD3B3
-	lda $280
-	ldx $281
-	sta VDTX
-	jmp  Ld3ae
-LD3BE	
-	lda #$27 
-	sta VDTX
-	
-CTRL_K_KEYBOARD 
-	jsr Ld759 
-	ldx VDTY
-	dex
-	bne Ld3cc
-	ldx #$18
-Ld3cc	
-	stx VDTY
-	jmp Ld140
-	
-CTRL_L_KEYBOARD 
-	jsr init_vdt_table ;Initialize VIDEOTEX MINITEL
-	jmp CTRL_DOT_KEYBOARD 
 
-CTRL_M_KEYBOARD
-	jsr Ld759 ; 
-	lda #0
-	sta VDTX
-	jmp display_cursor_videotex
-	
-CTRL_N_KEYBOARD ; clear current line in prompt
-	lda #$40
-	sta $33
-	lda VDTPAR
-	and #$74
-	sta VDTPAR
-	lda $34
-	and #$0f
-	ora #$80
-	sta $34
-	rts
 CTRL_O_KEYBOARD
 	lda $34
 	and #$0f
 	sta $34
 	rts
-CTRL_Q_KEYBOARD ; MINITEL
-	jmp switch_on_cursor_videotex 
-CTRL_T_KEYBOARD	
-	jmp switch_off_cursor_videotex
-	
-CTRL_X_KEYBOARD
-	lda VDTX
-	pha
-	lda VDTY
-	pha
-Ld407	
-	lda #$20
-	jsr send_A_to_video_screen 
-	lda VDTX
-	beq Ld419
-	cmp #$27
-	bne Ld407
-	lda #$20
-	jsr send_A_to_video_screen  
-Ld419	
-	jsr Ld759
-	pla
-	sta VDTY
-	pla
-	sta VDTX
-	jmp Ld140 
-CTRL_DOT_KEYBOARD	
-	jsr CTRL_M_KEYBOARD 
-	jsr LD261 
-	jsr Ld759 
-	jmp LD3AB
 
-	lda #$89 ; REP
-	.byt $2c
-	
-	lda #$84 ; SEP
-	.byt $2c
-	
-	lda #$a1 ; SYN
-	.byt $2c
-	
-	lda #$c3 ; ESC
-	.byt $2c
-	
-	lda #$91
-	sta $3c
-	rts
-
-#include "functions/minitel/send_a_data_to_videotex_screen.asm"
-
-
-
-
-
-
-
-
-Ld5db
 init_minitel
-routine_to_define_7
 	LDA #$00
 	STA FLGVD0
 	STA $3D ; CORRECTME
 	STA $37 ; CORRECTME
 	rts
-; MINITEL
-LD5C6
-	bpl Ld5d9
-	bcs stop_videotex_emulation  
-	jsr XHIRES_ROUTINE   
-
-	jsr init_minitel
-	lda #<table_of_char_videotex_special 
-	ldy #>table_of_char_videotex_special
-	jsr Lfef9
-	lda #$0c
-Ld5d9	
-	jmp send_A_to_video_screen ; Erase screen
-	
-
-
-; 281 bytes
-#include "functions/minitel/display_in_videotex_mode.asm"
-
-compute_A_and_02_for_double_width
-	lda #0
-	ldy #3
-LD6F9	
-	lsr RESB
-	php
-	ror
-	plp
-	ror
-	dey
-	bne LD6F9 
-	lsr
-	lsr
-	and #$3f
-	ora #$40
-	rts
-table_conversion_G1	
-	.byt $1b,$1b,$00,$1b,$00,$1b,$1b
-	.byt $00
-#include "functions/minitel/minitel_display_mosaique.asm"
-switch_off_cursor_videotex
-	clc
-	.byt $24
-switch_on_cursor_videotex	
-	sec
-	php
-	asl $3d
-	plp
-	ror $3d
-
-Ld756	
-display_cursor_videotex ; minitel
-	lda #$80
-	.byt $2c
-Ld759	
-	lda #00
-	and $3d
-	bit $3d
-	bvc Ld763 
-	lda #0
-	
-Ld763	
-	sta $02
-	lda $2c
-	ldy $2d
-	sta RES
-	sty RES+1
-	ldy VDTX
-	lda ($30),y
-	bmi Ld77d
-	
-	and #$40
-	beq Ld77d 
-	lda $02
-	eor #$80
-	sta $02
-Ld77d	
-	ldx #$8
-	ldy VDTX
-Ld781	
-	lda (RES),y
-	and #$7f
-	ora RESB
-	sta (RES),y
-	clc
-	tya
-	adc #$28
-	tay
-	bcc Ld792 
-	inc RES+1
-Ld792	
-	dex
-	bne Ld781	 
-	rts
-
-
-table_of_char_videotex_special
-	.byt $2f
-	.byt $01,$02,$04,$04,$08,$08,$10,$20 ; "/"
-	; ç is 
-	.byt $5c
-	.byt $20,$10,$08,$08,$04,$04,$02,$01  
-	
-	; £ is _
-	.byt $5f
-	.byt $00,$00,$00,$00,$00,$00,$00,$3f
-	
-	; copyright is -
-	.byt $60
-	.byt $00,$00,$00,$3f,$00,$00,$00,$00
-
-	.byt $7b
-	.byt $20,$20,$20,$20,$20,$20,$20,$20
-	
-	.byt $7c
-	.byt $08,$08,$08,$08,$08,$08,$08,$08
-	
-	.byt $7d
-	.byt $01,$01,$01,$01,$01,$01,$01,$01
-	
-	.byt $7e
-	.byt $3f,$00,$00,$00,$00,$00,$00,$00,$00
-
-
-	
-
-	
-
-
 
 manage_keyboard
 	jsr XALLKB_ROUTINE 
@@ -3978,7 +3554,7 @@ LDCEB
 	LDA SCRX,X ; ->on lit ala colonne                                
 	AND #$F8     ;I on la met ? 0                                     
 	ADC #$07     ;I on place sur une tabulation 8 (C=1)               
-	CMP $022C,X ; I est-on en fin de ligne ?                          
+	CMP SCRFX,X ; I est-on en fin de ligne ?                          
 	BEQ LDD09  ; I non                                               
 	BCC LDD09 ;  I --------------------------------------------------
 
@@ -4077,7 +3653,7 @@ LDD47
 	LDA SCRX,X   ; est-on d?ja au d?but de la fen?tre ?             I
 	CMP SCRDX,X  ;                                                   I
 	BNE LDD43    ;  non, on ram?ne ? gauche --------------------------
-	LDA $022C,X  ;  oui, on se place ? la fin de la fen?tre           
+	LDA SCRFX,X  ;  oui, on se place ? la fin de la fen?tre           
 	STA SCRX,X                                                      
 
 
@@ -4123,7 +3699,7 @@ CTRL_X_START
 LDD7A                                                                                
 	LDY SCRX,X  ;  on prend la colonne du curseur                    
 LDD7D
-	LDA $022C,X  ;  et la derni?re colonne de la fen?tre              
+	LDA SCRFX,X  ;  et la derni?re colonne de la fen?tre              
 	STA $29      ;  dans $29 
 
 	LDA #$20     ;  on envoie un espace                               
@@ -4146,7 +3722,7 @@ LDD8E
 CTRL_I_START
 LDD92                                                                              
 	LDA SCRX,X  ;  on lit la colonne du curseur                      
-	CMP $022C,X   ; derni?re colonne ?                                
+	CMP SCRFX,X   ; derni?re colonne ?                                
 	BNE LDD8E     ;   non, on d?place le curseur                        
 	JSR LDD67   ;    oui, on revient ? la premi?re colonne     
 
@@ -4365,7 +3941,7 @@ LDE7D
 	BMI LDECD    ;  si n?gatif, on sort ------------------------------
 	SEC          ;  on calcule                                       I
 	LDX $28     ;                                                    I
-	LDA $022C,X   ; la largeur de la fen?tre                         I
+	LDA SCRFX,X   ; la largeur de la fen?tre                         I
 	SBC SCRDX,X  ;                                                   I
 	STA RES+1      ;  dans RES+1                                       I
 LDE9D
@@ -4864,7 +4440,7 @@ Le1cb
 Le1d8
 	JSR XLPRBI_ROUTINE  
 	LDA SCRX,X
-	CMP $022C,X
+	CMP SCRFX,X
 	BEQ Le1eb 
 Le1e3
 	LDA #$09
@@ -4875,49 +4451,10 @@ Le1e3
 ; send on the printer hires screen in videotex mode
 Le1eb
 .(
-	JSR XLPCRL_ROUTINE  
-	LDX $28
-	LDA SCRY,X
-	CMP SCRFY,X
-	BNE Le1e3  
-	LDA #$1F
-	JSR Ldbb5 
-	PLA
-	ORA #$40
-	JSR Ldbb5 
-	PLA
-	ORA #$40
-	JMP Ldbb5
-LE209
-+XHCVDT_ROUTINE
-	JSR XLPCRL_ROUTINE 
-	LDA $0288
-	PHA
-	LDA #$28
-	STA $0288
-	LDA #$1E
-	JSR Ld178  
-Le21a
-	LDY VDTX
-	LDA ($30),Y
-	BMI Le226  
-	LDA ($2E),Y
-	CMP #$20
-	BCS Le228 
-Le226
-	LDA #$20
-Le228
-	JSR XLPRBI_ROUTINE  
-	LDA #$09
-	JSR Ld178  
-	LDA VDTX
-	BNE Le21a 
-	LDY VDTY
-	DEY
-	BNE Le21a 
-	JSR XLPCRL_ROUTINE  
-	PLA
-	STA $0286
+	;removeme minitel
+
+
+
 	rts
 .)
 	
@@ -5018,7 +4555,7 @@ LE2D0
 	RTS
 Le2de
 put_cursor_on_last_char_of_the_line
-	LDY $022C,X
+	LDY SCRFX,X
 	.byt $24
 LE2E2	
 	dey
@@ -5167,7 +4704,7 @@ Le3c5
 
 
 	LDX $28
-	CMP $022C,X
+	CMP SCRFX,X
 	BNE Le390
 	INC $65
 	BNE Le37e
@@ -5206,7 +4743,7 @@ Le405
 	TYA
 	INY
 	LDX $28
-	CMP $022C,X
+	CMP SCRFX,X
 	BNE Le418
 	LDA #$28
 	LDY #$00
@@ -5396,7 +4933,7 @@ XEDTIN_ROUTINE
 	LDA ACC1E
 Le548	
 	LDX $28
-	CMP $022C,X
+	CMP SCRFX,X
 	BNE Le5ae
 	LDA $63
 	CMP SCRFY,X
@@ -5436,7 +4973,7 @@ LE597
 	BNE Le580
 	
 	LDA SCRX
-	CMP $022C,X
+	CMP SCRFX,X
 	BNE Le580
 	
 	LDY $61

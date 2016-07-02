@@ -212,6 +212,9 @@
 
 /// @brief [VALUE_PAGE_2]  beginning of the window
 #define SCRDX $228
+
+#define SCRFX $22c
+
 /// @brief [VALUE_PAGE_2]  beginning of the screen 0
 #define SCRDY $230
 

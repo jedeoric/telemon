@@ -24,5 +24,17 @@ Hash of generated file of this version : 9a432244d9ee4a49e8ddcde64af94e05
 * edit build.bat and "OSDKB" to the xa.exe (6502 assembler) path, and "ORICUTRON" to your own oricutron path if you want to copy the version in oricutron ROM. You have to change the path of the ROM file in oricutron.cfg
  
 
+## Features
+
+### 2.5 version what's new ?
+ * all minitel routines removed
+ * all keyboard shortcuts removed
+ * all primitives minitel related removed
+
+### 2.4 version
+Read books released in 1986 on the telestrat :) !
+
+
+ 
 
 Goal : trying to change some features
