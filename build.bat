@@ -4,7 +4,7 @@ SET OSDKB="..\..\..\..\osdk\bin\"
 SET ORICUTRON="..\..\..\..\oricutron\"
 
 
-SET RELEASE="2_4"
+SET RELEASE="2_5"
 SET UNITTEST="YES"
 
 SET ORIGIN_PATH=%CD%

@@ -646,9 +646,9 @@ str_drive
 	
 	
 str_telemon
-	.asc $0d,$0a,"TELEMON V2.4"
-
-	
+	.asc $0d,$0a,"TELEMON V"
+str_telemon_version
+	.asc "2.5.0"
 	
 
 str_oric_international
@@ -2643,135 +2643,57 @@ Ld10d
 Ld10f	
 	sec
 	rts
+	
+; BEGIN MINITEL *****************************************************	
 ; MINITEL 
 init_vdt_table
-	ldy #0
-	lda #$90
-	sty RES
-	sta RES+1
-	ldx #$94
-	lda #$0
-	jsr XFILLM_ROUTINE 
-	ldy #0
-	lda #$94
-	sty RES
-	sta RES+1 
-	ldx #$98
-	lda #$87
-	jsr XFILLM_ROUTINE
-	
-	ldy #0
-	lda #$a0
-	
-	sty RES
-	sta RES+1
-	ldy #$3f
-	ldx #$bf
-	lda #$10
-	jmp XFILLM_ROUTINE
-	
-	
 ; MINITEL
-manage_VDT_cursor
+
 XVDTCT_ROUTINE
 Ld140
-	lda VDTY
-	jsr XMUL40_ROUTINE 
-	pha
-	tya
-	pha
-	lda #0
-	ldy #$90
-	jsr XADRES_ROUTINE
-	sta $2e
-	sty $2f
-	sta $30
-	iny
-	iny
-	iny
-	iny
-	sty $31
-	pla
-	sta RES+1
-	pla
-	asl
-	rol RES+1
-	asl
-	rol RES+1
-	asl 
-	rol RES+1
-	sta RES
-	lda #0
-	ldy #$a0
-	jsr XADRES_ROUTINE
-	sta $2c
-	sty $2d
-	jmp display_cursor_videotex 
+	; REMOVEME minitel
+	rts
 
-
-/**** MINITEL **/
-/* 102 Bytes begin */
 Ld178
+; minitel 
+send_A_to_video_screen
+	; REMOVEME minitel
+Ld18a
 
-#include "functions/minitel/send_A_to_video_screen.asm"
+	JSR send_a_data_to_videotex_screen 
+	JSR Ld530 
+	JSR display_in_videotex_mode 
 
+	JSR LD391
+	JSR Ld759
+
+	JSR LD391 
+
+	JSR CTRL_J_KEYBOARD
 
 follow_a_sequence
 
 Ld1ed	; 
 	jsr manage_a_sequence 
-	jmp Ld1e6
-
-; manage control code	
-Ld1f3
-manage_control_code
-	jsr Ld1f9
-	jmp Ld1e6
-
+		; REMOVEME minitel
 manage_code_control_videotex
 Ld1f9
-	tax
-	clc
-	lda table_code_control	,x 
-	adc #<Ld37e ; CORRECTME adress Aaddind to d37e
-	sta RES
-	lda #>Ld37e
-	adc #$00
-	sta RES+1 ; CORRECTME
-	jmp ($0000)
-Ld20b
-
-/**** BEGIN OF TABLE CONTROL **/
-table_code_control	
-	.byt $00,$00,$00,$00,$00,$00,$00  ; COde 0 to 6 not managed
-	.byt $01 ; BEL (bip) $d37f
-	.byt $04,$10,$22,$44,$53,$59,$63,$76,$00,$7d,$b3,$b6,$80
-	.byt $00,$b9,$00,$83,$b9,$00,$bc,$00,$00,$a7,$bf
-/**** END OF TABLE CONTROL **/
 Ld22b
 	jmp management_sequence_esc
 Ld22e
 manage_a_sequence
-	lda $3c
-	and #$03
-	sta $36
-	lda $3c
-	asl
-	bmi Ld22b
-	asl
-	asl
-Ld23b	
-	BMI Ld24e
-	LDA $3E
-	AND #$3F
-	TAX
-	LSR $3C
-Ld244
-	LDA $0285 ; FIXME
+
 	JSR send_A_to_video_screen 
-	DEX
-	BNE Ld244
+		; REMOVEME minitel
+	RTS	
+management_sequence_esc
+
 	RTS
+
+
+; END MINITEL *****************************************************	
+	
+	
 Ld24e	
 	LDA $36
 	BEQ Ld26f
@@ -2832,81 +2754,7 @@ Ld2a3
 /*Gestion de la sequence ESC*/
 Ld2b7
 
-management_sequence_esc
-	LDX $36
-	LDA $3E
-	CPX #$03
-	BNE Ld2e1 
-	STA $0282
-	LDX #$00
-	STX $35
-	CMP #$36
-	BEQ Ld2d7 
-	CMP #$39
-	BCC Ld2f0 
-	CMP #$3C
-	BCS Ld2f0
-	AND #$03
-	SBC #$00
-	.byt $2c ;jump 2 instructions
-Ld2d7	
-	lda #00
-	ora #$c0
 
-	sta $3c
-Ld2dd	
-	RTS
-Ld2de
-	lsr $3c
-	rts
-Ld2e1
-	inc $35
-	ldx $35
-	sta $0281,x
-	dec $3c
-	dec $36
-	bpl Ld2dd
-	bmi Ld2de
-Ld2f0
-	CMP #$40
-	BCC Ld2dd	
-	LSR $3C
-	CMP #$48
-	BCS Ld307
-	AND #$07
-	STA $36
-	LDA $34
-	AND #$F8
-	ORA $36
-	STA $34
-	RTS
-Ld307
-	CMP #$4A
-	BCS Ld317
-	LSR
-	LDA $34
-	AND #$F7
-	BCS Ld314
-	ORA #$08
-Ld314
-	STA $34
-	RTS
-Ld317
-	CMP #$4C
-	BCC Ld34a 
-	CMP #$50
-	BCS Ld330 
-	AND #$03
-	ASL
-	ASL
-	ASL
-	ASL
-	STA $36
-	LDA $34
-	AND #$CF
-	ORA $36
-	STA $34
-	RTS
 
 Ld330
 	CMP #$58
@@ -7268,14 +7116,10 @@ Lef20
 ; send pro1 sequence to minitel
 send_pro1_sequence_to_minitel
 Lef30
-	pha
-	lda #$1b
-	jsr Lec49
-	lda #$39
 	jsr Lec49 
-	pla 
-	jmp Lec49 
-
+	; REMOVEME minitel
+	rts
+	
 Lef3f
 free_the_minitel_line
 XDECON_ROUTINE
@@ -7288,35 +7132,10 @@ XDECON_ROUTINE
 Lef4a
 
 XWCXFI_ROUTINE
-
-; Wait CONNEXION/FIN in 25 seconds (minitel function)
-	; MINITEL 
-	jsr LECD1 
-	lda #$fa
-	sta $44
-loop600	
-	lda $44
-	cmp #$f0
-	bne loop600
-	ldx #$0c
-	jsr XVIDBU_ROUTINE
-loop601	
-	lda $44
-	bne  next600
-	jsr LECCF 
-	
-	sec
-	rts
-next600	
+	; REMOVEME minitel
 	jsr LECB4
-	bcs  loop601
-	cmp #$13
-	bne loop601
-	jsr LECB9 
-	cmp #$53
-	bne loop601
-	jsr LECCF 
-	clc
+
+
 	rts
 
 XMOUT_ROUTINE

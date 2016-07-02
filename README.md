@@ -14,11 +14,8 @@ CPU : 6502
 2.4 version is finished. Some labels are missing (Page 0, page 2 etc has still the true address). But it's working.
 Hash of generated file of this version : 9a432244d9ee4a49e8ddcde64af94e05
 
-
-
 ### 2016-06-30
 2.4 version is almost disassembled. Some labels are missing (Page 0, page 2 etc has still the true address)
-
 
 ##How to build version ?
 
