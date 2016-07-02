@@ -2712,10 +2712,10 @@ Ld140
 /**** MINITEL **/
 /* 102 Bytes begin */
 Ld178
-;#ifdef HAVE_MINITEL
+
 #include "functions/minitel/send_A_to_video_screen.asm"
-;#endif
-; follow_a_sequence
+
+
 follow_a_sequence
 
 Ld1ed	; 
@@ -3091,10 +3091,9 @@ CTRL_DOT_KEYBOARD
 	lda #$91
 	sta $3c
 	rts
-; MINITEL
-;#ifdefine HAVE_MINITEL
+
 #include "functions/minitel/send_a_data_to_videotex_screen.asm"
-;#endif
+
 
 
 
@@ -3125,7 +3124,7 @@ Ld5d9
 	jmp send_A_to_video_screen ; Erase screen
 	
 
-#ifdef HAVE_MINITEL
+
 ; 281 bytes
 #include "functions/minitel/display_in_videotex_mode.asm"
 
@@ -3231,14 +3230,7 @@ table_of_char_videotex_special
 	
 	.byt $7e
 	.byt $3f,$00,$00,$00,$00,$00,$00,$00,$00
-#endif	
 
-#ifdef HAVE_USBDRIVE
-; 281 bytes reserved
-.dsb 382,0
-.asc "kernel.x02",0
-#include "functions/usbdrive/ch376_primitives.asm"
-#endif	
 
 	
 
@@ -7294,7 +7286,7 @@ XDECON_ROUTINE
 	
 
 Lef4a
-#ifdef HAVE_MINITEL
+
 XWCXFI_ROUTINE
 
 ; Wait CONNEXION/FIN in 25 seconds (minitel function)
@@ -7334,12 +7326,7 @@ XMOUT_ROUTINE
 	pla
 	jsr Lec49
 	jmp LECD7
-#endif
 
-
-#ifdef HAVE_USBDRIVE
-.dsb 59,0
-#endif 
 
 XSOUT_ROUTINE
 ; RS232 

@@ -101,13 +101,20 @@
 
 
 /// @brief [VALUE_PAGE_0] Floating variables also for menu vars
-#define ACC1E $60
-
-
-
 #define MENDDX $61
 #define MENDDY $62
 #define MENDFY $63
+
+
+
+/// @brief [VALUE_PAGE_0] Maths vars
+#define ACC1E $60
+#define ACC1M $61
+#define ACC1S $65
+
+
+
+
 
 /// @brief [VALUE_PAGE_0] Working flag menu
 #define FLGMEN $68
