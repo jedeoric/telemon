@@ -6,9 +6,9 @@
 /***********************************************************************/
 
 /*
-issues if you modify someting :
 
-1) BONJOUR.COM does not load, and can't be load : in BUFNOM, something is wrong : it try to loads BONJOUR.XXX X is a char of str_bonjour
+
+
 
 */
 
@@ -3323,7 +3323,7 @@ LDB98
 	PHP                                                              
 	LDA #$03      ; fen?tre 3                                         
 LDB9C
-	STA $28       ; stocke la fen?tre dans SCRNB                      
+	STA SCRNB       ; stocke la fen?tre dans SCRNB                      
 	PLP          ;  on lit la commande                                
 	BPL LDBA4    ;  ?criture -------    
 	JMP LDECE    ;  ouverture      I      
@@ -3419,7 +3419,7 @@ LDBED
 	
 LDC2B
 	
-	ldx $28
+	ldx SCRNB
 	ldy $0220,x
 	lda ($26),y
 	sta $024c,x
@@ -3501,7 +3501,7 @@ Ldc9a
 LDCB8
 	LDA $0248,X ;   US, on lit FLGSCR <-------------------------------
 	PHA         ;   que l'on sauve                                    
-	JSR lde1e   ;   on ?teint le curseur                            
+	JSR XCOSCR_ROUTINE   ;   on ?teint le curseur                            
 	PLA         ;   on prend FLGSCR                                   
 	PHA                                                              
 	LSR         ;   doit-on envoyer Y ou X ?                          
@@ -3561,7 +3561,7 @@ LDCEB
 	JSR LDD67 ;;  I oui, on ram?ne le curseur en d?but de ligne      I
 
 	JSR LDD9D  ;  I et on passe une ligne                            I
-	LDX $28     ; I                                                  I
+	LDX SCRNB     ; I                                                  I
 
 	LDA SCRX,X ; I on prend la colonne                              I
 	AND #$07   ;  I est-on sur une tabulation                        I
@@ -3626,7 +3626,7 @@ LDD14
 	BNE LDD24   ;     oui ----------------------------------------------
 	RTS         ;   non on sort                                      I
 LDD24
-	LDX $28     ;   on prend le num?ro de fen?tre <-------------------
+	LDX SCRNB     ;   on prend le num?ro de fen?tre <-------------------
 	AND RES      ;  mode monochrome (ou 40 colonnes) ?                
 	BEQ LDD3C    ;   oui ----------------------------------------------
 	INC SCRDX,X  ;  non, on interdit la premi?re colonne             I
@@ -3840,7 +3840,7 @@ LDE12
 	JMP XADRES_ROUTINE     ; on calcule dans RES l'adresse de la ligne   
 	
 XCOSCR_ROUTINE
-lde1e
+
 	CLC
 	.byt $24
 XCSSCR_ROUTINE	
@@ -3920,7 +3920,7 @@ LDE62
 	BPL LDE71  ;    d?placement n?gatif ?                             
 	TYA        ;    oui, ligne de fin dans A
 LDE71	
-	LDX $28                                                          
+	LDX SCRNB                                                          
 	JSR LDE12   ;   on calcule l'adresse de la ligne                 
 	CLC                                                              
 	ADC SCRDX,X ;   l'adresse exacte de la ligne dans la fen?tre      
@@ -3940,7 +3940,7 @@ LDE7D
 	BEQ LDEC4   ;   si nul on fait n'importe quoi ! on devrait sortir!
 	BMI LDECD    ;  si n?gatif, on sort ------------------------------
 	SEC          ;  on calcule                                       I
-	LDX $28     ;                                                    I
+	LDX SCRNB     ;                                                    I
 	LDA SCRFX,X   ; la largeur de la fen?tre                         I
 	SBC SCRDX,X  ;                                                   I
 	STA RES+1      ;  dans RES+1                                       I
@@ -3987,8 +3987,8 @@ Note de Jede : si utilis?e chercher le label LDECE
  */
 LDECE 
 	BCC LDED7    ;  si C=0 on passe ------------                      
-	LDX $28      ;                             I                      
-	JSR lde1e    ;  on ?teint le curseur       I                      
+	LDX SCRNB      ;                             I                      
+	JSR XCOSCR_ROUTINE    ;  on ?teint le curseur       I                      
 	PLA         ;   et on sort A de la pile    I                      
 	RTS          ;                             I    
 LDED7
@@ -4421,7 +4421,7 @@ Le1b7
 ; hard copy of text window	
 XHCSCR_ROUTINE
 LE1B9
-	LDX $28
+	LDX SCRNB
 	LDA SCRX,X
 	PHA
 	LDA SCRY,X
@@ -4431,7 +4431,7 @@ LE1B9
 	JSR Ldbb5 
 	JSR XLPCRL_ROUTINE
 Le1cb
-	LDX $28
+	LDX SCRNB
 	LDY SCRX,X
 	LDA (ADSCR),Y
 	CMP #$20
@@ -4582,7 +4582,7 @@ Le2f9
 	RTS
 LE301
 Le2e6
-	LDX $28
+	LDX SCRNB
 	LDA SCRY,X
 	STA $61
 Le2ed	
@@ -4605,7 +4605,7 @@ Le306
 	RTS
 put_cursor_on_beginning_of_the_line	
 Le322	
-	LDX $28
+	LDX SCRNB
 	LDA SCRY,X
 	STA $63
 	JSR LDE12
@@ -4636,7 +4636,7 @@ LE34F
 	JMP LE361
 send_the_end_of_line_in_bufedt	
 LE355	
-	LDX $28
+	LDX SCRNB
 	LDA SCRX,X
 	STA ACC1E
 	LDA SCRY,X
@@ -4667,7 +4667,7 @@ Le37e
 	LDA $65
 	CMP $61
 	BEQ Le390
-	LDX $28
+	LDX SCRNB
 	LDY SCRDX,X
 Le390	
 	LDA (RES),Y
@@ -4703,7 +4703,7 @@ Le3b1
 Le3c5	
 
 
-	LDX $28
+	LDX SCRNB
 	CMP SCRFX,X
 	BNE Le390
 	INC $65
@@ -4718,7 +4718,7 @@ display_bufedt_content
 	LDY $27
 	STA RES
 	STY RES+1
-	LDX $28
+	LDX SCRNB
 	LDY SCRX,X
 
 Le3e3
@@ -4742,7 +4742,7 @@ Le3fb
 Le405	
 	TYA
 	INY
-	LDX $28
+	LDX SCRNB
 	CMP SCRFX,X
 	BNE Le418
 	LDA #$28
@@ -4762,7 +4762,7 @@ Le41c
 Le42a		
 	LDY SCRX
 	LDA (ADSCR),Y
-	LDX $28
+	LDX SCRNB
 	STA $024C,X
 	RTS
 
@@ -4790,7 +4790,7 @@ Le452
 	DEX
 	BNE Le452  
 Le45a	
-	LDX $28
+	LDX SCRNB
 	LDA $0248,X
 	BMI Le466 
 	LDA #$11
@@ -4884,7 +4884,7 @@ Le4ee
 	
 	JSR Le648
 Le4f3	
-	LDX $28
+	LDX SCRNB
 	LDA $024C,X
 	CMP #$7F
 	BEQ Le4ee 
@@ -4932,7 +4932,7 @@ XEDTIN_ROUTINE
 	BNE  Le548
 	LDA ACC1E
 Le548	
-	LDX $28
+	LDX SCRNB
 	CMP SCRFX,X
 	BNE Le5ae
 	LDA $63
@@ -4957,7 +4957,7 @@ Le548
 	LDA #$0A
 	JSR Le648
 Le580	
-	LDX $28
+	LDX SCRNB
 	LDA $024C,X
 	CMP #$7F
 	BNE Le58f
@@ -5025,7 +5025,7 @@ LE5E7
 Le5ee	
 	CMP #$0A
 	BNE Le604
-	LDX $28
+	LDX SCRNB
 	LDA SCRY,X
 	CMP SCRFY,X
 	BNE Le615
@@ -5038,7 +5038,7 @@ Le5ff
 Le604	
 	CMP #$0B
 	BNE Le617
-	LDX $28
+	LDX SCRNB
 	LDA SCRY,X
 	CMP SCRDY,X
 	BEQ Le5ff
@@ -5793,7 +5793,7 @@ Le960
 	STX RES       ; fen?tre dans RES                                  
 	BIT RES       ; HIRES ?                                           
 	BMI LE9A7     ; oui ---------------------------------------------- 
-	STX $28       ; TEXT, on met le num?ro de fen?tre dans $28       I
+	STX SCRNB       ; TEXT, on met le num?ro de fen?tre dans $28       I
 	BCC LE971     ; si C=0, c'est PAPER                              I 
 	STA $0240,X  ;  on stocke la couleur d'encre                     I
 	BCS LE974    ;  si C=1 c'est INK                                 I 
@@ -5807,7 +5807,7 @@ LE974
 	JSR Ldbb5    ;  (on envoie CHR$(12))                          I  I 
 	LDA #$1D     ;  et on passe en 38 colonnes                    I  I
 	JSR Ldbb5    ;  (on envoie CHR$(29))                          I  I 
-	LDX $28      ;  on prend X=num?ro de fen?tre                  I  I
+	LDX SCRNB      ;  on prend X=num?ro de fen?tre                  I  I
 LE987	
 	LDA SCRDY,X  ;  on prend la ligne 0 de la fen?tre <------------  I
 	JSR XMUL40_ROUTINE    ;  *40 dans RES                                     I 

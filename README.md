@@ -17,19 +17,19 @@ Hash of generated file of this version : 9a432244d9ee4a49e8ddcde64af94e05
 ### 2016-06-30
 2.4 version is almost disassembled. Some labels are missing (Page 0, page 2 etc has still the true address)
 
-##How to build version ?
+##How to build a version ?
 
 ###For 2.4
 * clone this repo with 2.4 branch
-* edit build.bat and "OSDKB" to the xa.exe (6502 assembler) path, and "ORICUTRON" to your own oricutron path if you want to copy the version in oricutron ROM. You have to change the path of the ROM file in oricutron.cfg
+* edit build.bat and change "OSDKB" value to the xa.exe (6502 assembler) path, and "ORICUTRON" value to your own oricutron path if you want to copy the version in oricutron ROM. You have to change the path of the ROM file in oricutron.cfg
  
 
 ## Features
 
-### 2.5 version what's new ?
+### 2.5 version : what's new ?
  * all minitel routines removed
- * all keyboard shortcuts removed
- * all primitives minitel related removed
+ * all minitel keyboard shortcuts removed (used in minitel mode)
+ * all minitel primitives related removed
 
 ### 2.4 version
 Read books released in 1986 on the telestrat :) !

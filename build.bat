@@ -5,7 +5,7 @@ SET ORICUTRON="..\..\..\..\oricutron\"
 
 
 SET RELEASE="2_5"
-SET UNITTEST="YES"
+SET UNITTEST="NO"
 
 SET ORIGIN_PATH=%CD%
 
@@ -22,6 +22,6 @@ copy ..\release\telemon%RELEASE%.rom %ORICUTRON%\roms\telemon%RELEASE%.rom
 
 IF "%UNITTEST%"=="NO" GOTO End
 cd %ORICUTRON%
-oricutron -mt -d teledisks\Teledisk05.dsk
+oricutron -mt 
 :End
 cd %ORIGIN_PATH%
