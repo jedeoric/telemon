@@ -47,8 +47,12 @@ telemon
 	CLD
 	LDX #$FF
 	TXS ; init stack
+#ifdef CPU_65C02
+	stz $0418
+#else	
 	inx
 	stx $0418 ; Store in BNKCIB ?? ok but already init with label data_adress_418, when loading_vectors_telemon is executed
+#endif
 	jsr init_via ; OK
 	jsr init_printer ; OK
 	jsr XALLKB_ROUTINE
@@ -145,6 +149,9 @@ c055
 
 loading_vectors_telemon
 .(
+// This routine fills some memory with some code
+// notice that $700 is fill but could be used for others things, because $700 will be in RAM overlay 
+// This means that $700 could be erase. $600 should be deleted too (how many bytes ?), because some parts are used to read banks
 loop
 	LDA loading_vectors_page_4,X ; X should be equal to 0
 	STA $0400,X
@@ -444,7 +451,7 @@ loop57
 	LDA TIMEUD
 	BNE loop57
 	LDX #$0C
-	BRK_TELEMON($57) 
+	BRK_TELEMON(XVIDBU) 
 	LDA ACIACR
 	AND #$F3
 	ORA #$08
@@ -512,24 +519,26 @@ definition_for_CDRIVE_init
 
 
 loading_code_to_page_6
-	.byt $4c,$50,$06 ;jmp $0605 ? 3 bytes
-	lda #$00 ; 2 bytes 
+	jmp $0650
+// This code to pattern "ENDPATTERN" could be deleted
+	lda #$00 ; 2 bytes
+L0605	
 	sta V2DRA ; 3 bytes ; switch to overlay ram ?
 	TAX
 loop40
-
 	LDA $0700,X
 	STA BUFROU,X ; store data in c500 
 	INX
 	BNE loop40 ; copy 256 bytes to BUFROU in OVERLAY RAM
 ; reading all connected bank (cardridges)!
-	LDX #$07
+// ENDPATTERN 
+	LDX #$07 ; loops with all banks
 loop47
-	STX V2DRA ; Switch to the Bank ;
+	STX V2DRA ; Switch to each Bank ;
 ; reading cardridge bank
 	LDY #$00
 loop43 
-	LDA bank_signature,Y ; first iteration is equal to $a0
+	LDA bank_signature,Y ; first iteration is equal to $00
 	PHA ; push A (first iteration $a0)
 loop41
 	ADC #$04 ; add 4
@@ -540,6 +549,7 @@ loop41
 	INY
 	BNE loop43
 loop45
+	; At the 
 	STY $FFFB ; Store  trying to fix someting on RAM ?
 	LDA $FFFB
 	CPY $FFFB
@@ -577,7 +587,7 @@ Lcc337
 
 	stx V2DRA
 	lda $fff8 
-	sta $02
+	sta RESB
 	lda $fff9
 	sta RESB+1
 	ldy #0
@@ -627,13 +637,13 @@ VIRQ_CODE
 display_developper	
 ; VAPLIC execution
 ; VAPLIC Routines
-/**************************** BEGIN LOOP ON DEVELOPPER NAME !*/
+/**************************** BEGIN LOOP ON DEVELOPER NAME !*/
 	LDA #<str_license
 	LDY #>str_license
 	BRK_TELEMON(XWSTR0)
 loop_str_licence	
 	jmp loop_str_licence 
-/**************************** END LOOP ON DEVELOPPER NAME !*/
+/**************************** END LOOP ON DEVELOPPR NAME !*/
 
 str_telestrat	
 	.asc $0c,$97,$96,$95,$94,$93,$92,$91,$90," TELESTRAT ",$90,$91,$92,$93,$94,$95,$96,$97,$90,$00
@@ -648,7 +658,7 @@ str_drive
 str_telemon
 	.asc $0d,$0a,"TELEMON V"
 str_telemon_version
-	.asc "2.5.0"
+	.asc "2.5"
 	
 
 str_oric_international
@@ -849,7 +859,7 @@ code_adress_409
 code_adress_40c
 	JMP $0436 ; 436 see  code_adress_436
 code_adress_40f
-	.byt $00 
+	.byt $00 ; init old bank to 0
 	.byt $00 ; used for 
 	jmp $04af
 	.byt $4c,$00,$00
@@ -857,12 +867,14 @@ data_adress_417
 .byt $00 ; Init BNKCIB with 0
 data_adress_418
 .byt $00 ; init also 418 but it already initialized !
+
+; This routines is used to read buffers in RAM overlay
 code_adress_419	
 	PHP
 	SEI
 	PHA
 	LDA V2DRA
-	AND #%11111000
+	AND #%11111000 ; switch to OVERLAY RAM
 	STA V2DRA
 	PLA
 	JSR BUFROU
@@ -918,19 +930,19 @@ code_adress_46A
 	STA V2DRA
 	PLP
 	RTS
-code_adress_47E ; brk gestion ?
+code_adress_47E ; brk gestion 
 	STA $21
 	LDA V2DRA
 	AND #$07
-	STA $040F ; store old bank before interrupt ?
+	STA BNKOLD ; store old bank before interrupt ?
 	LDA V2DRA ; Switch to telemon bank and jump
 	ORA #$07
 	STA V2DRA
-	JMP LC868	 
+	JMP brk_management	 
 code_adress_493
 	LDA V2DRA
 	AND #$F8
-	ORA $040F
+	ORA BNKOLD
 	STA V2DRA
 	LDA $21
 	RTI
@@ -955,7 +967,7 @@ code_adress_4AF
 	STA V2DRA
 	PLA
 	RTS	
-/*THIS ROUTINE IS COPIED IN $700*/
+/*THIS ROUTINE IS COPIED IN $700 and will be in overlay RAM*/
 data_adress_04c7	
 to_put_in_address_700
 data_to_define_4	
@@ -1194,6 +1206,8 @@ data_to_define_1
 	.byt <ROUTINE_I_O_NOTHING,>ROUTINE_I_O_NOTHING ; not used 
 	
 
+
+brk_management
 	
 LC868
 	; management of BRK $XX
@@ -1615,12 +1629,12 @@ vectors_telemon
 	.byt <XSCROH_ROUTINE,>XSCROH_ROUTINE ; $37
 	.byt <XSCROB_ROUTINE,>XSCROB_ROUTINE ; $38 XSCROB
 	.byt <XSCRNE_ROUTINE,>XSCRNE_ROUTINE ; $39
-	.byt $00,$00 ; $3a 
-	.byt $00,$00 ; $3b
+	.byt <_ch376_wait_response,>_ch376_wait_response ; $3a 
+	.byt <_ch376_set_file_name,>_ch376_set_file_name ; $3b
 	.byt <XRECLK_ROUTINE,>XRECLK_ROUTINE ; $3c
 	.byt <XCLCL_ROUTINE,>XCLCL_ROUTINE ; $3d
 	.byt <XWRCLK_ROUTINE,>XWRCLK_ROUTINE ; $3e
-	.byt $00,$00 ; nothing $3f
+	.byt <_ch376_file_open,>_ch376_file_open ; nothing $3f
 	.byt <XSONPS_ROUTINE,>XSONPS_ROUTINE ; $40
 	.byt <XEPSG_ROUTINE,>XEPSG_ROUTINE ; $41
 	.byt <XOUPS_ROUTINE,>XOUPS_ROUTINE ; $42 XOUPS ddd8
@@ -1632,10 +1646,10 @@ vectors_telemon
 	.byt <XLPRBI_ROUTINE,>XLPRBI_ROUTINE ; $48
 	.byt <XLPCRL_ROUTINE,>XLPCRL_ROUTINE ; $49
 	.byt <XHCSCR_ROUTINE,>XHCSCR_ROUTINE ; $4a
-	.byt $00,$00
+	.byt <_ch376_set_usb_mode,>_ch376_set_usb_mode
 	
 	.byt <XHCHRS_ROUTINE,>XHCHRS_ROUTINE ; $4c
-	.byt $00,$00 ; $4d
+	.byt <_ch376_disk_mount,>_ch376_disk_mount ; $4d
 	.byt $00,$00 ; $4e
 	.byt $00,$00 ; $4f
 	.byt <XALLKB_ROUTINE,>XALLKB_ROUTINE ; $50
@@ -1719,7 +1733,8 @@ vectors_telemon_second_table
 	.byt $00,$00 ; nothing $9b
 	.byt <XEXPLO_ROUTINE,>XEXPLO_ROUTINE ; $9c
 	.byt <XPING_ROUTINE,>XPING_ROUTINE ; $9d
-
+#include "include/ch376.h"
+#include "functions/ch376/ch376.asm"
 
 
 XMENU_ROUTINE

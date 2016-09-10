@@ -9,6 +9,8 @@ SET UNITTEST="NO"
 
 SET ORIGIN_PATH=%CD%
 
+
+
 cd src
 
 %OSDKB%\xa.exe -C -W  -e error.txt -l xa_labels.txt  telemon.asm 
@@ -22,6 +24,6 @@ copy ..\release\telemon%RELEASE%.rom %ORICUTRON%\roms\telemon%RELEASE%.rom
 
 IF "%UNITTEST%"=="NO" GOTO End
 cd %ORICUTRON%
-oricutron -mt 
+oricutron -mt -d teledisks\stratsed.dsk
 :End
 cd %ORIGIN_PATH%

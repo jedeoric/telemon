@@ -90,6 +90,11 @@
 /// @brief [VALUE_PAGE_0] decompteur utilisateur en dixieme de secondes (16 bits)
 #define TIMEUD $44
 
+#define HRS1 $4d
+#define HRS2 $4f
+#define HRS3 $51
+#define HRS4 $53
+
 /// @brief [VALUE_PAGE_0] Used to backup value in buffer routine and joystick and to do some operation
 
 #define VABKP1 $58
@@ -127,7 +132,7 @@
 /// b6=1 entête or not
 #define INDRS $5b
 
-/// @brief [VALUE_PAGE_0] 68 bytes for language
+/// @brief [VALUE_PAGE_0] 44 bytes for language (used for hyperbasic for example)
 #define VARLNG $8c
 
 /// @brief [VALUE_PAGE_0] 48 bytes for the application 
@@ -281,11 +286,33 @@
 /// @brief [VALUE_PAGE_2]  contains key pressed
 #define KBDKEY $271 
 
+/// @brief [VALUE_PAGE_2]  contains nb before repeat keyboard
+#define KBDVRR $272 
+
+/// @brief [VALUE_PAGE_2]  Divide repetition
+#define KBDVRL $273
+
 #define FLGKBD $0275	;Keyboard flag : b7 majn b6 if sound
+
+/// @brief [VALUE_PAGE_2]  Manage function key
+
+#define KBDFCT $0276
+
+#define KBDSHT $278 ; Contains informations from key pressed
+
+#define KBDKEY $279 ; ASCII key
+
+#define KBDCTC $27E ; if ctrl+c is done if b7 equal to 1
 
 #define LPRX $0286 ; word cursor in the line
 
+#define LPRY $0287
+
+
+
 #define LPRFX $0288 ; printer width
+
+#define LPRFY $0289 ; 
 
 #define FLGLPR $028a ;; word b7 ready
 
@@ -305,6 +332,10 @@
 
 
 #define KEYBOARD_COUNTER $02a6
+
+#define HRSPAT $02aa
+
+#define HRSERR $02ab
 
 /// @brief [VALUE_PAGE_2]  Activating channel 0
 #define IOTAB0 $02ae ; activating channel 0
@@ -339,13 +370,28 @@
 #define VEXBNK $414
 #define BNKCIB $417
 
-/********************************************************************** PAGE 5 VARIABLES */
+/// @brief [VALUE_PAGE_4] Store the old bank (if we call telemon from bank4, the id of the bank is stored here)
+#define BNKOLD $40F 
 
+/********************************************************************** PAGE 5 VARIABLES */
+/// @brief [VALUE_PAGE_5] don't know yet the length max is $516 because $517 starts BUFNOM
+#define DOSVAR $500 
+
+/// @brief [VALUE_PAGE_5] Buffer for filename. When stratsed needs to load a filename, it fills BUFNOM with 0 at the end of the string. It can be validated by primitive XNOMFI
 #define BUFNOM $517
-/// @brief [VALUE_PAGE_2]  edition buffer
-#define BUFEDT $590
-/// @brief [VALUE_PAGE_2]  Default extention, it usually contains .COM (init from telemon)
+/// @see XNOMFI
+
+/// @brief [VALUE_PAGE_5]  Default extention, it usually contains .COM (init from telemon)
 #define BUFDEF $55d
+/// @brief [VALUE_PAGE_5]  Used for languages
+#define VARLNB $560
+
+/// @brief [VALUE_PAGE_5]  edition buffer (length : 110 bytes)
+#define BUFEDT $590
+
+
+
+
 
 /********************************************************************** VECTORS used with brk */
 
@@ -467,16 +513,21 @@
 
 
 
-
+/// @brief [PRIMITIVE] Fill a memory bloc with A
 
 #define XFILLM $1C ; FILL
 
-/// @brief [PRIMITIVE] found this adress of a char
+/// @brief [PRIMITIVE] found an adress of a char
 #define ZADCHA $1d
 
 /// @brief [PRIMITIVE] testing if printer is connected
 #define XTSTLP $1e
-#define XMINMA $1f ; A register converted to upper XY not changed
+/// @brief [PRIMITIVE] Converting A from lower case to uppercase XY are not changed
+/*!
+ lda #"b"
+ brk XMINMA
+ */
+#define XMINMA $1f 
 
 
 #define XMUL40 $20 ; AY=A*40
@@ -536,6 +587,13 @@
 
 /// @brief [PRIMITIVE] Display cursor (prompt)	, X equal to 0 : No window
 #define XCSSCR $35 
+///  
+/// @param X (register)  [in] the number of the channel
+
+/*!
+	ldx #0
+	BRK_TELEMON(XCSSCR)  ; display cursor
+ */
 
 #define XSCRSE $36
 /// @brief [PRIMITIVE] Scroll high
@@ -547,11 +605,11 @@
 /// @brief [PRIMITIVE] Load charset from rom to ram 
 #define XSCRNE $39 
 
-/// @brief [PRIMITIVE] Minitel Manage a videotext data 
-#define XVDTDA $3a
+/// @brief [PRIMITIVE] Wait CH376 response
+#define XCH376_WAIT_RESPONSE $3a
 
-/// @brief [PRIMITIVE] Send A from hires vdt to videotex
-#define XVDTAH $3b
+/// @brief [PRIMITIVE] Set filename : input BUFNOM terminated by 0
+#define XCH376_SET_FILE_NAME $3b
 
 /// @brief [PRIMITIVE] Reset clock
 
@@ -564,6 +622,9 @@
 
 /// @brief [PRIMITIVE] Update clock
 #define XWRCLK $3e
+
+/// @brief [PRIMITIVE] Open file which is send to the chip
+#define XCH376_FILE_OPEN $3f
 
 /// @brief [PRIMITIVE] Send 14 data (set in xy) in psg register (R0 to r13)
 #define XSONPS $40
@@ -594,11 +655,14 @@
 /// @brief [PRIMITIVE] hard copy of text window
 #define XHCSCR $4a
 
-/// @brief [PRIMITIVE] hard copy of videotex window
-#define XHCVDT $4b
+/// @brief [PRIMITIVE] Set usb mode 
+#define XCH376_SET_USB_MODE $4b
 
 /// @brief [PRIMITIVE] hard copy of hires window
 #define XHCHRS $4c
+
+/// @brief [PRIMITIVE] Start disk mount
+#define XCH376_DISK_MOUNT $4d
 
 #define XALLKB $50 ; Get keyboard, --> KBDCOL
 
