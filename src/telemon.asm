@@ -5140,14 +5140,16 @@ LE66B
       */  
 Le66c
 XECRPR_ROUTINE 
+/*
 	BIT FLGTEL  ;    mode minitel ?                                    
 	BVC LE67B   ;   non ---------------------------------------------- 
 	LDA #$19   ;    on envoie SS2 2/E au minitel                     I
 	JSR LE656  ;                                                     I
 	LDA #$2E   ;    donc on affiche la fl?che ->                     I
 	JSR LE656  ;                       E                              I
+*/	
 LE67B
-	LDA #$7F   ;    on affiche un prompt <----------------------------
+	LDA #"#"   ;    on affiche un prompt <----------------------------
 	JMP Ldbb5   ;   ? l'?cran               
 																				
 /*
