@@ -1,302 +1,10 @@
 
-; Page 0 variables
-
-/********************************************************************** PAGE 0 VARIABLES */
-
-/// @brief [VALUE_PAGE_0] 16 bits used for address usage
-#define RES $00 
-/// @brief [VALUE_PAGE_0] 16 bits used for address usage
-#define RESB $02 
-
-#define DECDEB $04 ; param/shift
-#define DECFIN $06 ; param/shift
-#define DECCIB $08 ; param/shift
-#define DECTRV $0A ; param/shift
-
-
-#define TR0 $0c ; 
-#define TR1 $0d ; 
-#define TR2 $0e ; 
-#define TR3 $0f ; 
-#define TR4 $10 ; general usage 1 byte
-#define TR5 $11 ; general usage 1 byte
-#define TR5 $11 ; general usage 1 byte
-#define TR6 $12 ; general usage 1 byte
-#define TR7 $13 ; general usage 1 byte
-
-
-
-
-#define DEFAFF $14 ; default value for decimal conversion
-
-#define ADDRESS_READ_BETWEEN_BANK $15
-
-
-#define work_channel $19
-
-#define i_o_counter $1a
-
-#define i_o_save $1b
-
-#define TRANSITION_RS232 $1e 
-
-/// @brief [VALUE_PAGE_0] save Accumulator used when there is an IRQ
-#define IRQSVA $21 
-/// @brief [VALUE_PAGE_0] save X used when there is an IRQ
-#define IRQSVX $22 
-/// @brief [VALUE_PAGE_0] save Y used when there is an IRQ
-#define IRQSVY $23 
-/// @brief [VALUE_PAGE_0] save P used when there is an IRQ but also used for some others backup values
-#define IRQSVP $24 
-
-/// @brief [VALUE_PAGE_0] low Adress of begin line display (16 bits)
-#define ADSCR $26 
-
-/// @brief [VALUE_PAGE_0] number window screen
-#define SCRNB $28
-
-#define ADKBD $2a ; ASCII conversion table adress
-
-// VIDEOTEX HIRES
-
-#define ADVDT $2c ; adress hires screen
-
-#define ADASC $2e ; ascii table
-
-#define ADATR $30 ;adress table attributes
-
-#define VDTPAR $32 ; VDT work
-
-#define VDTASC $33 ; VDT work
-
-
-#define VDTX $38
-#define VDTY $39
-#define VDTGX $3a
-#define VDTGY $3b
-/// @brief [VALUE_PAGE_0] ?
-#define FLGVD0 $3c
-
-
-
-/// @brief [VALUE_PAGE_0] address to display clock
-#define ADCLK $40 
-
-
-
-/// @brief [VALUE_PAGE_0] decompteur utilisateur en secondes (16 bits)
-#define TIMEUS $42
-
-/// @brief [VALUE_PAGE_0] decompteur utilisateur en dixieme de secondes (16 bits)
-#define TIMEUD $44
-
-#define HRS1 $4d
-#define HRS2 $4f
-#define HRS3 $51
-#define HRS4 $53
-
-/// @brief [VALUE_PAGE_0] Used to backup value in buffer routine and joystick and to do some operation
-
-#define VABKP1 $58
-
-#define RS232T $59
-#define RS232C $5A
-
-
-
-
-/// @brief [VALUE_PAGE_0] Floating variables also for menu vars
-#define MENDDX $61
-#define MENDDY $62
-#define MENDFY $63
-
-
-
-/// @brief [VALUE_PAGE_0] Maths vars
-#define ACC1E $60
-#define ACC1M $61
-#define ACC1S $65
-
-
-
-
-
-/// @brief [VALUE_PAGE_0] Working flag menu
-#define FLGMEN $68
-
-/// @brief [VALUE_PAGE_0] choice table
-#define ADMEN $69
-
-
-/// @brief [VALUE_PAGE_0] RS indicator b7=1 if minitel mode. 0= rs232
-/// b6=1 entête or not
-#define INDRS $5b
-
-/// @brief [VALUE_PAGE_0] 44 bytes for language (used for hyperbasic for example)
-#define VARLNG $8c
-
-/// @brief [VALUE_PAGE_0] 48 bytes for the application 
-#define VARAPL $D0 
-
-/********************************************************************** PAGE 2 VARIABLES */
-
-/// @brief [VALUE_PAGE_2]  Save 8 bytes of the eack bank
-#define BNKST $0200 ; RESB 8 value of bytes $fffb of each bank
-
-/// @brief [VALUE_PAGE_2]  Activating drive 0 if not connected, b7 equal double side
-#define TABDRV $0208 
-
-
-
-
-/// @brief [VALUE_PAGE_2]  Default drive
-#define DRVDEF $20C
-
-/// @brief [VALUE_PAGE_2]  Flag telestrat
-
-/// b7=1 HIRES mode
-/// b6=1 Minitel mode
-/// b5=1 degre mode : 0 (calcul radians )
-/// b2=1 BONJOURCOM exists
-/// b1=1 Printer detected 
-/// b0=1 stratsed is missing
-
-#define FLGTEL $020D
-
-#define KOROM $020E	; Ko ROM total
-#define KORAM $020f ; total Max ram Bytes	
-
-/// @brief [VALUE_PAGE_2]  horloge 1/10
-#define TIMED $210
-/// @brief [VALUE_PAGE_2]  clock seconds
-#define TIMES $211
-
-/// @brief [VALUE_PAGE_2]  clock minutes
-#define TIMEM $212
-
-/// @brief [VALUE_PAGE_2]  clock hours
-#define TIMEH $213
-
-/// @brief [VALUE_PAGE_2]  clock flag
-/// b7 display clock every seconds
-#define FLGCLK $214
-
-#define FLGCLK_FLAG $215 
-
-/// @brief [VALUE_PAGE_2]  cursor management flag
-#define FLGCUR $216
-
-/// @brief [VALUE_PAGE_2]  cursor state flag
-#define FLGCUR_STATE $217
-
-
-/// @brief [VALUE_PAGE_2] low address of the screen 0 
-#define ADSCRL $218
-
-/// @brief [VALUE_PAGE_2] high address of the screen 0 
-#define ADSCRH $21c
-
-
-/// @brief [VALUE_PAGE_2]  screen X cursor screen 0
-#define SCRX $220
-/// @brief [VALUE_PAGE_2]  screen X cursor screen 1
-#define SCRX1 $221
-/// @brief [VALUE_PAGE_2]  screen X cursor screen 2
-#define SCRX2 $222
-/// @brief [VALUE_PAGE_2]  screen X cursor screen 3
-#define SCRX3 $223
-
-/// @brief [VALUE_PAGE_2]  screen Y cursor screen 0
-#define SCRY $224
-/// @brief [VALUE_PAGE_2]  screen Y cursor screen 1
-#define SCRY1 $225
-/// @brief [VALUE_PAGE_2]  screen Y cursor screen 2
-#define SCRY2 $226
-/// @brief [VALUE_PAGE_2]  screen Y cursor screen 3
-#define SCRY3 $227
-
-/// @brief [VALUE_PAGE_2]  beginning of the window
-#define SCRDX $228
-
-#define SCRFX $22c
-
-/// @brief [VALUE_PAGE_2]  beginning of the screen 0
-#define SCRDY $230
-
-/// @brief [VALUE_PAGE_2]  end of the screen 0
-#define SCRFY $234 
-
-
-/// @brief [VALUE_PAGE_2]  low address of the screen 0
-#define SCRBAL $238 
-
-/// @brief [VALUE_PAGE_2]  high address of the screen 0
-#define SCRBAH $23c
-
-
-/// @brief [VALUE_PAGE_2] ink color for screen 0
-#define SCRCT $0240 
-
-/// @brief [VALUE_PAGE_2] ink color for screen 1
-#define SCRCT1 $0241
-
-/// @brief [VALUE_PAGE_2] ink color for screen 2
-#define SCRCT2 $0242
-
-/// @brief [VALUE_PAGE_2] ink color for screen 3
-#define SCRCT3 $0243
-
-/// @brief [VALUE_PAGE_2] paper color for screen 0
-#define SCRCF $244
-/// @brief [VALUE_PAGE_2] paper color for screen 1
-#define SCRCF1 $245
-/// @brief [VALUE_PAGE_2] paper color for screen 2
-#define SCRCF2 $246
-/// @brief [VALUE_PAGE_2] paper color for screen 3
-#define SCRCF3 $247
-
-
-/// @brief [VALUE_PAGE_2]  flag for screen
-/// b7 : display cursor
-/// b6 : cursor does not blink
-/// b5 : inverted video
-/// b4 : 38/40 column mode ?
-/// b3 : escape ?
-/// b2 : US ?
-/// b1 : double height
-/// b0 : counter for us
-#define FLGSCR $248
-
-#define HARD_COPY_HIRES_VECTOR $250
-
-
-#define CURSCR $24c ; char on the cursor
-
-#define SCRTXT $0256 ; desc scrtxt 6 bytes
-
-#define SCRHIR $025C ; desc 6 bytes for HIres
-
-#define SCRTRA $0262 ; desc 6 bytes for trace
-
-/// @brief [VALUE_PAGE_2]  image of 8x8 keyboard matrix (8 bytes)
-#define KBDCOL $268
-/// @brief [VALUE_PAGE_2]  0 if no key pressed
-#define KBDFLG_KEY $270
-
 /// @brief [VALUE_PAGE_2]  contains key pressed
 #define KBDKEY $271 
 
-/// @brief [VALUE_PAGE_2]  contains nb before repeat keyboard
-#define KBDVRR $272 
-
-/// @brief [VALUE_PAGE_2]  Divide repetition
-#define KBDVRL $273
-
-#define FLGKBD $0275	;Keyboard flag : b7 majn b6 if sound
-
 /// @brief [VALUE_PAGE_2]  Manage function key
 
-#define KBDFCT $0276
+
 
 #define KBDSHT $278 ; Contains informations from key pressed
 
@@ -361,10 +69,10 @@
 
 
 
-#define VIRQ $02FA
+
 #define VNMI $02F4
 #define VAPLIC $2FD ; No banque adress
-
+#define VIRQ $02fa ; Updated for atmos compatibility
 /********************************************************************** PAGE 4 VARIABLES */
 
 #define VEXBNK $414
@@ -372,25 +80,6 @@
 
 /// @brief [VALUE_PAGE_4] Store the old bank (if we call telemon from bank4, the id of the bank is stored here)
 #define BNKOLD $40F 
-
-/********************************************************************** PAGE 5 VARIABLES */
-/// @brief [VALUE_PAGE_5] don't know yet the length max is $516 because $517 starts BUFNOM
-#define DOSVAR $500 
-
-/// @brief [VALUE_PAGE_5] Buffer for filename. When stratsed needs to load a filename, it fills BUFNOM with 0 at the end of the string. It can be validated by primitive XNOMFI
-#define BUFNOM $517
-/// @see XNOMFI
-
-/// @brief [VALUE_PAGE_5]  Default extention, it usually contains .COM (init from telemon)
-#define BUFDEF $55d
-/// @brief [VALUE_PAGE_5]  Used for languages
-#define VARLNB $560
-
-/// @brief [VALUE_PAGE_5]  edition buffer (length : 110 bytes)
-#define BUFEDT $590
-
-
-
 
 
 /********************************************************************** VECTORS used with brk */
@@ -879,3 +568,17 @@
 
 /// @brief [PRIMITIVE] Work on numeric and alphanumeric
 #define BUFTRV $100 
+
+
+
+
+
+/********** MACROS **********/
+
+
+#define BRK_TELEMON(value)\
+	.byt 00,value;
+
+
+
+

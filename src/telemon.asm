@@ -41,7 +41,16 @@
 ; 03 bwana
 ; 05 accent off
 
+; Page 0 variables
+
+/********************************************************************** PAGE 0 VARIABLES */
+
+#include "include/telemon_zp.inc"
+
+
+.text
 *=$c000
+
 telemon
 	SEI
 	CLD
@@ -364,7 +373,7 @@ loop12
 next52	
 	jmp loop50 ;3
 next58	
-	lda $220
+	lda SCRX
 	beq loop58
 
 next61	
@@ -434,8 +443,8 @@ display_cursor
 	ldx VAPLIC
 	bmi Lc286 
 
-	lda $02FE
-	ldy $02ff
+	lda VAPLIC+1 ; address low
+	ldy VAPLIC+2  ; address high
 	
 next57
 	STA $0415
@@ -614,9 +623,9 @@ Lc365
 	stx V2DRA
 	lda $fffc ; read execution address
 	ldy $fffd 
-	sta $02fe
-	sty $02ff
-	stx $02fd
+	sta VAPLIC+1 ; address low
+	sty VAPLIC+2 ; address high
+	stx VAPLIC ; bank 
 	lda #7
 	sta V2DRA
 Lc382	
@@ -931,7 +940,7 @@ code_adress_46A
 	PLP
 	RTS
 code_adress_47E ; brk gestion 
-	STA $21
+	STA IRQSVA
 	LDA V2DRA
 	AND #$07
 	STA BNKOLD ; store old bank before interrupt ?
@@ -944,7 +953,7 @@ code_adress_493
 	AND #$F8
 	ORA BNKOLD
 	STA V2DRA
-	LDA $21
+	LDA IRQSVA
 	RTI
 code_adress_4A1
 	PHA
@@ -1036,7 +1045,7 @@ LC639
 LC658	
 	dec $c088,x ; FIXME
 	ldy #0
-	lda ($24),y
+	lda (IRQSVP),y
 	clc
 LC660	
 	rts
@@ -1074,7 +1083,7 @@ LC691
 LC697	
 	cmp $c082,x ; FIXME
 	
-	sta $24 ; FIXME
+	sta IRQSVP ; FIXME
 
 
 routine_to_define_16
@@ -1163,9 +1172,9 @@ Lc81c
 	TXA
 	ASL
 	TAX
-	LDA $02BE,X
+	LDA ADIOB,X
 	STA $02F8
-	LDA $02BF,X
+	LDA ADIOB+1,X
 	STA $02F9
 	PLA
 	LSR $17
@@ -1432,7 +1441,7 @@ next110
 	BNE next113 
 	JSR manage_keyboard 
 	JSR LC8BF
-	BIT $0270 ; CORRECTME
+	BIT KBDFLG_KEY ; CORRECTME
 	BPL next114 
 	LDA #$14 
 	STA KEYBOARD_COUNTER+1 ; CORRECTME
@@ -2680,7 +2689,7 @@ init_minitel
 manage_keyboard
 	jsr XALLKB_ROUTINE 
 	beq Ld812
-	ldx $0270
+	ldx KBDFLG_KEY
 	bpl Ld7f1 
 	lda $0271 
 	and $01e8,x
@@ -2691,12 +2700,12 @@ Ld7f1
 	sta $0271
 	tya
 	ora #$80
-	sta $0270
+	sta KBDFLG_KEY
 	jsr Ld81f 
 Ld800	
 routine_to_define_20
 ;	CLD
-	LDA $0272 ; CORRECTME
+	LDA KBDVRR ; CORRECTME
 	JMP next60
 Ld807	
 	DEC $0274 ; CORRECTME
@@ -2706,7 +2715,7 @@ Ld807
 Ld812
 	STA $0270 ; CORRECTME
 Ld815	
-	LDA $0273 ; CORRECTME
+	LDA KBDVRL ; CORRECTME
 next60		
 	STA $0274 ; CORRECTME
 end2
@@ -2719,7 +2728,7 @@ XKBDAS_ROUTINE
 	JSR LC8BF 
 	LDA #$00
 	PHA
-	LDA $0270 ; CORRECTME
+	LDA KBDFLG_KEY ; CORRECTME
 	ASL
 	ASL
 	ASL
@@ -2916,7 +2925,7 @@ next22  ;$D946
 
 	LDY #$08
 loop22	
-	LDA $0267,Y
+	LDA SCRTRA+5,Y
 	BNE out1
 	CPY #$06
 	BNE out2
@@ -2933,19 +2942,19 @@ manage_I_O_keyboard
 Ld95c
 	bmi Ld985 
 	lda #1
-	sta $2a8
-	sta $2a6
+	sta $02a8
+	sta $02a6
 	php
 	sei
 	ldx #0
 	jsr XLISBU_ROUTINE 
 	bcs Ld982 
-	sta $279
+	sta KBDKEY
 	ldx #00
 	jsr XLISBU_ROUTINE 
 	bcs Ld982 
-	sta $0278
-	lda $0279
+	sta KBDSHT
+	lda KBDKEY
 	plp
 	clc
 	rts
@@ -2989,17 +2998,17 @@ init_keyboard
 	LDA #$F7
 	STA $0302
 	LDA #$01
-	STA $0273
+	STA KBDVRL
 	STA $0274
 	STA KEYBOARD_COUNTER+2
 	STA KEYBOARD_COUNTER
 	LDA #$0E
-	STA $0272
+	STA KBDVRR
 	LDA #<LFA3F
 	LDY #>LFA3F
 	STA ADKBD
 	STY $2B
-	LSR $0270
+	LSR KBDFLG_KEY
 	LDA #$C0
 	STA FLGKBD
 	LDA #$00
@@ -3435,15 +3444,15 @@ LDBED
 LDC2B
 	
 	ldx SCRNB
-	ldy $0220,x
+	ldy SCRX,x
 	lda ($26),y
-	sta $024c,x
+	sta CURSCR,x
 	lda $26
-	sta $0218,x
+	sta ADSCRL,x
 	lda $27
-	sta $021c,x
+	sta ADSCRH,x
 	pla
-	sta $0248,x
+	sta FLGSCR,x
 	jsr LDE2D 
 LDC46	
 	pla
@@ -3514,7 +3523,7 @@ Ldc9a
 	JSR Ldbb5   ;                                                    I
 	JMP LDC46   ;   et on sort                                        I
 LDCB8
-	LDA $0248,X ;   US, on lit FLGSCR <-------------------------------
+	LDA FLGSCR,X ;   US, on lit FLGSCR <-------------------------------
 	PHA         ;   que l'on sauve                                    
 	JSR XCOSCR_ROUTINE   ;   on ?teint le curseur                            
 	PLA         ;   on prend FLGSCR                                   
@@ -3526,9 +3535,9 @@ LDCB8
 	AND #$3F    ;   on vire b4 (protocole US)                        I
 	STA SCRY,X ;   et on fixe Y                                     I
 	JSR LDE07   ;  on ajuste l'adresse dans la fen?tre              I
-	STA $0218,X ;   dans ADSCRL                                      I
+	STA ADSCRL,X ;   dans ADSCRL                                      I
 	TYA         ;                                                    I
-	STA $021C,X  ;  et ADSCRH                                        I
+	STA ADSCRH,X  ;  et ADSCRH                                        I
 	PLA         ;   on indique prochain code pour X                  I
 	ORA #$01    ;                                                    I
 	PHA        ;                                                     I
@@ -3832,9 +3841,9 @@ LDDFB
 	LDA SCRDX,X  ;  on prend la premi?re colonne                      
 	STA SCRX,X  ;  dans SCRX                                         
 	LDA SCRDY,X  ;  la premi?re ligne dans                            
-	STA $0224,X  ;  SCRY                                              
+	STA SCRY,X  ;  SCRY                                              
 LDE07
-	LDA $0224,X  ;  et on calcule l'adresse                           
+	LDA SCRY,X  ;  et on calcule l'adresse                           
 	JSR LDE12    ;  de la ligne                                       
 	STA $26      ;  dans ADSCR                                        
 	STY $27      ;                                                    
@@ -3850,8 +3859,8 @@ Action:En entr?e, A contient le num?ro de la ligne et en sortie, RES contient
   */                                                                              
 LDE12
 	JSR XMUL40_ROUTINE    ;  RES=A*40                                          
-	LDA $0238,X  ;  AY=adresse de la fen?tre                          
-	LDY $023C,X                                                      
+	LDA SCRBAL,X  ;  AY=adresse de la fen?tre                          
+	LDY SCRBAH,X                                                      
 	JMP XADRES_ROUTINE     ; on calcule dans RES l'adresse de la ligne   
 	
 XCOSCR_ROUTINE
@@ -3862,19 +3871,19 @@ XCSSCR_ROUTINE
 LDE20	
 	sec
 	PHP
-	ASL $0248,X
+	ASL FLGSCR,X
 	PLP
-	ROR $0248,X
+	ROR FLGSCR,X
 	bmi lde53
 	LDA #$80
 LDE2D	
-	AND $0248,X
+	AND FLGSCR,X
 	AND #$80
-	EOR $024C,X
+	EOR CURSCR,X
 	LDY SCRX,X
 	STA (ADSCR),Y
 	PHA
-	LDA $0248,X
+	LDA FLGSCR,X
 	AND #$02
 	beq lde52
 	LDA SCRY,X
@@ -4008,9 +4017,9 @@ LDECE
 	RTS          ;                             I    
 LDED7
 	LDA #$01     ;  on met 1 en $216 <----------                      
-	STA $0216                                                        
+	STA FLGCUR                                                        
 	LDA #$80      ; on force b7 ? 1 dans $217                         
-	STA $0217                                                        
+	STA FLGCUR_STATE                                                        
 	PLA           ; on sort A                                         
 	RTS           ; et on sort    
 
@@ -4778,7 +4787,7 @@ Le42a
 	LDY SCRX
 	LDA (ADSCR),Y
 	LDX SCRNB
-	STA $024C,X
+	STA CURSCR,X
 	RTS
 
 XEDT_ROUTINE	
@@ -4806,7 +4815,7 @@ Le452
 	BNE Le452  
 Le45a	
 	LDX SCRNB
-	LDA $0248,X
+	LDA FLGSCR,X
 	BMI Le466 
 	LDA #$11
 	JSR Le648 
@@ -4887,7 +4896,7 @@ LE4D5
 Le4df	
 	CMP #$7F
 	BNE Le52a
-	LDA $0278
+	LDA KBDSHT
 	LSR
 	BCS Le4f3
 	BCC Le4eb ; awful because it is the next instruction : 2 bytes lost !
@@ -4900,7 +4909,7 @@ Le4ee
 	JSR Le648
 Le4f3	
 	LDX SCRNB
-	LDA $024C,X
+	LDA CURSCR,X
 	CMP #$7F
 	BEQ Le4ee 
 	JSR send_the_end_of_line_in_bufedt
@@ -4973,7 +4982,7 @@ Le548
 	JSR Le648
 Le580	
 	LDX SCRNB
-	LDA $024C,X
+	LDA CURSCR,X
 	CMP #$7F
 	BNE Le58f
 	JSR XECRPR_ROUTINE
@@ -5009,7 +5018,7 @@ Le5b9
 	CMP #$08
 	BNE Le5d5
 	PHA
-	LDA $0278
+	LDA KBDSHT
 	LSR
 	BCS Le5cb
 Le5c4	
@@ -5026,7 +5035,7 @@ Le5d5
 	CMP #$09
 	BNE Le5ee
 	PHA
-	LDA $0278
+	LDA KBDSHT
 	LSR
 	BCC Le5c4
 	JSR Le322 
@@ -5812,12 +5821,12 @@ Le960
 	BMI LE9A7     ; oui ---------------------------------------------- 
 	STX SCRNB       ; TEXT, on met le num?ro de fen?tre dans $28       I
 	BCC LE971     ; si C=0, c'est PAPER                              I 
-	STA $0240,X  ;  on stocke la couleur d'encre                     I
+	STA SCRCT,X  ;  on stocke la couleur d'encre                     I
 	BCS LE974    ;  si C=1 c'est INK                                 I 
 LE971
 	STA SCRCF,X  ;  ou la couleur de fond  
 LE974	
-	LDA $0248,X  ;  est on en 38 colonnes ?                          I
+	LDA FLGSCR,X  ;  est on en 38 colonnes ?                          I
 	AND #$10     ;                                                   I
 	BNE LE987    ; mode 38 colonnes ------------------------------  I
 	LDA #$0C     ;  mode 40 colonnes, on efface l'?cran           I  I
@@ -5829,7 +5838,7 @@ LE987
 	LDA SCRDY,X  ;  on prend la ligne 0 de la fen?tre <------------  I
 	JSR XMUL40_ROUTINE    ;  *40 dans RES                                     I 
 	LDA SCRBAL,X  ;  AY=adresse de base de la fen?tre                 I
-	LDY $023C,X  ;                                                   I
+	LDY SCRBAH,X  ;                                                   I
 	JSR XADRES_ROUTINE   ;   on ajoute l'adresse ? RES (ligne 0 *40) dans RES I 
 	LDY SCRDX,X  ;  on prend la premi?re colonne de la fen?tre       I
 	DEY         ;   on enl?ve deux colonnes                          I
@@ -6570,7 +6579,7 @@ LEE9D
 	ORA #$30
 	JMP Ldbb5  
 
-XRING_ROUTINE
+XRING_ROUTINE  ; FIXME
 Leea5
 ; minitel (wait a ring on phone line)	
 	lda #0
