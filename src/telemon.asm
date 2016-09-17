@@ -2674,9 +2674,9 @@ CTRL_G_KEYBOARD ; Send oups
 	jmp XOUPS_ROUTINE 
 
 CTRL_O_KEYBOARD
-	lda $34
+	lda $34  ; CORRECTME
 	and #$0f
-	sta $34
+	sta $34  ; CORRECTME
 	rts
 
 init_minitel
@@ -2691,13 +2691,13 @@ manage_keyboard
 	beq Ld812
 	ldx KBDFLG_KEY
 	bpl Ld7f1 
-	lda $0271 
+	lda $0271   ; CORRECTME
 	and $01e8,x
 	bne Ld807
 Ld7f1	
 	dey
 	lda KBDCOL,y
-	sta $0271
+	sta $0271  ; CORRECTME
 	tya
 	ora #$80
 	sta KBDFLG_KEY
@@ -2705,17 +2705,17 @@ Ld7f1
 Ld800	
 routine_to_define_20
 ;	CLD
-	LDA KBDVRR ; CORRECTME
+	LDA KBDVRR 
 	JMP next60
 Ld807	
-	DEC $0274 ; CORRECTME
+	DEC $0274  ; CORRECTME
 	BNE end2 
 	JSR XKBDAS_ROUTINE
 	JMP Ld815
 Ld812
-	STA $0270 ; CORRECTME
+	STA $0270  ; CORRECTME
 Ld815	
-	LDA KBDVRL ; CORRECTME
+	LDA KBDVRL 
 next60		
 	STA $0274 ; CORRECTME
 end2

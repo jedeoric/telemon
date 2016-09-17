@@ -338,8 +338,8 @@ KBDFLG_KEY ; $270
 
 ; FIXME KBDKEY here
 
-;/// @brief [VALUE_PAGE_2]  contains key pressed
-;KBDKEY ;$271 
+/// @brief [VALUE_PAGE_2]  contains key pressed
+; KBDKEY ; $271  FIXME
 .dsb 1
 /// @brief [VALUE_PAGE_2]  contains nb before repeat keyboard
 KBDVRR; $272 
@@ -357,13 +357,15 @@ FLGKBD ;$0275	;Keyboard flag : b7 majn b6 if sound
 
 KBDFCT ;$0276 vector
 .dsb 2
-/*
+
 KBDSHT ;$278 ; Contains informations from key pressed
 .dsb 1
-KBDKEY ; $279 ; ASCII key
+;KBDKEY ; $279 ; ASCII key FIXME
 .dsb 5
 KBDCTC ; $27E ; if ctrl+c is done if b7 equal to 1
 .dsb 1
+; FIXME
+.dsb 7
 LPRX ; $0286 ; word cursor in the line
 .dsb 1
 LPRY ; $0287
@@ -376,8 +378,42 @@ LPRFY ; $0289 ;
 .dsb 1
 FLGLPR ; $028a ;; word b7 ready
 .dsb 1
+.dsb 1 ; FIXME
+/// @brief [VALUE_PAGE_2]  flag joystick
+/// b6=1 if left joystick
+/// b0=1 if  mouse
+FLGJCK ; $028c
+.dsb 1
+/// @brief [VALUE_PAGE_2]  value of left joystick
+JCGVAL ;$028d
+.dsb 1
+/// @brief [VALUE_PAGE_2]  value of right joystick
+JCDVAL ;$028e
+.dsb 1
+.dsb 16 ; FIXME 
+/// @brief [VALUE_PAGE_2] value of joystick by default : $0b $0a $20 $08 $09 $03 $03 these value must be verifyed 
+JCKTAB ;$029d
+.dsb 7
 
-*/
+KEYBOARD_COUNTER ;$02a6
+.dsb 4 ; FIXME
+HRSPAT ;$02aa
+.dsb 1 
+HRSERR ; $02ab
+.dsb 1 
+.dsb 2 ; FIXME
+/// @brief [VALUE_PAGE_2]  Activating channel 0
+IOTAB0 ; $02ae ; activating channel 0
+.dsb 4
+/// @brief [VALUE_PAGE_2]  Activating channel 1
+IOTAB1 ; $02b2 ; activating channel 1
+.dsb 4
+/// @brief [VALUE_PAGE_2]  Activating channel 2
+IOTAB2 ; $02b6 ; activating channel 2
+.dsb 4
+/// @brief [VALUE_PAGE_2]  Activating channel 3
+IOTAB3 ; $02ba ; activating channel 3
+.dsb 4
 
 
 

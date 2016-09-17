@@ -1,58 +1,14 @@
 
-/// @brief [VALUE_PAGE_2]  contains key pressed
-#define KBDKEY $271 
-
-/// @brief [VALUE_PAGE_2]  Manage function key
-
-
-
-#define KBDSHT $278 ; Contains informations from key pressed
 
 #define KBDKEY $279 ; ASCII key
 
-#define KBDCTC $27E ; if ctrl+c is done if b7 equal to 1
-
-#define LPRX $0286 ; word cursor in the line
-
-#define LPRY $0287
 
 
 
-#define LPRFX $0288 ; printer width
-
-#define LPRFY $0289 ; 
-
-#define FLGLPR $028a ;; word b7 ready
-
-/// @brief [VALUE_PAGE_2]  flag joystick
-/// b6=1 if left joystick
-/// b0=1 if  mouse
-#define FLGJCK $028c
-
-/// @brief [VALUE_PAGE_2]  value of left joystick
-#define JCGVAL $028d
-
-/// @brief [VALUE_PAGE_2]  value of right joystick
-#define JCDVAL $028e
-
-/// @brief [VALUE_PAGE_2] value of joystick by default : $0b $0a $20 $08 $09 $03 $03 these value must be verifyed 
-#define JCKTAB $029d
 
 
-#define KEYBOARD_COUNTER $02a6
 
-#define HRSPAT $02aa
 
-#define HRSERR $02ab
-
-/// @brief [VALUE_PAGE_2]  Activating channel 0
-#define IOTAB0 $02ae ; activating channel 0
-/// @brief [VALUE_PAGE_2]  Activating channel 1
-#define IOTAB1 $02b2 ; activating channel 1
-/// @brief [VALUE_PAGE_2]  Activating channel 2
-#define IOTAB2 $02b6 ; activating channel 2
-/// @brief [VALUE_PAGE_2]  Activating channel 3
-#define IOTAB3 $02ba ; activating channel 3
 
 
 #define ADIOB $02be ; 48 bytes ? I/O management address
