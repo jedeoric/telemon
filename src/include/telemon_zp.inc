@@ -400,11 +400,11 @@ VIA_UNKNOWN ; 028f seems tobe a backup of timer
 .dsb 2
 MOUSE_JOYSTICK_MANAGEMENT
 .dsb 1 ; 291
-.dsb 13 
+.dsb 11 
 /// @brief [VALUE_PAGE_2] value of joystick by default : $0b $0a $20 $08 $09 $03 $03 these value must be verifyed 
-JCKTAB ;$029f FIXME could be wrong offset
+JCKTAB ;$029d FIXME could be wrong offset
 .dsb 7
-
+.dsb 2
 KEYBOARD_COUNTER ;$02a6
 .dsb 4 ; FIXME
 HRSPAT ;$02aa

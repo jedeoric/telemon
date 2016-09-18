@@ -4290,11 +4290,11 @@ Action:G?re la souris comme pr?c?demment le joystick gauche, ? ceci pr?s qu'il
 	STA VABKP1     ;   dans VABKP1                                          
 	CMP #$1B    ;   la souris bouge ?                                 
 	BNE LE095   ;   non ---------------------------------------------- 
-	DEC JCKTAB+5   ;   on d?place ?                                     I
+	DEC JCKTAB+7   ;   on d?place ?                                     I
 	BNE Le084   ;   non, on sort.                                    I 
 LE095	
-	LDA JCKTAB+6    ;  on place vitesse d?placement dans  <--------------
-	STA JCKTAB+5    ;  $2A4                                              
+	LDA JCKTAB+8    ;  on place vitesse d?placement dans  <--------------
+	STA JCKTAB+7    ;  $2A4                                              
 	LDA VABKP1     ;   on lit le code                                    
 	CMP #$1B    ;   souris fixe ?                                     
 	BEQ LE0B5    ;  oui ----------------------------------------------
@@ -4386,7 +4386,7 @@ Le140
 	STA JCDVAL
 	AND #$20
 	BNE Le15b
-	LDA JCKTAB+3
+	LDA JCKTAB+5
 	JSR Le19d
 Le15b
 	LDA JCDVAL
@@ -4415,7 +4415,7 @@ Le180
 	STA JCDVAL
 	AND #$40
 	BNE Le19c 
-	LDA JCKTAB+4 ; CORRECTME
+	LDA JCKTAB+6 ; CORRECTME
 	JMP Le19d 
 Le19c
 	RTS
@@ -6579,7 +6579,7 @@ LEE9D
 	JMP Ldbb5  
 
 XRING_ROUTINE  ; FIXME
-	rts
+	
 
 
 
