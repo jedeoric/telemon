@@ -463,11 +463,29 @@ BNKCIB ; $417
 
 *=$500
 DOSVAR
-.dsb $17
+DRIVE
+.dsb 1
+TRACK
+.dsb 1
+SECTOR
+.dsb 1
+RWBUF
+.dsb 12
+ERRFLG
+.dsb 1
+ERRVEC
+.dsb 4
+POSNMP
+.dsb 1
+POSNMS
+.dsb 1
+POSNMW
+.dsb 1
+
 /// @brief [VALUE_PAGE_5] Buffer for filename. When stratsed needs to load a filename, it fills BUFNOM with 0 at the end of the string. It can be validated by primitive XNOMFI
 /// @see XNOMFI
 BUFNOM ; $517
-.dsb 11
+.dsb 12
 
 
 *=$55d
