@@ -6579,90 +6579,9 @@ LEE9D
 	JMP Ldbb5  
 
 XRING_ROUTINE  ; FIXME
-Leea5
-; minitel (wait a ring on phone line)	
-	lda #0
-	sta FLGJCK
-LEEAA	
-	lda #$10
-	bit V2PCR+1
-	bne Leee3 
-	sec
 	rts
-; minitel detect ring on line
-Leeb3
-	LDA #$FF
-	STA $0328
-	STA $0329
-LEEBB	
-	LDA $0329
-	CMP #$C5
-	BCS LEEBB 
-	BIT V2DRB 
-LEEC5	
-	LDA #$20
-	AND V2PCR+1 
-	BNE LEEDF 
-	LDA #$10
-	AND V2PCR+1
-	BEQ LEEC5 
-	
-	LDA $0329
-	CMP #$AD
-	BCC LEEE1 
-	CMP #$B5
-	LDA #$01
-	RTS
-LEEDF	
-	lda #0
-LEEE1	
-	sec
-	rts
-Leee3
-; minitel
-; detect_ring (next routine)
-	sei
-	ldx #4
-LEEE6	
-	jsr Leeb3 
-	dex
 
-	BNE LEEE6 
-LEEEC
-	JSR Leeb3 
-	BEQ LEEFB 
-	BCS LEEEC
-	INX
-	JMP LEEEC
-LEEF7
-	CLI
-	JMP LEEAA 
-LEEFB	
-	CPX #$06 
-	BCC LEEF7
-LEEFF	
-	JSR Leeb3 
-	BCS LEEFF
-	LDY #$1E
-	LDX #$00
-LEF08	
-	JSR Leeb3 
-	BCC LEF0E 
-	INX
-LEF0E	
-	DEY
-	BNE LEF08 
-	CPX #$0F
-	BCS LEEF7
-	
-	CLI
-	LDA #$0A
-	STA $44
-LEF1A	
-	LDA $44
-	BNE LEF1A 
-	CLC
-	rts
+
 
 XLIGNE_ROUTINE
 Lef20
