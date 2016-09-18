@@ -1,41 +1,9 @@
 
 
-#define KBDKEY $279 ; ASCII key
 
 
 
 
-
-
-
-
-
-
-#define ADIOB $02be ; 48 bytes ? I/O management address
-
-
-#define FLGRST $02ee
-#define CSRND $02EF ; current value of random generator
-
-
-
-
-
-
-
-
-
-
-#define VNMI $02F4
-#define VAPLIC $2FD ; No banque adress
-#define VIRQ $02fa ; Updated for atmos compatibility
-/********************************************************************** PAGE 4 VARIABLES */
-
-#define VEXBNK $414
-#define BNKCIB $417
-
-/// @brief [VALUE_PAGE_4] Store the old bank (if we call telemon from bank4, the id of the bank is stored here)
-#define BNKOLD $40F 
 
 
 /********************************************************************** VECTORS used with brk */

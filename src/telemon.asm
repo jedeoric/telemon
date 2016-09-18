@@ -78,7 +78,7 @@ loop1
 	LDA VIRQ ; testing if VIRQ low byte is $4C ?
 	CMP #$4C
 	BNE end_rout ; non equal to $4C
-	LDA $026D
+	LDA KBDCOL+5
 	AND #$20
 	BNE end_rout
 	LDA FLGTEL
@@ -237,7 +237,7 @@ before1
 	BPL before1
 	JSR routine_to_define_4 
 next5
-	LDA $026C ; 
+	LDA KBDCOL+4 ; 
 	AND #$90
 	BEQ next6
 	LDA FLGTEL
@@ -636,8 +636,7 @@ Lc382
 data_vectors_VNMI_VIRQ_VAPLIC
 	; 12 bytes
 	.byt $07,<display_developper,>display_developper ; VAPLIC vectors : bank + address ?
-	.byt $4c
-	.byt $00,$00
+	.byt $4c,$00,$00 ; ADIOB vector
 VIRQ_CODE
 	jmp $0406 ; stored in $2FA (VIRQ) 
 	.byt $80 ; will be stored in $2fd
@@ -1166,20 +1165,20 @@ Lc75d
 
 send_command_A	
 Lc81c
-	STY $17 ;FIXME
-	STY $18 ;FIXME
+	STY ADDRESS_VECTOR_FOR_ADIOB ;FIXME
+	STY ADDRESS_VECTOR_FOR_ADIOB+1 ;FIXME
 	PHA
 	TXA
 	ASL
 	TAX
 	LDA ADIOB,X
-	STA $02F8
+	STA ADIODB_VECTOR+1
 	LDA ADIOB+1,X
-	STA $02F9
+	STA ADIODB_VECTOR+2
 	PLA
-	LSR $17
-	BIT $18
-	JMP $02F7
+	LSR ADDRESS_VECTOR_FOR_ADIOB
+	BIT ADDRESS_VECTOR_FOR_ADIOB+1
+	JMP ADIODB_VECTOR
 
 
 
@@ -1385,13 +1384,13 @@ Lc957
 	STA TIMEM
 	INC TIMEH
 Lc973
-	DEC $0216
+	DEC FLGCUR
 	BNE Lc991
 	LDA #$0A
-	STA $0216
-	LDA $0217
+	STA FLGCUR
+	LDA FLGCUR_STATE
 	EOR #$80
-	STA $0217
+	STA FLGCUR_STATE
 	BIT FLGSCR
 	BPL Lc991
 	BVS Lc991
@@ -1402,14 +1401,14 @@ Lc991
 
 manage_irq_T1_and_T2
 Lc992
-	lda $030d
+	lda V1IFR
 	and #$20
 	beq LC9b9
-	lda $028f
-	ldy $0290
-	sta $0308
-	sty $0309
-	lda $028c
+	lda VIA_UNKNOWN
+	ldy VIA_UNKNOWN+1
+	sta V1T2
+	sty V1T2+1
+	lda FLGJCK
 	lsr
 	bcc C9b1
 	jsr le085 
@@ -1418,13 +1417,13 @@ Lc992
 routine_todefine_1:
 C9b1
 	LDA #$FF
-	STA $0309
+	STA V1T2+1
 	JMP LC8B9 
 LC9b9	
 	BIT V1IFR
 
 	BMI next110
-	BIT $1E
+	BIT TRANSITION_RS232
 	BPL next111
 	LDX IRQSVX
 	LDY IRQSVY
@@ -1432,7 +1431,7 @@ LC9b9
 next111	
 	JMP LC8B6 
 next110
-	LSR $1E
+	LSR TRANSITION_RS232
 	BIT V1IFR
 	BVC next112
 	BIT V1T1
@@ -1441,21 +1440,21 @@ next110
 	BNE next113 
 	JSR manage_keyboard 
 	JSR LC8BF
-	BIT KBDFLG_KEY ; CORRECTME
+	BIT KBDFLG_KEY 
 	BPL next114 
 	LDA #$14 
-	STA KEYBOARD_COUNTER+1 ; CORRECTME
+	STA KEYBOARD_COUNTER+1
 	BNE LC9FB 
 next114	
-	LDA KEYBOARD_COUNTER+2 ; CORRECTME
-	BIT KEYBOARD_COUNTER+1 ; CORRECTME
+	LDA KEYBOARD_COUNTER+2 
+	BIT KEYBOARD_COUNTER+1 
 	BMI lc9fd 
-	DEC KEYBOARD_COUNTER+1 ; CORRECTME
+	DEC KEYBOARD_COUNTER+1 
 LC9FB
 next115	
 	LDA #$01
 lc9fd	
-	STA KEYBOARD_COUNTER ; CORRECTME
+	STA KEYBOARD_COUNTER ;
 Lca00
 next113	
 	BIT FLGJCK
@@ -1509,23 +1508,23 @@ reset_clock
 	lda #0
 	ldx #4
 Lda59	
-	sta $0210,x
+	sta TIMED,x
 	dex
 	bpl Lda59
 	lda #1
 	sta FLGCLK_FLAG
 	rts
 XCLCL_ROUTINE
-	lsr $0214
+	lsr FLGCLK
 	rts
 XWRCLK_ROUTINE
 
 	php
 	sei
-	sta $40
-	sty $41
+	sta ADCLK
+	sty ADCLK+1
 	sec
-	ror $214
+	ror FLGCLK
 	plp
 	rts
 
@@ -1543,7 +1542,7 @@ Lca75
 	LDA #$3A
 	STA (ADCLK),Y
 	INY
-	LDA $0211
+	LDA TIMES
 telemon_display_clock_chars
 ; display clock at the adress specified	
 Lca90
@@ -1962,10 +1961,10 @@ Lcd20
 	bcc Lcd29 
 	inx
 Lcd29	
-	sta $02
+	sta RESB
 	stx RESB+1
 	lda #$20
-	sta $14
+	sta DEFAFF
 	pla
 	clc
 	adc #1
@@ -2369,7 +2368,7 @@ Lcf44
 XHIRES_ROUTINE	
 	ldx #$00
 	ldy #$ff
-	sty $02aa ; pattern
+	sty HRSPAT ; pattern
 	iny
 	jsr Le7f3 
 	lda FLGTEL ; we are already in Hires ?
@@ -2484,7 +2483,7 @@ XNOMFI_ROUTINE
 	sty ADDRESS_READ_BETWEEN_BANK+1
 	stx RES
 	inc RES
-	ldy $020c
+	ldy DRVDEF
 	sty BUFNOM
 	sty $500
 	ldy #$0c
@@ -2538,7 +2537,7 @@ Ld04a
 	bcs Ld047
 	cpx #2
 	bne Ld056
-	sta $020c
+	sta DRVDEF
 	rts
 Ld056
 
@@ -2691,13 +2690,13 @@ manage_keyboard
 	beq Ld812
 	ldx KBDFLG_KEY
 	bpl Ld7f1 
-	lda $0271   ; CORRECTME
+	lda KBD_UNKNOWN   ; CORRECTME
 	and $01e8,x
 	bne Ld807
 Ld7f1	
 	dey
 	lda KBDCOL,y
-	sta $0271  ; CORRECTME
+	sta KBD_UNKNOWN  ; CORRECTME
 	tya
 	ora #$80
 	sta KBDFLG_KEY
@@ -2708,16 +2707,16 @@ routine_to_define_20
 	LDA KBDVRR 
 	JMP next60
 Ld807	
-	DEC $0274  ; CORRECTME
+	DEC KBDVRL+1  ; CORRECTME
 	BNE end2 
 	JSR XKBDAS_ROUTINE
 	JMP Ld815
 Ld812
-	STA $0270  ; CORRECTME
+	STA KBDFLG_KEY ; CORRECTME
 Ld815	
 	LDA KBDVRL 
 next60		
-	STA $0274 ; CORRECTME
+	STA KBDVRL+1 ; CORRECTME
 end2
 	RTS
 next75
@@ -2728,19 +2727,19 @@ XKBDAS_ROUTINE
 	JSR LC8BF 
 	LDA #$00
 	PHA
-	LDA KBDFLG_KEY ; CORRECTME
+	LDA KBDFLG_KEY 
 	ASL
 	ASL
 	ASL
 	TAY
-	LDA $0271 ; CORRECTME
+	LDA KBD_UNKNOWN ;
 next63
 	LSR 
 	BCS next62
 	INY
 	BCC next63
 next62
-	LDA $026C
+	LDA KBDCOL+4
 	TAX
 	AND #$90
 	BEQ next64
@@ -2777,10 +2776,10 @@ next67
 	TXA
 	AND #$04
 	BEQ next68
-	AND $026F ; CORRECTME
+	AND KBDCOL+7 ; CORRECTME
 	BEQ next69
 	LDA #$80
-	STA $027E ; CORRECTME
+	STA KBDCTC ; CORRECTME
 next69
 	PLA
 	ORA #$80
@@ -2866,7 +2865,7 @@ Ld8fb
 	lda #$7e
 	jmp Ld882 
 Ld900
-	jmp ($0276)
+	jmp (KBDFCT) ; Jump into function key vector
 
 
 init_disk	
@@ -2942,8 +2941,8 @@ manage_I_O_keyboard
 Ld95c
 	bmi Ld985 
 	lda #1
-	sta $02a8
-	sta $02a6
+	sta  KEYBOARD_COUNTER+2
+	sta  KEYBOARD_COUNTER 
 	php
 	sei
 	ldx #0
@@ -2999,7 +2998,7 @@ init_keyboard
 	STA $0302
 	LDA #$01
 	STA KBDVRL
-	STA $0274
+	STA KBDVRL+1
 	STA KEYBOARD_COUNTER+2
 	STA KEYBOARD_COUNTER
 	LDA #$0E
@@ -3012,7 +3011,7 @@ init_keyboard
 	LDA #$C0
 	STA FLGKBD
 	LDA #$00
-	STA $027E
+	STA KBDCTC
 	RTS
 send_14_paramaters_to_psg	
 ld9e7
@@ -3109,8 +3108,8 @@ routine_to_define_8
 	; store hard_copy_routine in $250 in order to jump in
 	LDA #<hard_copy_hires 
 	LDY #>hard_copy_hires 
-	STA $0250 ; LPRVEC ?
-	STY $0251 ; LPRVEC ?
+	STA HARD_COPY_HIRES_VECTOR ; 
+	STY HARD_COPY_HIRES_VECTOR+1 ; 
 	rts
 Lda70	
 	bmi LDAD2	
@@ -3133,15 +3132,15 @@ Lda72
 	BNE next901
 	BEQ next902
 next900
-	LDX $0286
+	LDX LPRX
 	INX
-	CPX $0288
+	CPX LPRFX
 	BCC next903
 	JSR Ldae4
 next902
 	LDX #$00
 next903
-	STX $0286
+	STX LPRX
 next901
 	PLA
 	TAX
@@ -4178,24 +4177,24 @@ loop
 .)
 
 	LDA #$01
-	STA $0297
-	STA $029C
+	STA MOUSE_JOYSTICK_MANAGEMENT+6
+	STA MOUSE_JOYSTICK_MANAGEMENT+11
 	LDA #$06
-	STA $0298
-	STA $029B
+	STA MOUSE_JOYSTICK_MANAGEMENT+7
+	STA MOUSE_JOYSTICK_MANAGEMENT+10
 	LDA #$01
-	STA $0299
+	STA MOUSE_JOYSTICK_MANAGEMENT+8
 	LDA #$0A
-	STA $029A
+	STA MOUSE_JOYSTICK_MANAGEMENT+9
 	LDA #$03
-	STA $02A4
-	STA $02A5
+	STA JCKTAB+5
+	STA JCKTAB+6
 	LDA #$10
 	LDY #$27
-	STA $028F
-	STY $0290
-	STA $0308
-	STY $0309
+	STA VIA_UNKNOWN
+	STY VIA_UNKNOWN+1
+	STA V1T2
+	STY V1T2+1
 	LDA #$A0
 	STA V1IER
 	RTS
@@ -4211,17 +4210,17 @@ Ldffb
 	JSR Ldf90 
 	AND #$04
 	BNE Le01e
-	DEC $0293 ; CORRECTME
+	DEC MOUSE_JOYSTICK_MANAGEMENT+2 ; CORRECTME
 	BNE Le037
-	LDX $0297 ; CORRECTME
+	LDX MOUSE_JOYSTICK_MANAGEMENT+6 ; CORRECTME
 	JMP Le01e 
 Le014
 	JSR Ldf90 
 	AND #$04
 	BNE Le037
-	LDX $0298 ; CORRECTME
+	LDX MOUSE_JOYSTICK_MANAGEMENT+7 ; CORRECTME
 Le01e
-	STX $0293 ; CORRECTME
+	STX MOUSE_JOYSTICK_MANAGEMENT+2 ; CORRECTME
 	STA VABKP1 ; CORRECTME
 	LDA JCGVAL
 	AND #$1B
@@ -4229,7 +4228,7 @@ Le01e
 	STA JCGVAL
 	LDA VABKP1 ; CORRECTME
 	BNE Le037
-	LDA $029F ; CORRECTME
+	LDA JCKTAB ; CORRECTME
 	JSR Le19f 
 Le037
 	LDA JCGVAL
@@ -4243,18 +4242,18 @@ Le037
 	AND #$1B
 	EOR VABKP1
 	BNE Le062
-	DEC $0291
+	DEC MOUSE_JOYSTICK_MANAGEMENT
 	BNE Le084
-	LDX $0297 ; CORRECTME
+	LDX MOUSE_JOYSTICK_MANAGEMENT+6 ; CORRECTME
 	JMP Le065
 Le05b
 	JSR Ldf90 
 	AND #$1B
 	STA VABKP1 ; CORRECTME
 Le062
-	LDX $0298 ; CORRECTME
+	LDX MOUSE_JOYSTICK_MANAGEMENT+7 ; CORRECTME
 Le065
-	STX $0291 ; CORRECTME
+	STX MOUSE_JOYSTICK_MANAGEMENT ; CORRECTME
 	LDA JCGVAL
 	AND #$04
 	ORA VABKP1 ; CORRECTME
@@ -4291,11 +4290,11 @@ Action:G?re la souris comme pr?c?demment le joystick gauche, ? ceci pr?s qu'il
 	STA VABKP1     ;   dans VABKP1                                          
 	CMP #$1B    ;   la souris bouge ?                                 
 	BNE LE095   ;   non ---------------------------------------------- 
-	DEC $02A4   ;   on d?place ?                                     I
+	DEC JCKTAB+5   ;   on d?place ?                                     I
 	BNE Le084   ;   non, on sort.                                    I 
 LE095	
-	LDA $02A5    ;  on place vitesse d?placement dans  <--------------
-	STA $02A4    ;  $2A4                                              
+	LDA JCKTAB+6    ;  on place vitesse d?placement dans  <--------------
+	STA JCKTAB+5    ;  $2A4                                              
 	LDA VABKP1     ;   on lit le code                                    
 	CMP #$1B    ;   souris fixe ?                                     
 	BEQ LE0B5    ;  oui ----------------------------------------------
@@ -4303,15 +4302,15 @@ LE095
 	EOR JCDVAL   ;   et on retourne les bits de JCDVAL                I
 	AND #$1B   ;    en isolant les bits direction                    I
 	BNE LE0B5  ;    ce ne sont pas les m?mes exactement -------------O 
-	DEC $0292  ;    on r?p?te ?                                      I
+	DEC MOUSE_JOYSTICK_MANAGEMENT+1  ;    on r?p?te ?                                      I
 	BNE LE0E0  ;    non                                              I 
-	LDX $0299 ;     oui, on met le diviseur r?p?tition               I
+	LDX MOUSE_JOYSTICK_MANAGEMENT+8 ;     oui, on met le diviseur r?p?tition               I
 	JMP LE0BB ;  ---dans le compteur                                 I 
 LE0B5
 	JSR Ldf99  ; I  on lit la souris <-------------------------------- 
-	LDX $029A ;  I  on place le compteur avant r?p?tition   
+	LDX MOUSE_JOYSTICK_MANAGEMENT+9 ;  I  on place le compteur avant r?p?tition   
 LE0BB
-	STX $0292 ;  -->dans le d?compteur                                
+	STX MOUSE_JOYSTICK_MANAGEMENT+1 ;  -->dans le d?compteur                                
 	AND #$1B  ;     on isole les bits de direction                    
 	STA VABKP1  ;      dans VABKP1                                          
 	LDA JCDVAL ;     on prend JDCVAL                                   
@@ -4342,24 +4341,24 @@ Le0e1
 	JSR Ldf99 
 	AND #$04
 	BNE Le102
-	DEC $0294 ; CORRECTME
+	DEC MOUSE_JOYSTICK_MANAGEMENT+3 ; CORRECTME
 	BNE Le11b
-	LDX $0297 ; CORRECTME
+	LDX MOUSE_JOYSTICK_MANAGEMENT+6 ; CORRECTME
 	JMP Le102
 Le0fa
 	JSR Ldf99
 	AND #$04
-	LDX $0298 ; CORRECTME
+	LDX MOUSE_JOYSTICK_MANAGEMENT+7 ; CORRECTME
 Le102
 	STA VABKP1 ; CORRECTME
-	STX $0294 ; CORRECTME
+	STX MOUSE_JOYSTICK_MANAGEMENT+3 ; CORRECTME
 	LDA JCDVAL
 	AND #$7B
 	ORA VABKP1
 	STA JCDVAL
 	LDA VABKP1
 	BNE Le11b
-	LDA $029F ; CORRECTME
+	LDA JCKTAB ; CORRECTME
 	JSR Le19d 
 Le11b
 	LDA JCDVAL
@@ -4369,25 +4368,25 @@ Le11b
 	LDA V2DRAB
 	AND #$20
 	BNE Le140
-	DEC $0295
+	DEC MOUSE_JOYSTICK_MANAGEMENT+4 ; CORRECTME
 	BNE Le15b
-	LDX $029C
+	LDX MOUSE_JOYSTICK_MANAGEMENT+11 ; CORRECTME
 	JMP Le140
 Le137
 	JSR Ldf99
 	LDA V2DRAB
-	LDX $029B
+	LDX MOUSE_JOYSTICK_MANAGEMENT+10 ; CORRECTME
 Le140
-	STX $0295
+	STX MOUSE_JOYSTICK_MANAGEMENT+4 ; CORRECTME
 	AND #$20
-	STA VABKP1 ; CORRECTME
+	STA VABKP1 
 	LDA JCDVAL
 	AND #$5F
-	ORA VABKP1 ; CORRECTME
+	ORA VABKP1 
 	STA JCDVAL
 	AND #$20
 	BNE Le15b
-	LDA $02A2
+	LDA JCKTAB+3
 	JSR Le19d
 Le15b
 	LDA JCDVAL
@@ -4397,16 +4396,16 @@ Le15b
 	LDA V2DRAB
 	AND #$80
 	BNE Le180
-	DEC $0296 ; CORRECTME
+	DEC MOUSE_JOYSTICK_MANAGEMENT+5 ; CORRECTME
 	BNE Le19c
-	LDX $029C ; CORRECTME
+	LDX MOUSE_JOYSTICK_MANAGEMENT+11 ; CORRECTME
 	JMP Le180
 Le177
 	JSR Ldf99
 	LDA V2DRAB
-	LDX $029B ; CORRECTME
+	LDX MOUSE_JOYSTICK_MANAGEMENT+10 ; CORRECTME
 Le180
-	STX $0296 ; CORRECTME
+	STX MOUSE_JOYSTICK_MANAGEMENT+5 ; CORRECTME
 	LSR
 	AND #$40
 	STA VABKP1
@@ -4416,7 +4415,7 @@ Le180
 	STA JCDVAL
 	AND #$40
 	BNE Le19c 
-	LDA $02A3 ; CORRECTME
+	LDA JCKTAB+4 ; CORRECTME
 	JMP Le19d 
 Le19c
 	RTS
@@ -4489,7 +4488,7 @@ data_for_hard_copy
 XHCHRS_ROUTINE
 LE250
 execute_hard_copy_hires
-	jmp ($0250)
+	jmp (HARD_COPY_HIRES_VECTOR)
 LE253	
 hard_copy_hires
 	LDX #$05
@@ -5490,8 +5489,8 @@ Action:calcule l'adresse du curseur en calculant la position de la ligne par
 
 
 Le7f3                                                                                
-	STY $47   ;     Y dans HRSY                                       
-	STX $46   ;     X dans HRSX                                       
+	STY HRSY   ;     Y dans HRSY                                       
+	STX HRSX   ;     X dans HRSX                                       
 	TYA       ;     et Y dans A                                       
 	LDY #$00  ;     AY=A, ligne du curseur                            
 	JSR XMUL40_ROUTINE  ;    on calcule 40*ligne                            
@@ -5523,11 +5522,11 @@ Principe:On calcule les coordonn?es absolues des 4 coins et on trace en absolu.
 XBOX_ROUTINE
 Le819                                                                                
 	CLC         ;   C=0                                               
-	LDA $46     ;   on place les coordon?es actuelles                 
+	LDA HRSX     ;   on place les coordon?es actuelles                 
 	STA $06     ;   du curseur dans $06-07                            
 	ADC $4D     ;   et les coordonn?es (X+dX,Y+dY)                    
 	STA DECCIB                                                          
-	LDA $47                                                          
+	LDA HRSY                                                          
 	STA DECFIN+1                                                          
 	ADC $4F                                                          
 	STA DECCIB+1     ;   dans DECCIB-09                                       
@@ -5601,7 +5600,7 @@ XDRAWA_ROUTINE
 	JSR Le7f3   ;   on place le curseur en X,Y                         
 	LDX #$FF    ;   on met -1 dans X pour un changement de signe      
 	SEC         ;   ?ventuel dans les param?tres                      
-	LDA $51     ;   on prend X2                                       
+	LDA HRS3     ;   on prend X2                                       
 	SBC $4D     ;   -X1                                               
 	STA $4D     ;   dans HRS1 (DX)                                    
 	BCS LE87B   ;   si DX<0, on inverse le signe de HRS1              
@@ -5640,11 +5639,11 @@ Principe:Le principe du trac? des droites est en fait assez complexe. On aurait
    
 XDRAWR_ROUTINE
 Le885                                                                             
-	LDA $02AA  ;    sauve le pattern                                  
+	LDA HRSPAT  ;    sauve le pattern                                  
 	STA $56    ;    dans HRS1+1                                       
 	JSR Le942  ;    v?rifie la validit? de dX et dY                  
-	STX $46    ;    X et Y contiennent HRSX+dX et HRSY+dY             
-	STY $47     ;   dans HRSX et HRSY                                 
+	STX HRSX    ;    X et Y contiennent HRSX+dX et HRSY+dY             
+	STY HRSY     ;   dans HRSX et HRSY                                 
 	BIT $4E    ;    dX n?gatif ?                                      
 	BPL LE89D  ;    non ----------------------------------------------
 	LDA $4D    ;    oui, on compl?mente                              I
@@ -5765,11 +5764,11 @@ Action:V?rifie si l'adressage relatif du curseur est dans les limites de l'?cran
   */
 Le942  
 	CLC                                                              
-	LDA $46     ;   on prend HRSX                                     
+	LDA HRSX     ;   on prend HRSX                                     
 	ADC $4D     ;   plus le d?placement horizontal                    
 	TAX          ;  dans X                                            
 	CLC                                                              
-	LDA $47     ;   HRSY                                              
+	LDA HRSY     ;   HRSY                                              
 	ADC $4F     ;   plus le d?placement vertical                      
 	TAY         ;   dans Y           
 
@@ -5788,7 +5787,7 @@ le94e
 	RTS         ;   coordonn?es ok, on sort.                         I
 LE957
 	PLA          ;  on d?pile poids fort (>0) <-----------------------
-	STA $02AB    ;  dans HRSERR                                       
+	STA HRSERR    ;  dans HRSERR                                       
 	PLA          ;  et poids faible de l'adresse de retour            
 	RTS          ;  et on retourne ? l'appelant de l'appelant    
 
@@ -5936,17 +5935,17 @@ Remarque:La routine est bugg?e, en effet si le rayon est 0, la boucle de calcul
 XCIRCL_ROUTINE
 Le9cb
                                                                                
-	LDA $46       ; on sauve HRSX                                     
+	LDA HRSX       ; on sauve HRSX                                     
 	PHA                                                              
-	LDA $47      ;  et HRSY                                           
+	LDA HRSY      ;  et HRSY                                           
 	PHA                                                              
-	LDA $02AA   ;   et on met le pattern dans $56                     
+	LDA HRSPAT   ;   et on met le pattern dans $56                     
 	STA $56      ;  car le trac? du cercle en tient compte            
-	LDA $47      ;  on prend HRSY                                     
+	LDA HRSY      ;  on prend HRSY                                     
 	SEC                                                              
 	SBC $4D     ;   -rayon                                            
 	TAY          ;  dans Y                                            
-	LDX $46     ;   on prend HRSX                                     
+	LDX HRSX     ;   on prend HRSX                                     
 	JSR Le7f3    ;  et on place le premier point du cercle (X,Y-R)      
 	LDX #$08    ;   X=7+1 pour calculer N tel que Rayon<2^N.          
 	LDA $4D     ;   on prend le rayon                                 
@@ -6052,7 +6051,7 @@ LEA73
 Lea7b
 	ldx $4f
 	ldy $49
-	lda $51
+	lda HRS3
 Lea81	
 	sta (RES),y
 	iny
@@ -6067,8 +6066,8 @@ Lea92
 	rts
 	
 XSCHAR_ROUTINE
-	sta $51
-	sty $52
+	sta HRS3
+	sty HRS3+1
 	stx $4f
 	lda #$40
 	sta $57
@@ -6092,11 +6091,11 @@ LEAAF
 	ROR
 LEAB5	
 	PHA
-	LDA $46
+	LDA HRSX
 	CMP #$EA
 	BCC Lead3
 	LDX $4A
-	LDA $47
+	LDA HRSY
 	ADC #$07
 	TAY
 	SBC #$BF
@@ -6141,10 +6140,10 @@ Leaf3
 	INY
 	CPY #$08
 	BNE Lead9
-	LDA $46
+	LDA HRSX
 	ADC #$05
 	TAX
-	LDY $47
+	LDY HRSY
 	JMP Le7f3 
 
 
@@ -6229,7 +6228,7 @@ Lec6b
 	STX TR0
 	STY TR1
 Lec6f	
-	ASL $027E
+	ASL KBDCTC
 	BCC Lec77
 	PLA
 	PLA
@@ -6429,7 +6428,7 @@ Led9a
 XSDUMP_ROUTINE
 	JSR LECC1
 LED9D	
-	ASL $027E
+	ASL KBDCTC
 	BCS LEDC7 
 	JSR READ_A_SERIAL_BUFFER_CODE_INPUT
 	BCS LED9D 
@@ -6583,10 +6582,10 @@ XRING_ROUTINE  ; FIXME
 Leea5
 ; minitel (wait a ring on phone line)	
 	lda #0
-	sta $028c
+	sta FLGJCK
 LEEAA	
 	lda #$10
-	bit $032d
+	bit V2PCR+1
 	bne Leee3 
 	sec
 	rts
@@ -6602,10 +6601,10 @@ LEEBB
 	BIT V2DRB 
 LEEC5	
 	LDA #$20
-	AND $032D 
+	AND V2PCR+1 
 	BNE LEEDF 
 	LDA #$10
-	AND $032D
+	AND V2PCR+1
 	BEQ LEEC5 
 	
 	LDA $0329

@@ -36,7 +36,9 @@ TR7 ;$13
 DEFAFF  ; $14
 .dsb 1
 ADDRESS_READ_BETWEEN_BANK ;$15
-.dsb 4 ; FIXME
+.dsb 2 ; FIXME
+ADDRESS_VECTOR_FOR_ADIOB
+.dsb 2
 work_channel ;$19
 .dsb 1
 i_o_counter; $1a
@@ -106,8 +108,14 @@ TIMEUS ;$42
 TIMEUD ;$44
 
 .dsb 2
-; $46 FIXME
-.dsb 7 ; FIXME
+; $46 
+HRSX
+.dsb 1 
+; $47
+HRSY
+.dsb 1
+; $48
+.dsb 5 ; FIXME
 HRS1 ; $4d
 .dsb 2
 HRS2 ;$4f
@@ -339,7 +347,7 @@ KBDFLG_KEY ; $270
 ; FIXME KBDKEY here
 
 /// @brief [VALUE_PAGE_2]  contains key pressed
-; KBDKEY ; $271  FIXME
+KBD_UNKNOWN ; $271  FIXME
 .dsb 1
 /// @brief [VALUE_PAGE_2]  contains nb before repeat keyboard
 KBDVRR; $272 
@@ -351,8 +359,6 @@ FLGKBD ;$0275	;Keyboard flag : b7 majn b6 if sound
 .dsb 1
 
 
-
-
 /// @brief [VALUE_PAGE_2]  Manage function key
 
 KBDFCT ;$0276 vector
@@ -360,7 +366,7 @@ KBDFCT ;$0276 vector
 
 KBDSHT ;$278 ; Contains informations from key pressed
 .dsb 1
-;KBDKEY ; $279 ; ASCII key FIXME
+KBDKEY ; $279 ; ASCII key FIXME
 .dsb 5
 KBDCTC ; $27E ; if ctrl+c is done if b7 equal to 1
 .dsb 1
@@ -390,9 +396,13 @@ JCGVAL ;$028d
 /// @brief [VALUE_PAGE_2]  value of right joystick
 JCDVAL ;$028e
 .dsb 1
-.dsb 16 ; FIXME 
+VIA_UNKNOWN ; 028f seems tobe a backup of timer
+.dsb 2
+MOUSE_JOYSTICK_MANAGEMENT
+.dsb 1 ; 291
+.dsb 13 
 /// @brief [VALUE_PAGE_2] value of joystick by default : $0b $0a $20 $08 $09 $03 $03 these value must be verifyed 
-JCKTAB ;$029d
+JCKTAB ;$029f FIXME could be wrong offset
 .dsb 7
 
 KEYBOARD_COUNTER ;$02a6
@@ -414,6 +424,36 @@ IOTAB2 ; $02b6 ; activating channel 2
 /// @brief [VALUE_PAGE_2]  Activating channel 3
 IOTAB3 ; $02ba ; activating channel 3
 .dsb 4
+
+ADIOB ; $02be ; 48 bytes ? I/O management address
+.dsb 48
+
+FLGRST ; $02ee
+.byt 0
+CSRND ; $02EF ; current value of random generator
+.dsb 5 ; FIXME
+
+VNMI ; $02F4
+.dsb 3 ; FIXME
+ADIODB_VECTOR ; $2f7
+.dsb 3
+VIRQ ; $02fa ; Updated for atmos compatibility
+.dsb 3
+
+VAPLIC ;$2FD ; No banque adress
+.dsb 3
+
+/********************************************************************** PAGE 4 VARIABLES */
+/// @brief [VALUE_PAGE_4] Store the old bank (if we call telemon from bank4, the id of the bank is stored here)
+*=$40f
+BNKOLD ; $40F 
+.dsb 1
+*=$414
+VEXBNK ; $414
+.dsb 3
+BNKCIB ; $417
+.dsb 1 ;?
+
 
 
 
