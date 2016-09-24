@@ -1,5 +1,3 @@
-#include "include/ch376.h"
-#include "include/telemon.h"
 
 
 
@@ -8,6 +6,16 @@
 //@set filename, input : A and Y adress of the string, terminated by 0
 _ch376_set_file_name
 .(
+#ifdef DEBUG_CH376
+	lda #<str_setting_filename
+	ldy #>str_setting_filename
+	BRK_TELEMON(XWSTR0)
+	
+	lda #<str_ok_message
+	ldy #>str_ok_message
+	BRK_TELEMON(XWSTR0)	
+#endif
+
 	; VARAPL
 	lda #CH376_SET_FILE_NAME ;$2f
 	sta CH376_COMMAND
@@ -15,6 +23,9 @@ _ch376_set_file_name
 loop	
 	lda BUFNOM,x ; replace by bufnom
 	beq end ; we reached 0 value
+//	sta $bb80,x
+	BRK_TELEMON(XMINMA)
+	//sta $bb80+40,x
 	sta CH376_DATA
 	inx
 	cpx #11 ; because we don't manage longfilename shortname =11
@@ -27,12 +38,43 @@ end
 
 _ch376_file_open
 	.(
+#ifdef DEBUG_CH376
+	lda #<str_fileopen
+	ldy #>str_fileopen
+	BRK_TELEMON(XWSTR0)
+	
+	lda #<str_ok_message
+	ldy #>str_ok_message
+	BRK_TELEMON(XWSTR0)	
+#endif
+	
 	lda #CH376_FILE_OPEN ; $32
 	sta CH376_COMMAND
 	jsr _ch376_wait_response
 	.)
 	rts
 
+	;CMD_GET_FILE_SIZE
+	
+_ch376_get_file_size
+.(
+	lda #CH376_GET_FILE_SIZE
+	sta CH376_COMMAND
+	lda #$68
+	sta CH376_DATA
+	; store file leng
+	lda CH376_DATA
+	sta TR0
+	lda CH376_DATA
+	sta TR1
+	lda CH376_DATA
+	sta TR2
+	lda CH376_DATA
+	sta TR3
+	
+.)
+	rts
+	
 _ch376_reset_all:
 .(
 	lda #CH376_RESET_ALL ; 5 
@@ -41,6 +83,7 @@ _ch376_reset_all:
 	ldy #0
 	ldx #0
 loop
+	nop
 	inx
 	bne loop
 	iny
@@ -70,9 +113,17 @@ _ch376_set_usb_mode
 	sta CH376_COMMAND
 	lda #CH376_SET_USB_MODE_CODE_USB_HOST_SOF_PACKAGE_AUTOMATICALLY
 	sta CH376_DATA
-
 	rts
 
+_ch376_set_bytes_read
+	; A and Y contains number of bytes to read
+	ldx #CH376_BYTE_READ
+	stx CH376_COMMAND
+	sta CH376_DATA
+	sty CH376_DATA
+	jsr _ch376_wait_response
+	rts
+	
 _ch376_disk_mount
 	lda #CH376_DISK_MOUNT ; $31
 	sta CH376_COMMAND
@@ -82,22 +133,32 @@ _ch376_disk_mount
 
 _ch376_wait_response
 .(
-	ldy #255
-loop2
-	ldx #255
-loop
-;	lda #"W"
-;	 sta $bb80+40,x
-#ifdef DEBUG2
-	txa
-	pha
-	BRK_TELEMON(XCRLF)
+; 1 return 1 if usb controller does not respond
+; else A contains answer of the controller
+
+#ifdef DEBUG_CH376
 	lda #<str_waiting
 	ldy #>str_waiting
 	BRK_TELEMON(XWSTR0)
-	BRK_TELEMON(XCRLF)
+#endif
+
+	ldy #$ff
+loop3
+	ldx #$ff ; merci de laisser une valeur importante car parfois en mode non debug, le controleur ne répond pas tout de suite
+loop
+;	lda #"W"
+;	 sta $bb80+40,x
+#ifdef DEBUG_LS
+	tya
+	pha
+	txa
+	pha
+	lda #"."
+	BRK_TELEMON(XWR0)
 	pla
 	tax
+	pla
+	tay
 #endif
 	lda CH376_COMMAND
 	and #%10000000
@@ -106,9 +167,10 @@ loop
 	dex
 	bne loop
 	dey
-	bne loop2
+	bne loop3
 	; error is here
-	lda #1
+
+	lda #1 
 	rts
 .)
 no_error
@@ -119,16 +181,16 @@ no_error
 
 	cmp #$1d
 	beq good_message
-	cmp #$14
+	cmp #CH376_USB_INT_SUCCESS
 	beq good_message
-#ifdef DEBUG
+#ifdef DEBUG_LS
 	lda #<str_failed_message
 	ldy #>str_failed_message
 	BRK_TELEMON(XWSTR0)	
 #endif
 	rts
 good_message
-#ifdef DEBUG2
+#ifdef DEBUG_LS
 	pha
 	lda #<str_ok_message
 	ldy #>str_ok_message
@@ -137,5 +199,6 @@ good_message
 #endif
 .)
 	rts
-
+str_usbdrive_controller_not_found
+	.asc "Usb drive controller not found !",0
 

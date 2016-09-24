@@ -24,6 +24,6 @@ copy ..\release\telemon%RELEASE%.rom %ORICUTRON%\roms\telemon%RELEASE%.rom
 
 IF "%UNITTEST%"=="NO" GOTO End
 cd %ORICUTRON%
-oricutron -mt -d teledisks\stratsed.dsk
+oricutron_ch376 -mt -d teledisks\stratsed.dsk
 :End
 cd %ORIGIN_PATH%

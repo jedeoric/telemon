@@ -61,6 +61,13 @@
 /// @param A (accumulator)  [in] The desired low adress of the string
 /// @param Y (register)  [in] The desired high adress of the string
 /// string must be terminated by 0. Manage CRLF
+/*!
+ lda #<str
+ ldy #>str
+ BRK XWSTR0
+str
+ .asc "hello world !",0
+*/
 #define XWSTR0 $14 
 
 /// @brief [VECTOR] display string on text mode on channel 1
@@ -138,7 +145,7 @@
 /// @brief [PRIMITIVE] Converting A from lower case to uppercase XY are not changed
 /*!
  lda #"b"
- brk XMINMA
+ brk XMINMA ; "b" will "B" in Accumulator
  */
 #define XMINMA $1f 
 
@@ -219,10 +226,10 @@
 #define XSCRNE $39 
 
 /// @brief [PRIMITIVE] Wait CH376 response
-#define XCH376_WAIT_RESPONSE $3a
+//#define XCH376_WAIT_RESPONSE $3a
 
 /// @brief [PRIMITIVE] Set filename : input BUFNOM terminated by 0
-#define XCH376_SET_FILE_NAME $3b
+// #define XCH376_SET_FILE_NAME $3b
 
 /// @brief [PRIMITIVE] Reset clock
 
@@ -237,7 +244,7 @@
 #define XWRCLK $3e
 
 /// @brief [PRIMITIVE] Open file which is send to the chip
-#define XCH376_FILE_OPEN $3f
+//#define XCH376_FILE_OPEN $3f
 
 /// @brief [PRIMITIVE] Send 14 data (set in xy) in psg register (R0 to r13)
 #define XSONPS $40
@@ -269,13 +276,13 @@
 #define XHCSCR $4a
 
 /// @brief [PRIMITIVE] Set usb mode 
-#define XCH376_SET_USB_MODE $4b
+//#define XCH376_SET_USB_MODE $4b
 
 /// @brief [PRIMITIVE] hard copy of hires window
 #define XHCHRS $4c
 
 /// @brief [PRIMITIVE] Start disk mount
-#define XCH376_DISK_MOUNT $4d
+//#define XCH376_DISK_MOUNT $4d
 
 #define XALLKB $50 ; Get keyboard, --> KBDCOL
 
@@ -325,8 +332,8 @@
 #define XMSAVE $61
 
 
-/// @brief [PRIMITIVE] Waiting for ring (minitel)
-#define XRING $62
+/// @brief [PRIMITIVE] Open file from ch376 AY contains char * of the path
+#define XOPEN $62
 
 /// @brief [PRIMITIVE] Waiting for cnx/end from minitel (minitel)
 #define XWCXFI $63
@@ -463,7 +470,7 @@
 
 
 
-
+// Remove me 
 #define XMDS $8f ; minitel output
 
 

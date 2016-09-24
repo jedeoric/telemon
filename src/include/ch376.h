@@ -29,6 +29,10 @@
 
 #define CH376_BYTE_READ $3a
 
+#define CH376_BYTE_RD_GO $3b
+
+
+
 #define CH376_DISK_CAPACITY $3E
 
 #define CH376_SET_FILE_NAME $2F
@@ -43,5 +47,8 @@
 
 
 
-
+#define CH376_USB_INT_DISK_READ $1d
 #define CH376_USB_INT_SUCCESS $14
+
+
+#define CH376_ERR_MISS_FILE $42

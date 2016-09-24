@@ -1165,8 +1165,8 @@ Lc75d
 
 send_command_A	
 Lc81c
-	STY ADDRESS_VECTOR_FOR_ADIOB ;FIXME
-	STY ADDRESS_VECTOR_FOR_ADIOB+1 ;FIXME
+	STY ADDRESS_VECTOR_FOR_ADIOB
+	STY ADDRESS_VECTOR_FOR_ADIOB+1 
 	PHA
 	TXA
 	ASL
@@ -1637,12 +1637,12 @@ vectors_telemon
 	.byt <XSCROH_ROUTINE,>XSCROH_ROUTINE ; $37
 	.byt <XSCROB_ROUTINE,>XSCROB_ROUTINE ; $38 XSCROB
 	.byt <XSCRNE_ROUTINE,>XSCRNE_ROUTINE ; $39
-	.byt <_ch376_wait_response,>_ch376_wait_response ; $3a 
-	.byt <_ch376_set_file_name,>_ch376_set_file_name ; $3b
+	.byt $00,$00 ; $3a 
+	.byt $00,$00 ; $3b
 	.byt <XRECLK_ROUTINE,>XRECLK_ROUTINE ; $3c
 	.byt <XCLCL_ROUTINE,>XCLCL_ROUTINE ; $3d
 	.byt <XWRCLK_ROUTINE,>XWRCLK_ROUTINE ; $3e
-	.byt <_ch376_file_open,>_ch376_file_open ; nothing $3f
+	.byt $00,$00 ; nothing $3f
 	.byt <XSONPS_ROUTINE,>XSONPS_ROUTINE ; $40
 	.byt <XEPSG_ROUTINE,>XEPSG_ROUTINE ; $41
 	.byt <XOUPS_ROUTINE,>XOUPS_ROUTINE ; $42 XOUPS ddd8
@@ -1654,10 +1654,10 @@ vectors_telemon
 	.byt <XLPRBI_ROUTINE,>XLPRBI_ROUTINE ; $48
 	.byt <XLPCRL_ROUTINE,>XLPCRL_ROUTINE ; $49
 	.byt <XHCSCR_ROUTINE,>XHCSCR_ROUTINE ; $4a
-	.byt <_ch376_set_usb_mode,>_ch376_set_usb_mode
+	.byt $00,$00
 	
 	.byt <XHCHRS_ROUTINE,>XHCHRS_ROUTINE ; $4c
-	.byt <_ch376_disk_mount,>_ch376_disk_mount ; $4d
+	.byt $00,$00
 	.byt $00,$00 ; $4e
 	.byt $00,$00 ; $4f
 	.byt <XALLKB_ROUTINE,>XALLKB_ROUTINE ; $50
@@ -1679,7 +1679,7 @@ vectors_telemon
 	.byt <XSSAVE_ROUTINE,>XSSAVE_ROUTINE
 	.byt <XMLOAD_ROUTINE,>XMLOAD_ROUTINE
 	.byt <XMSAVE_ROUTINE,>XMSAVE_ROUTINE
-	.byt <XRING_ROUTINE,>XRING_ROUTINE
+	.byt <XOPEN_ROUTINE,>XOPEN_ROUTINE
 	.byt <XWCXFI_ROUTINE,>XWCXFI_ROUTINE
 	.byt <XLIGNE_ROUTINE,>XLIGNE_ROUTINE
 	.byt <XDECON_ROUTINE,>XDECON_ROUTINE
@@ -1743,6 +1743,7 @@ vectors_telemon_second_table
 	.byt <XPING_ROUTINE,>XPING_ROUTINE ; $9d
 #include "include/ch376.h"
 #include "functions/ch376/ch376.asm"
+#include "functions/ch376/ch376_verify.asm"
 
 
 XMENU_ROUTINE
@@ -6578,9 +6579,70 @@ LEE9D
 	ORA #$30
 	JMP Ldbb5  
 
-XRING_ROUTINE  ; FIXME
+XOPEN_ROUTINE
+.(
 	
+#define NULL 0
+	// A and X contains char * pointer ex /usr/bin/toto.txt
+	sta RES
+	stx RES+1
+; Debug
+;	lda #"@"
+;	jsr XWR0_ROUTINE
+;	lda RES
+;	ldy RES+1
+;	jsr XWSTR0_ROUTINE
+	;BRK_TELEMON(XWSTR0)
+	;rts
+; end
+;	rts
+	
+	ldx #0 ; used to write in BUFNOM
+	stx BUFNOM ; INIT
+	ldy #0
+loop
+	lda (RES),y
+	beq end
+	cmp #"/"
+	bne concat_in_bufnom
+	cpy #0 ; / is it the first char ?
+	bne not_slash_first_param
+	inx
+	sta BUFNOM,x
+;	lda #"@"
+;	jsr XWR0_ROUTINE
+;	lda #<BUFNOM
+;	ldy #>BUFNOM
+;	jsr XWSTR0_ROUTINE
+	; Call here setfilename
+	iny
+	bne loop
+concat_in_bufnom
+	sta BUFNOM,x
+	iny
+	inx
+	bne loop
 
+not_slash_first_param
+	; Call here setfilename
+	ldx #0 ; Flush param in order to send parameter
+	iny
+	bne loop
+end
+	cpy #0
+	beq skip
+	sta BUFNOM,x
+open_and_read
+;	jsr XCRLF_ROUTINE
+	;lda #"="
+	;jsr XWR0_ROUTINE	
+	;lda #<BUFNOM
+	;ldy #>BUFNOM
+	;jsr XWSTR0_ROUTINE
+	;jsr XCRLF_ROUTINE	
+skip
+	rts
+.)
 
 
 XLIGNE_ROUTINE
