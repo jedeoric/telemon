@@ -335,17 +335,10 @@ str
 /// @brief [PRIMITIVE] Open file from ch376 AY contains char * of the path
 #define XOPEN $62
 
-/// @brief [PRIMITIVE] Waiting for cnx/end from minitel (minitel)
-#define XWCXFI $63
-
-/// @brief [PRIMITIVE] Get the line (minitel)
-#define XLIGNE $64
-
 /// @brief [PRIMITIVE] Cut off the line (minitel)
 #define XDECON $65
 
-/// @brief [PRIMITIVE] Send A to the minitel (minitel)
-#define XMOUT $66
+
 
 /// @brief [PRIMITIVE] Send A to the rs232
 #define XSOUT $67

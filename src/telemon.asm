@@ -5,18 +5,13 @@
 /* telemon 2.4                                                         */
 /***********************************************************************/
 
-/*
-
-
-
-
-*/
-
 #include "include/telemon.h"
 #include "include/via6522_1.h"
 #include "include/via6522_2.h"
 #include "include/acia6551.h"
 #include "include/fdc1793.h"
+#include "include/macro_orix.h"
+
 
 
 
@@ -1680,10 +1675,10 @@ vectors_telemon
 	.byt <XMLOAD_ROUTINE,>XMLOAD_ROUTINE
 	.byt <XMSAVE_ROUTINE,>XMSAVE_ROUTINE
 	.byt <XOPEN_ROUTINE,>XOPEN_ROUTINE
-	.byt <XWCXFI_ROUTINE,>XWCXFI_ROUTINE
-	.byt <XLIGNE_ROUTINE,>XLIGNE_ROUTINE
-	.byt <XDECON_ROUTINE,>XDECON_ROUTINE
-	.byt <XMOUT_ROUTINE,>XMOUT_ROUTINE
+	.byt $00,$00
+	.byt $00,$00
+	.byt $00,$00
+	.byt $00,$00
 	.byt <XSOUT_ROUTINE,>XSOUT_ROUTINE
 	.byt <XA1DEC_ROUTINE,>XA1DEC_ROUTINE
 	.byt <XDECA1_ROUTINE,>XDECA1_ROUTINE
@@ -1743,6 +1738,7 @@ vectors_telemon_second_table
 	.byt <XPING_ROUTINE,>XPING_ROUTINE ; $9d
 #include "include/ch376.h"
 #include "functions/ch376/ch376.asm"
+XCHECK_VERIFY_USBDRIVE_READY_ROUTINE
 #include "functions/ch376/ch376_verify.asm"
 
 
@@ -6646,49 +6642,11 @@ skip
 
 
 XLIGNE_ROUTINE
-Lef20
+	; REMOVEME minitel
 ; minitel ; get the line
 	jsr LECD9 
-	lda #$6f
-	jsr send_pro1_sequence_to_minitel
-	lda #$68
-	jsr send_pro1_sequence_to_minitel
-	jmp LECD7
-	
-; minitel
-; send pro1 sequence to minitel
-send_pro1_sequence_to_minitel
-Lef30
 	jsr Lec49 
-	; REMOVEME minitel
-	rts
-	
-Lef3f
-free_the_minitel_line
-XDECON_ROUTINE
-	jsr LECD9
-	lda #$67
-	jsr send_pro1_sequence_to_minitel
-	jmp LECD7 
-	
-
-Lef4a
-
-XWCXFI_ROUTINE
-	; REMOVEME minitel
-	jsr LECB4
-
-
-	rts
-
-XMOUT_ROUTINE
-; minitel 
-	pha
-	jsr LECD9 
-	pla
-	jsr Lec49
 	jmp LECD7
-
 
 XSOUT_ROUTINE
 ; RS232 
