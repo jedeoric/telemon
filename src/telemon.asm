@@ -661,7 +661,7 @@ str_drive
 str_telemon
 	.asc $0d,$0a,"TELEMON V"
 str_telemon_version
-	.asc "2.5"
+	.asc "3.0"
 	
 
 str_oric_international
@@ -764,8 +764,7 @@ address_b86a
 
 	
 routine_to_define_2	
-
-
+read_microdisc
 c4d1
 
 	STA FDCCR
@@ -5721,7 +5720,7 @@ LE916
 	JSR XHRSCD_ROUTINE  ; I  on d?place vers la droite <--------------        I 
 LE919	
 	JSR XHRSSE_ROUTINE	 ; -->on affiche le point <----------------------------- 
-	DEC $4F    ;    et on d?crit dY                                   
+	DEC $4F    ;    et on d?crit dY       FIXME                             
 	BNE LE8F6                                                       ;
 	RTS         ;   avant de sortir de longueur des lignes            
 
@@ -5739,8 +5738,8 @@ Le921
            ;                    ROUTINE CURSET                               
 XCURSE_ROUTINE
 Le92f                                                                               
-	LDX $4D      ;  X=HRSX                                            
-	LDY $4F     ;   Y=HRSY                                            
+	LDX $4D      ;  X=HRSX                FIXME                            
+	LDY $4F     ;   Y=HRSY                FIXME
 	JSR le94e    ;  on v?rifie les coordonn?es                   
 LE936
 	JSR Le7f3    ;  on place le curseur en X,Y                        

@@ -349,10 +349,10 @@ KBDFLG_KEY ; $270
 /// @brief [VALUE_PAGE_2]  contains key pressed
 KBD_UNKNOWN ; $271  FIXME
 .dsb 1
-/// @brief [VALUE_PAGE_2]  contains nb before repeat keyboard
+/// @brief [VALUE_PAGE_2]  contains nb before repeat keyboard : it used to manage keyboard speed repetition
 KBDVRR; $272 
 .dsb 1
-/// @brief [VALUE_PAGE_2]  Divide repetition
+/// @brief [VALUE_PAGE_2]  Divide repetition keyboard : it used to manage keyboard speed repetition
 KBDVRL; $273
 .dsb 2 ; 2 bytes ?
 FLGKBD ;$0275	;Keyboard flag : b7 majn b6 if sound
