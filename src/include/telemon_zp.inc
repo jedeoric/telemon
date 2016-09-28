@@ -70,8 +70,7 @@ SCRNB ; $28
 ADKBD ; $2a ; ASCII conversion table adress
 .dsb 2
 // VIDEOTEX HIRES
-
-ADVDT ; $2c ; adress hires screen
+PTR_READ_DEST ; PTR_READ for read routine : why no RES ? Because, it can be use during IRQ without corript
 .dsb 2
 ADASC ; $2e ; ascii table
 .dsb 2

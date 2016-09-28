@@ -177,6 +177,20 @@ str
 
 #define XDECAY $26 ; AY : decimal, length =X
 
+
+/// @brief read bytes from sdcard need to have fileopen done
+/*!
+ lda #<$a000
+ sta PTR_READ_DEST
+ lda #>$a000
+ sta PTR_READ_DEST+1 ; all bytes will in be $a000
+ lda #$ff ; all bytes (65535 bytes)
+ ldy #$ff
+ 
+ brk XFREAD
+ */
+#define XFREAD $27 
+
 #define XBINDX $28 ; Convert to decimal : numer un AY 
 
 #define XDECIM $29  ; same as BINDX but displayed on channel 0 return in TR5 
@@ -193,10 +207,7 @@ str
 
 #define XSCELG $2f ; search line
 
-#define XVDTCT $30 ; VDT Control MINITEL
 
-/// @brief [PRIMITIVE] Minitel : display mosaic
-#define XVDTG2 $31
 
 #define XEDTIN $32
 
