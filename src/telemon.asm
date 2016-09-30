@@ -1217,8 +1217,13 @@ LC868
 	; SP = P register
 	; SP-1 = PC+2 adress of brk sent
 	; SP-2 = PC+1
+#ifdef CPU_65C02
+	phx
+	phy
+#else	
 	STX IRQSVX ; save register X
 	STY IRQSVY ; save register X
+#endif	
 	PLA ; pull P (flag register)
 	STA IRQSVP ; save P (flag register)
 	AND #%00010000 ; test B flag B flag means an that we reach a brk commands
@@ -1256,8 +1261,13 @@ LC8A6
 	LDA IRQSVP  ; fetch P flag
 	PHA ; push P flag to return in correct state
 	LDA IRQSVA
+#ifdef CPU_65C02	
+	ply
+	plx
+#else
 	LDY IRQSVY
 	LDX IRQSVX
+#endif	
 	RTI
 LC8B3
 next200
@@ -1612,14 +1622,14 @@ vectors_telemon
 	.byt <XDECAY_ROUTINE,>XDECAY_ROUTINE ; XDECAY  $26
 	.byt <XREADBYTES_ROUTINE,>XREADBYTES_ROUTINE ; nothing  $27 
 	.byt <XBINDX_ROUTINE,>XBINDX_ROUTINE ; XBINDX $28
-	.byt <XDECIM_ROUTINE,>XDECIM_ROUTINE
-	.byt <XHEXA_ROUTINE,>XHEXA_ROUTINE
-	.byt <XA1AFF_ROUTINE,>XA1AFF_ROUTINE ; XA1AFF 
-	.byt <XMENU_ROUTINE,>XMENU_ROUTINE ; XMENU
-	.byt <XEDT_ROUTINE,>XEDT_ROUTINE ; XEDT 
-	.byt <XINSER_ROUTINE,>XINSER_ROUTINE ; XINSER 
+	.byt <XDECIM_ROUTINE,>XDECIM_ROUTINE ; $29
+	.byt <XHEXA_ROUTINE,>XHEXA_ROUTINE ; 2a
+	.byt <XA1AFF_ROUTINE,>XA1AFF_ROUTINE ; XA1AFF  $2b
+	.byt <XMENU_ROUTINE,>XMENU_ROUTINE ; XMENU $2c
+	.byt <XEDT_ROUTINE,>XEDT_ROUTINE ; XEDT  $2d
+	.byt <XINSER_ROUTINE,>XINSER_ROUTINE ; XINSER  $2e
 	.byt <XSCELG_ROUTINE,>XSCELG_ROUTINE ; XSCELG $2f
-	.byt $00,$00 ; 
+	.byt <XOPEN_ROUTINE,>XOPEN_ROUTINE ; $30
 
 	.byt $00,$00 ; nothing  $31
 
@@ -1640,40 +1650,40 @@ vectors_telemon
 	.byt <XSONPS_ROUTINE,>XSONPS_ROUTINE ; $40
 	.byt <XEPSG_ROUTINE,>XEPSG_ROUTINE ; $41
 	.byt <XOUPS_ROUTINE,>XOUPS_ROUTINE ; $42 XOUPS ddd8
-	.byt <XPLAY_ROUTINE,>XPLAY_ROUTINE ;XPLAY
-	.byt <XSOUND_ROUTINE,>XSOUND_ROUTINE
-	.byt <XMUSIC_ROUTINE,>XMUSIC_ROUTINE
-	.byt <XZAP_ROUTINE,>XZAP_ROUTINE
+	.byt <XPLAY_ROUTINE,>XPLAY_ROUTINE ;XPLAY $43
+	.byt <XSOUND_ROUTINE,>XSOUND_ROUTINE ; $44
+	.byt <XMUSIC_ROUTINE,>XMUSIC_ROUTINE ; $45
+	.byt <XZAP_ROUTINE,>XZAP_ROUTINE ; $46
 	.byt <XSHOOT_ROUTINE,>XSHOOT_ROUTINE ; 47
 	.byt <XLPRBI_ROUTINE,>XLPRBI_ROUTINE ; $48
 	.byt <XLPCRL_ROUTINE,>XLPCRL_ROUTINE ; $49
 	.byt <XHCSCR_ROUTINE,>XHCSCR_ROUTINE ; $4a
-	.byt $00,$00
+	.byt $00,$00 ; $4b
 	
 	.byt <XHCHRS_ROUTINE,>XHCHRS_ROUTINE ; $4c
-	.byt $00,$00
+	.byt $00,$00 ; $4d
 	.byt $00,$00 ; $4e
 	.byt $00,$00 ; $4f
 	.byt <XALLKB_ROUTINE,>XALLKB_ROUTINE ; $50
 	.byt <XKBDAS_ROUTINE,>XKBDAS_ROUTINE ; $51
 	.byt <XGOKBD_ROUTINE,>XGOKBD_ROUTINE ; $52
-	.byt $00,$00
-	.byt <XECRBU_ROUTINE,>XECRBU_ROUTINE
-	.byt <XLISBU_ROUTINE,>XLISBU_ROUTINE
-	.byt <XTSTBU_ROUTINE,>XTSTBU_ROUTINE
-	.byt <XVIDBU_ROUTINE,>XVIDBU_ROUTINE
-	.byt <XINIBU_ROUTINE,>XINIBU_ROUTINE	
-	.byt <XDEFBU_ROUTINE,>XDEFBU_ROUTINE
-	.byt <XBUSY_ROUTINE,>XBUSY_ROUTINE
+	.byt $00,$00 ; $53
+	.byt <XECRBU_ROUTINE,>XECRBU_ROUTINE ; $54
+	.byt <XLISBU_ROUTINE,>XLISBU_ROUTINE ; $55
+	.byt <XTSTBU_ROUTINE,>XTSTBU_ROUTINE ; $56
+	.byt <XVIDBU_ROUTINE,>XVIDBU_ROUTINE ; $57
+	.byt <XINIBU_ROUTINE,>XINIBU_ROUTINE ; $58
+	.byt <XDEFBU_ROUTINE,>XDEFBU_ROUTINE ; $59
+	.byt <XBUSY_ROUTINE,>XBUSY_ROUTINE   ; $5a
 
-	.byt $00,$00
-	.byt <XSDUMP_ROUTINE,>XSDUMP_ROUTINE
-	.byt <XCONSO_ROUTINE,>XCONSO_ROUTINE
-	.byt <XSLOAD_ROUTINE,>XSLOAD_ROUTINE
-	.byt <XSSAVE_ROUTINE,>XSSAVE_ROUTINE
-	.byt <XMLOAD_ROUTINE,>XMLOAD_ROUTINE
-	.byt <XMSAVE_ROUTINE,>XMSAVE_ROUTINE
-	.byt <XOPEN_ROUTINE,>XOPEN_ROUTINE
+	.byt $00,$00                         ; $5b
+	.byt <XSDUMP_ROUTINE,>XSDUMP_ROUTINE ; $5c
+	.byt <XCONSO_ROUTINE,>XCONSO_ROUTINE ; $5d
+	.byt <XSLOAD_ROUTINE,>XSLOAD_ROUTINE ; $5e
+	.byt <XSSAVE_ROUTINE,>XSSAVE_ROUTINE ; $5f
+	.byt <XMLOAD_ROUTINE,>XMLOAD_ROUTINE ; $60 
+	.byt <XMSAVE_ROUTINE,>XMSAVE_ROUTINE ; $61
+	.byt $00,$00   ; $62
 	.byt $00,$00
 	.byt $00,$00
 	.byt $00,$00
@@ -2171,7 +2181,8 @@ XBINDX_ROUTINE
 .(
 	STA TR1
 	STY TR2
-	LDA #$00
+	
+	LDA #$00 ; 65c02
 	STA TR3
 	STA TR4
 loop35
@@ -2219,7 +2230,7 @@ lce32
 
 XDECIM_ROUTINE
 	PHA
-	LDA #$00
+	LDA #$00 ; 65c02
 	STA TR5
 	LDA #$01
 	STA TR6
@@ -6620,28 +6631,32 @@ LEE9D
 
 XOPEN_ROUTINE
 .(
-	
-#define NULL 0
-	// A and X contains char * pointer ex /usr/bin/toto.txt
+	rts
+
+	// A and X contains char * pointer ex /usr/bin/toto.txt but it does not manage the full path yet
 	sta RES
 	stx RES+1
-; Debug
-;	lda #"@"
-;	jsr XWR0_ROUTINE
-;	lda RES
-;	ldy RES+1
-;	jsr XWSTR0_ROUTINE
-	;BRK_TELEMON(XWSTR0)
-	;rts
+ Debug
+	lda #"@"
+	jsr XWR0_ROUTINE
+	rts
+	lda RES
+	ldy RES+1
+	jsr XWSTR0_ROUTINE
+	BRK_TELEMON(XWSTR0)
+	rts
 ; end
 ;	rts
-	
+	lda #17
+	sta $bb80+40+80
+	rts
 	ldx #0 ; used to write in BUFNOM
 	stx BUFNOM ; INIT
 	ldy #0
 loop
 	lda (RES),y
 	beq end
+	sta $bb80,y
 	cmp #"/"
 	bne concat_in_bufnom
 	cpy #0 ; / is it the first char ?
@@ -6672,6 +6687,7 @@ end
 	beq skip
 	sta BUFNOM,x
 open_and_read
+	PRINT(BUFNOM)
 ;	jsr XCRLF_ROUTINE
 	;lda #"="
 	;jsr XWR0_ROUTINE	

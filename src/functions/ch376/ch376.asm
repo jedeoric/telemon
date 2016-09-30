@@ -28,7 +28,7 @@ loop
 	//sta $bb80+40,x
 	sta CH376_DATA
 	inx
-	cpx #11 ; because we don't manage longfilename shortname =11
+	cpx #13 ; because we don't manage longfilename shortname =11
 	bne loop
 	
 end	

@@ -207,7 +207,8 @@ str
 
 #define XSCELG $2f ; search line
 
-
+/// @brief [PRIMITIVE] Open file from ch376 AY contains char * of the path
+#define XOPEN $30
 
 #define XEDTIN $32
 
@@ -343,8 +344,7 @@ str
 #define XMSAVE $61
 
 
-/// @brief [PRIMITIVE] Open file from ch376 AY contains char * of the path
-#define XOPEN $62
+
 
 /// @brief [PRIMITIVE] Cut off the line (minitel)
 #define XDECON $65

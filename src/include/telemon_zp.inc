@@ -484,7 +484,7 @@ POSNMW
 /// @brief [VALUE_PAGE_5] Buffer for filename. When stratsed needs to load a filename, it fills BUFNOM with 0 at the end of the string. It can be validated by primitive XNOMFI
 /// @see XNOMFI
 BUFNOM ; $517
-.dsb 12
+.dsb 13
 
 
 *=$55d
