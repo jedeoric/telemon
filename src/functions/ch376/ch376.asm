@@ -24,7 +24,8 @@ loop
 	lda BUFNOM,x ; replace by bufnom
 	beq end ; we reached 0 value
 //	sta $bb80,x
-	BRK_TELEMON(XMINMA)
+	jsr XMINMA_ROUTINE
+	
 	//sta $bb80+40,x
 	sta CH376_DATA
 	inx
@@ -33,9 +34,12 @@ loop
 	
 end	
 	sta CH376_DATA
+
 .)	
 	rts
 
+
+	
 _ch376_file_open
 	.(
 #ifdef DEBUG_CH376
@@ -115,6 +119,10 @@ _ch376_set_usb_mode
 	sta CH376_DATA
 	rts
 
+	
+_ch376_set_bytes_write
+	ldx #CH376_BYTE_WRITE
+	BIT $ffff ; Jump 2 next bytes
 _ch376_set_bytes_read
 	; A and Y contains number of bytes to read
 	ldx #CH376_BYTE_READ

@@ -30,7 +30,7 @@
 #define CH376_BYTE_READ $3a
 
 #define CH376_BYTE_RD_GO $3b
-
+#define CH376_BYTE_WRITE $3C
 
 
 #define CH376_DISK_CAPACITY $3E

@@ -1756,13 +1756,87 @@ XCHECK_VERIFY_USBDRIVE_READY_ROUTINE
 
 XREADBYTES_ROUTINE
 .(
+		; use ptr1 to count bytes
+	ldx #00
+	stx ptr1
+	stx ptr1+1
+
 	jsr _ch376_set_bytes_read
+
 continue	
 	cmp #$1d ; something to read
 	beq we_read
 	cmp #CH376_USB_INT_SUCCESS ; finished
 	beq finished 
+	; TODO  in A : $ff X: $ff
+	lda #0
+	tax
+	rts
+we_read
+	lda #CH376_RD_USB_DATA0
+	sta CH376_COMMAND
+
+	lda CH376_DATA ; contains length read
+	sta TR0; Number of bytes to read
+	clc
+	adc ptr1
+	bcc next14
+	inc ptr1+1
+next14	
+	sta ptr1
+	ldy #0
+loop9
+	lda CH376_DATA ; read the data
+
+	sta (PTR_READ_DEST),y
 	
+
+	iny
+	cpy TR0
+	bne loop9
+	tya
+	clc
+	adc PTR_READ_DEST
+	bcc next13
+	inc PTR_READ_DEST+1
+next13
+	sta PTR_READ_DEST
+	
+
+	;jmp end_cat
+	lda #CH376_BYTE_RD_GO
+	sta CH376_COMMAND
+	jsr _ch376_wait_response
+	jmp continue
+finished
+	; TODO  return bytes read
+	lda ptr1
+	;lda #<8000
+	ldx ptr1+1
+	;ldx #>8000
+	rts	
+.)
+
+
+; [IN] AY contains the length to write
+; [IN] PTR_READ_DEST must be set because it's the ptr_dest
+
+XWRITEBYTES_ROUTINE
+.(	
+
+
+	jsr _ch376_set_bytes_write
+
+continue	
+	cmp #$1d ; something to read
+	beq we_read
+	cmp #CH376_USB_INT_SUCCESS ; finished
+	beq finished 
+	; TODO  in A : $ff X: $ff
+	
+
+	rts
+
 we_read
 	lda #CH376_RD_USB_DATA0
 	sta CH376_COMMAND
@@ -1782,17 +1856,22 @@ loop9
 	adc PTR_READ_DEST
 	bcc next13
 	inc PTR_READ_DEST+1
+
 next13
 	sta PTR_READ_DEST
+
 	;jmp end_cat
 	lda #CH376_BYTE_RD_GO
 	sta CH376_COMMAND
 	jsr _ch376_wait_response
 	jmp continue
-finished	
-	rts	
+finished
 
+	;ldx #0
+	; TODO  return bytes read
+	rts	
 .)
+
 
 
 XMENU_ROUTINE
@@ -6631,46 +6710,64 @@ LEE9D
 
 XOPEN_ROUTINE
 .(
-	rts
+	
 
 	// A and X contains char * pointer ex /usr/bin/toto.txt but it does not manage the full path yet
 	sta RES
 	stx RES+1
- Debug
-	lda #"@"
-	jsr XWR0_ROUTINE
-	rts
-	lda RES
+	/*
 	ldy RES+1
-	jsr XWSTR0_ROUTINE
+	
+	BRK_TELEMON(XCRLF)
 	BRK_TELEMON(XWSTR0)
+	BRK_TELEMON(XCRLF)
 	rts
-; end
-;	rts
-	lda #17
-	sta $bb80+40+80
+	*/
+	; check if usbkey is available
+	jsr _ch376_verify_SetUsbPort_Mount
+	cmp #1
+	bne next
+	ldx #$ff
+	txa
 	rts
-	ldx #0 ; used to write in BUFNOM
-	stx BUFNOM ; INIT
+next	
 	ldy #0
+init_and_go	
+	ldx #0 ; used to write in BUFNOM
+	stx BUFNOM ; INIT	
 loop
 	lda (RES),y
 	beq end
-	sta $bb80,y
+	;sta $bb80,y
+	;cpy #7
+	beq end
 	cmp #"/"
 	bne concat_in_bufnom
+
 	cpy #0 ; / is it the first char ?
-	bne not_slash_first_param
-	inx
+	beq send_root_to_filename
+	; If we are here it's time to send to BUFNOM
+	;inx
+#ifdef CPU_65C02
+	phy
+#else	
+	sty TR7
+#endif
+
+	lda #0
 	sta BUFNOM,x
-;	lda #"@"
-;	jsr XWR0_ROUTINE
-;	lda #<BUFNOM
-;	ldy #>BUFNOM
-;	jsr XWSTR0_ROUTINE
-	; Call here setfilename
+	jsr _ch376_set_file_name
+	jsr _ch376_file_open
+	cmp #CH376_ERR_MISS_FILE
+	beq file_not_found 
+#ifdef CPU_65C02
+	ply
+#else	
+	ldy TR7
+#endif		
 	iny
-	bne loop
+	jmp init_and_go
+
 concat_in_bufnom
 	sta BUFNOM,x
 	iny
@@ -6687,15 +6784,40 @@ end
 	beq skip
 	sta BUFNOM,x
 open_and_read
-	PRINT(BUFNOM)
-;	jsr XCRLF_ROUTINE
-	;lda #"="
-	;jsr XWR0_ROUTINE	
-	;lda #<BUFNOM
-	;ldy #>BUFNOM
-	;jsr XWSTR0_ROUTINE
-	;jsr XCRLF_ROUTINE	
+	; were are without / at the end, it means that it's a file
+	jsr _ch376_set_file_name
+	jsr _ch376_file_open
+	cmp #CH376_ERR_MISS_FILE
+	beq file_not_found
+	rts
+	;PRINT(BUFNOM)
+	; if we are here, we must return fp pointer
+
 skip
+	ldx #$00
+	txa
+	rts
+send_root_to_filename
+	sta BUFNOM
+	lda #$00
+	sta BUFNOM+1
+	jsr _ch376_set_file_name
+	jsr _ch376_file_open
+	cmp #CH376_ERR_MISS_FILE
+	beq file_not_found 
+;	PRINT(BUFNOM)
+;	BRK_TELEMON(XCRLF)
+	;rts
+	ldx #$00 
+	stx BUFNOM ; Initialize again
+	ldy #1 ; because it's "/" in the first char, it means that we are here _/_usr/bin/toto.txt
+	jmp loop
+
+file_not_found
+	;lda #17
+	;sta $bb80+40
+	ldx #$ff
+	txa
 	rts
 .)
 

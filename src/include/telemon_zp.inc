@@ -76,7 +76,7 @@ ADASC ; $2e ; ascii table
 .dsb 2
 ADATR ; $30 ;adress table attributes
 .dsb 2
-VDTPAR ; $32 ; VDT work
+ptr1 ; $32 ; VDT work
 .dsb 2
 VDTASC ; $33 ; VDT work
 .dsb 5 ; FIXME

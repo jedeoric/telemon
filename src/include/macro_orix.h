@@ -5,7 +5,7 @@
 #define PRINT(str)\
 	lda #<str:\
 	ldy #>str:\
-	BRK_TELEMON(XWSTR0) 
+	jsr XWSTR0_ROUTINE 
 
 #define STRCPY(str1,str2)\
 	lda #<str1:\
