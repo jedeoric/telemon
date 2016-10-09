@@ -1,7 +1,4 @@
 var searchData=
 [
-  ['res',['RES',['../telemon_8h.html#a65b26605d90a0bcd0e13e05db54f551f',1,'telemon.h']]],
-  ['resb',['RESB',['../telemon_8h.html#a303e8fabc57b7831383f8169a4eafbc0',1,'telemon.h']]],
-  ['rs232c',['RS232C',['../telemon_8h.html#a02d04a1bd7e477ba5ffca33ae3a448f7',1,'telemon.h']]],
-  ['rs232t',['RS232T',['../telemon_8h.html#a0b5a1ef9792bb88e2d4a33fff2230727',1,'telemon.h']]]
+  ['zadcha',['ZADCHA',['../telemon_8h.html#a16de676bc21eeef0e74aa5021003c7cc',1,'telemon.h']]]
 ];

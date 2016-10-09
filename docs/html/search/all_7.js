@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['lprfx',['LPRFX',['../telemon_8h.html#a4835e7e558bf8a0ca25c24807a591b91',1,'telemon.h']]],
-  ['lprx',['LPRX',['../telemon_8h.html#ab68021ae171b8473c91a8ab5fd4c6495',1,'telemon.h']]]
+  ['telemon_2easm',['telemon.asm',['../telemon_8asm.html',1,'']]],
+  ['telemon_2eh',['telemon.h',['../telemon_8h.html',1,'']]],
+  ['telemon_5fzp_2einc',['telemon_zp.inc',['../telemon__zp_8inc.html',1,'']]]
 ];

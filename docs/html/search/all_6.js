@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['koram',['KORAM',['../telemon_8h.html#a924be08895fdacbcf38b0eab8e8c97b1',1,'telemon.h']]],
-  ['korom',['KOROM',['../telemon_8h.html#ad936524431d8afd0777f75821ac4fb84',1,'telemon.h']]]
+  ['sounds_2easm',['sounds.asm',['../sounds_8asm.html',1,'']]],
+  ['strcpy',['STRCPY',['../macro__orix_8h.html#a32a895eef24cd60c50df14f16191d809',1,'macro_orix.h']]],
+  ['strcpy_5fby_5fay_5fsrc',['STRCPY_BY_AY_SRC',['../macro__orix_8h.html#a17ecfd928e9c638efbb5cb8f0d5b6afd',1,'macro_orix.h']]]
 ];

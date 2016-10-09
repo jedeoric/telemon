@@ -1,4 +1,30 @@
 var searchData=
 [
-  ['csrnd',['CSRND',['../telemon_8h.html#aab517de5952fbb56dc4859d147b79bb2',1,'telemon.h']]]
+  ['ch376_5fbyte_5frd_5fgo',['CH376_BYTE_RD_GO',['../ch376_8h.html#a691f135dfec1ca138bb501890f6d896d',1,'ch376.h']]],
+  ['ch376_5fbyte_5fread',['CH376_BYTE_READ',['../ch376_8h.html#a3f0eafa3d0d83c5e7d42b04be691954f',1,'ch376.h']]],
+  ['ch376_5fbyte_5fwrite',['CH376_BYTE_WRITE',['../ch376_8h.html#a945db47572c851511f02ff01e995ef62',1,'ch376.h']]],
+  ['ch376_5fcheck_5fexist',['CH376_CHECK_EXIST',['../ch376_8h.html#abeaa3e503a6c8fe889ea6c93cb4175ce',1,'ch376.h']]],
+  ['ch376_5fcommand',['CH376_COMMAND',['../ch376_8h.html#a9d387fe1ddef3f92db87a0b1b4a0729e',1,'ch376.h']]],
+  ['ch376_5fdata',['CH376_DATA',['../ch376_8h.html#ae352f239bc8ac258f89bd191a01bc28b',1,'ch376.h']]],
+  ['ch376_5fdetected',['CH376_DETECTED',['../ch376_8h.html#a48283684d9a418544266c50d239197e3',1,'ch376.h']]],
+  ['ch376_5fdisk_5fcapacity',['CH376_DISK_CAPACITY',['../ch376_8h.html#ae8d02e19643fd3cc3d1a7cfd8b92959d',1,'ch376.h']]],
+  ['ch376_5fdisk_5fconnect',['CH376_DISK_CONNECT',['../ch376_8h.html#acf017f8074f90a41b0d14147f5cdf0a4',1,'ch376.h']]],
+  ['ch376_5fdisk_5fmount',['CH376_DISK_MOUNT',['../ch376_8h.html#a2b10180880a4783702a50cdb12ace5c9',1,'ch376.h']]],
+  ['ch376_5fdisk_5frd_5fgo',['CH376_DISK_RD_GO',['../ch376_8h.html#a7e65f999bcb0d73a440b22ccda8f8b44',1,'ch376.h']]],
+  ['ch376_5ferr_5fmiss_5ffile',['CH376_ERR_MISS_FILE',['../ch376_8h.html#a794c43551d03133532e13ecd34caec7b',1,'ch376.h']]],
+  ['ch376_5ffile_5fclose',['CH376_FILE_CLOSE',['../ch376_8h.html#acca3c60b38abf20579af5bb4361de398',1,'ch376.h']]],
+  ['ch376_5ffile_5fenum_5fgo',['CH376_FILE_ENUM_GO',['../ch376_8h.html#a149fc097794da0dc50a7e4c50ea79d60',1,'ch376.h']]],
+  ['ch376_5ffile_5fopen',['CH376_FILE_OPEN',['../ch376_8h.html#aeb1ab43ee10c4355aca6621eab8c722e',1,'ch376.h']]],
+  ['ch376_5fget_5fenter_5fsleep',['CH376_GET_ENTER_SLEEP',['../ch376_8h.html#a41416672d6ae6c4f626ec7c8a716f83d',1,'ch376.h']]],
+  ['ch376_5fget_5ffile_5fsize',['CH376_GET_FILE_SIZE',['../ch376_8h.html#a1ad1bf383e4a82e9de6f2aeb67dbe987',1,'ch376.h']]],
+  ['ch376_5fget_5fic_5fver',['CH376_GET_IC_VER',['../ch376_8h.html#a20896de0c92a2ac231f1151a3e3204cf',1,'ch376.h']]],
+  ['ch376_5fget_5fstatus',['CH376_GET_STATUS',['../ch376_8h.html#afae972f36d41eb0e842e9fde583116c6',1,'ch376.h']]],
+  ['ch376_5frd_5fusb_5fdata0',['CH376_RD_USB_DATA0',['../ch376_8h.html#af6de83cd18e7f992b3fed433440d2076',1,'ch376.h']]],
+  ['ch376_5freset_5fall',['CH376_RESET_ALL',['../ch376_8h.html#a5d07d831debceea90055de3fd8d7c887',1,'ch376.h']]],
+  ['ch376_5fset_5fbaudrate',['CH376_SET_BAUDRATE',['../ch376_8h.html#aa33604d1bb8f1d69ec791bd6a7110426',1,'ch376.h']]],
+  ['ch376_5fset_5ffile_5fname',['CH376_SET_FILE_NAME',['../ch376_8h.html#aa48ea6665c0901bf053afcf31adcea90',1,'CH376_SET_FILE_NAME():&#160;ch376.h'],['../ch376_8h.html#aa48ea6665c0901bf053afcf31adcea90',1,'CH376_SET_FILE_NAME():&#160;ch376.h']]],
+  ['ch376_5fset_5fusb_5fmode',['CH376_SET_USB_MODE',['../ch376_8h.html#abac40817df9f94ced542bab46bac859d',1,'ch376.h']]],
+  ['ch376_5fset_5fusb_5fmode_5fcode_5fusb_5fhost_5fsof_5fpackage_5fautomatically',['CH376_SET_USB_MODE_CODE_USB_HOST_SOF_PACKAGE_AUTOMATICALLY',['../ch376_8h.html#a89c0e739c22a977fe196d4fb6ca0823f',1,'ch376.h']]],
+  ['ch376_5fusb_5fint_5fdisk_5fread',['CH376_USB_INT_DISK_READ',['../ch376_8h.html#ad69faf0cd3284a0af62af9a2d8efd999',1,'ch376.h']]],
+  ['ch376_5fusb_5fint_5fsuccess',['CH376_USB_INT_SUCCESS',['../ch376_8h.html#a0747774e8abc35c4e42a9ccf6f61e3f6',1,'ch376.h']]]
 ];

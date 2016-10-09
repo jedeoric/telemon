@@ -10,6 +10,11 @@ CPU : 6502
 
 ## Timeline
 
+### 2016-10-09
+* Working on 3.0 version : adding fread/fopen from usb key
+* some minitel routines are removed
+* some 65C02 code
+
 ### 2016-07-02
 2.4 version is finished. Some labels are missing (Page 0, page 2 etc has still the true address). But it's working.
 Hash of generated file of this version : 9a432244d9ee4a49e8ddcde64af94e05

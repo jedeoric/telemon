@@ -1,5 +1,21 @@
 var searchData=
 [
-  ['koram',['KORAM',['../telemon_8h.html#a924be08895fdacbcf38b0eab8e8c97b1',1,'telemon.h']]],
-  ['korom',['KOROM',['../telemon_8h.html#ad936524431d8afd0777f75821ac4fb84',1,'telemon.h']]]
+  ['v1acr',['V1ACR',['../via6522__1_8h.html#a8da2e6ad6b78372459e388a30aa16a5e',1,'via6522_1.h']]],
+  ['v1ddra',['V1DDRA',['../via6522__1_8h.html#abc1f312d6351971af79c94ab6dd46a15',1,'via6522_1.h']]],
+  ['v1ddrb',['V1DDRB',['../via6522__1_8h.html#a5a9cdcf42e90fa4a0e3209ffd3a12894',1,'via6522_1.h']]],
+  ['v1dra',['V1DRA',['../via6522__1_8h.html#a94a1bed4b6801d8fd563eedb75c982f4',1,'via6522_1.h']]],
+  ['v1drb',['V1DRB',['../via6522__1_8h.html#a598dd8388404f1a7236f3db1234dc037',1,'via6522_1.h']]],
+  ['v1ier',['V1IER',['../via6522__1_8h.html#a46a740839f026412670eb3f21d05865e',1,'via6522_1.h']]],
+  ['v1ifr',['V1IFR',['../via6522__1_8h.html#ab469a6eac32a1c2b9a63b59bcd83a7df',1,'via6522_1.h']]],
+  ['v1pcr',['V1PCR',['../via6522__1_8h.html#a6590b1c93500f375fcf38a24fc974a5b',1,'via6522_1.h']]],
+  ['v1t1',['V1T1',['../via6522__1_8h.html#aced79dac3c59bf0ab60fbf01a2a2e745',1,'via6522_1.h']]],
+  ['v1t1l',['V1T1L',['../via6522__1_8h.html#ab13a4638cc4cad6c319eeb729039edb9',1,'via6522_1.h']]],
+  ['v1t2',['V1T2',['../via6522__1_8h.html#a669475ea1a03c86b7de9732ddb8fcbb0',1,'via6522_1.h']]],
+  ['v2ddra',['V2DDRA',['../via6522__2_8h.html#af3e2e527301101123ec2d40ac517002a',1,'via6522_2.h']]],
+  ['v2ddrb',['V2DDRB',['../via6522__2_8h.html#a193795bb8395b7b6d23f5c8730c1b577',1,'via6522_2.h']]],
+  ['v2dra',['V2DRA',['../via6522__2_8h.html#a950598ae11a208a50152b3fc9f4d332a',1,'via6522_2.h']]],
+  ['v2drb',['V2DRB',['../via6522__2_8h.html#afae5c11e9673c0a9fec14bc32bf8337d',1,'via6522_2.h']]],
+  ['v2ier',['V2IER',['../via6522__2_8h.html#a483b8e6474d73693c09dcf62d5a46a63',1,'via6522_2.h']]],
+  ['v2pcr',['V2PCR',['../via6522__2_8h.html#a0020589dd527491c6c4b7b05514668be',1,'via6522_2.h']]],
+  ['v2t1',['V2T1',['../via6522__2_8h.html#a6ca695d5ee67fc93920322c33045e91a',1,'via6522_2.h']]]
 ];

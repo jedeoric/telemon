@@ -212,10 +212,21 @@ str
 
 #define XEDTIN $32
 
-/// @brief [PRIMITIVE] Display prompt
-#define XECRPR $33 ; display prompt
+/// @brief [PRIMITIVE] Display prompt Char "#"
+#define XECRPR $33 
 
+
+
+/// @brief [PRIMITIVE] Switch off cursor
 #define XCOSCR $34
+///  
+/// @param X (register)  [in] the number of the channel
+
+/*!
+	ldx #0
+	BRK_TELEMON(XCOSCR)  ; display cursor
+ */
+
 
 /// @brief [PRIMITIVE] Display cursor (prompt)	, X equal to 0 : No window
 #define XCSSCR $35 
@@ -228,6 +239,7 @@ str
  */
 
 #define XSCRSE $36
+
 /// @brief [PRIMITIVE] Scroll high
 #define XSCROH $37
 
@@ -237,20 +249,15 @@ str
 /// @brief [PRIMITIVE] Load charset from rom to ram 
 #define XSCRNE $39 
 
-/// @brief [PRIMITIVE] Wait CH376 response
-//#define XCH376_WAIT_RESPONSE $3a
 
-/// @brief [PRIMITIVE] Set filename : input BUFNOM terminated by 0
-// #define XCH376_SET_FILE_NAME $3b
 
 /// @brief [PRIMITIVE] Reset clock
-
 #define XRECLK $3c 
+
 /// @brief [PRIMITIVE] Close clock (delete display)
 #define XCLCL $3d
 
 /*Clock*/
-
 
 /// @brief [PRIMITIVE] Update clock
 #define XWRCLK $3e
