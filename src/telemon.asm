@@ -13,7 +13,7 @@
 #include "include/macro_orix.h"
 
 
-
+#define PATH_CURRENT_MAX_LEVEL 4 ; number of level, if we add more, we should have to many RAM, if you need to set more level add bytes here : ptr_path_current_low and ptr_path_current_high	
 
 #define CDRIVE $314
 
@@ -24,7 +24,7 @@
 	.byt 00,value;\
 
 	
-
+#define MAX_LENGTH_OF_FILES 9 // We say 8 chars for directory and end of string
 
 ; interrupt primitives
 
@@ -41,6 +41,29 @@
 /********************************************************************** PAGE 0 VARIABLES */
 
 #include "include/telemon_zp.inc"
+
+*=$052C
+FTYPE ; Type (b7=1 basic,  b6 : bloc, b4 sequentiel, b3 fichier direct, b0=auto)
+TEMP_ORIX_2
+.dsb 1
+DESALO ; address depart
+.dsb 2
+FISALO ; address fin
+.dsb 2
+EXSALO ; address à executer
+.dsb 2
+PATH_CURRENT_NUMBER
+.dsb 1
+PATH_CURRENT_PTR_NEXT
+.dsb 2
+PATH_CURRENT
+.dsb MAX_LENGTH_OF_FILES*PATH_CURRENT_MAX_LEVEL ; array
+NUMBER_OF_COLUMNS
+.dsb 1
+GETOPT_PTR
+.dsb 1 ; Store the index of the current opt
+TEMP_ORIX_1
+.dsb 1
 
 
 .text
@@ -662,7 +685,12 @@ str_telemon
 	.asc $0d,$0a,"TELEMON V"
 str_telemon_version
 	.asc "3.0"
-	
+str_cpu	
+#ifdef CPU_65C02
+	.asc " 65C02"
+#else
+	.asc " 6502"
+#endif
 
 str_oric_international
 	.asc $0d,$0a,"(c) 1986 ORIC International",$0d,$0a,$00
@@ -6708,13 +6736,91 @@ LEE9D
 	ORA #$30
 	JMP Ldbb5  
 
+_strcpy
+.(
+	ldy #0
+loop
+	lda (RES),y
+	beq end
+	sta (RESB),y
+	iny
+	jmp loop
+end
+	sta (RESB),y
+	; y return the length
+	rts
+.)
+
+
+	
+XOPEN_ABSOLUTE_PATH_CURRENT_ROUTINE
+.(
+	lda #"/"
+	sta BUFNOM
+#ifdef CPU_65C02	
+	stz BUFNOM+1
+#else
+	lda #0
+	sta BUFNOM+1
+#endif	
+	jsr _ch376_set_file_name
+	jsr _ch376_file_open
+	;PRINT(BUFNOM)
+	ldx #0
+loop
+	cpx PATH_CURRENT_NUMBER
+	beq end
+
+	lda ptr_path_current_low,x
+	ldy ptr_path_current_high,x
+#ifdef CPU_65C02
+	phx
+#else	
+	stx TR5
+#endif	
+	STRCPY_BY_AY_SRC(BUFNOM)
+	jsr _ch376_set_file_name
+	jsr _ch376_file_open
+	cmp #CH376_ERR_MISS_FILE
+	bne next
+	;PRINT(str_not_found) ; MACRO
+	lda #1
+	rts
+next	
+#ifdef CPU_65C02
+	plx
+	inx
+	bra loop
+#else	
+	ldx TR5
+	inx
+	jmp loop
+#endif	
+end	
+	lda #0 ; OK
+	rts
+.)	
+
+ptr_path_current_low
+.byt <PATH_CURRENT ; 0
+.byt <PATH_CURRENT+MAX_LENGTH_OF_FILES
+.byt <PATH_CURRENT+MAX_LENGTH_OF_FILES*2
+.byt <PATH_CURRENT+MAX_LENGTH_OF_FILES*3
+ptr_path_current_high
+.byt >PATH_CURRENT
+.byt >PATH_CURRENT+MAX_LENGTH_OF_FILES
+.byt >PATH_CURRENT+MAX_LENGTH_OF_FILES*2
+.byt >PATH_CURRENT+MAX_LENGTH_OF_FILES*3
+	
+	
 XOPEN_ROUTINE
 .(
-	
-
 	// A and X contains char * pointer ex /usr/bin/toto.txt but it does not manage the full path yet
 	sta RES
 	stx RES+1
+	;XOPEN_ABSOLUTE_PATH_CURRENT_ROUTINE
+
+	
 	/*
 	ldy RES+1
 	
@@ -6732,6 +6838,15 @@ XOPEN_ROUTINE
 	rts
 next	
 	ldy #0
+
+
+	ldy #0
+	lda (RES),y
+	cmp #"/"
+	beq it_is_absolute	
+	; here it's relative
+	jsr XOPEN_ABSOLUTE_PATH_CURRENT_ROUTINE
+it_is_absolute	
 init_and_go	
 	ldx #0 ; used to write in BUFNOM
 	stx BUFNOM ; INIT	
