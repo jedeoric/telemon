@@ -6755,6 +6755,7 @@ end
 	
 XOPEN_ABSOLUTE_PATH_CURRENT_ROUTINE
 .(
+	PRINT(ENTER)
 	lda #"/"
 	sta BUFNOM
 #ifdef CPU_65C02	
@@ -6783,7 +6784,8 @@ loop
 	jsr _ch376_file_open
 	cmp #CH376_ERR_MISS_FILE
 	bne next
-	;PRINT(str_not_found) ; MACRO
+	PRINT(BUFNOM) ; MACRO
+	PRINT(str_not_found) ; MACRO
 	lda #1
 	rts
 next	
@@ -6799,7 +6801,12 @@ next
 end	
 	lda #0 ; OK
 	rts
+
+str_not_found
+	.asc "telemon not found",0
 .)	
+ENTER
+	.asc "Enter PATH",0
 
 ptr_path_current_low
 .byt <PATH_CURRENT ; 0
@@ -6820,41 +6827,41 @@ XOPEN_ROUTINE
 	stx RES+1
 	;XOPEN_ABSOLUTE_PATH_CURRENT_ROUTINE
 
-	
-	/*
-	ldy RES+1
-	
-	BRK_TELEMON(XCRLF)
-	BRK_TELEMON(XWSTR0)
-	BRK_TELEMON(XCRLF)
-	rts
-	*/
+	;lda RES
+	;sta $bb80
+
 	; check if usbkey is available
 	jsr _ch376_verify_SetUsbPort_Mount
 	cmp #1
 	bne next
-	ldx #$ff
+	; impossible to mount
+	ldx #00
 	txa
 	rts
-next	
-	ldy #0
-
-
+next
+	
 	ldy #0
 	lda (RES),y
+	sta $bb80+1,y
 	cmp #"/"
-	beq it_is_absolute	
+	beq it_is_absolute
+	PRINT(ENTER)
 	; here it's relative
 	jsr XOPEN_ABSOLUTE_PATH_CURRENT_ROUTINE
 it_is_absolute	
-init_and_go	
+init_and_go
+
+#ifdef CPU_65C02
+	stz BUFNOM ; INIT	
+#else	
 	ldx #0 ; used to write in BUFNOM
 	stx BUFNOM ; INIT	
+#endif	
+
 loop
 	lda (RES),y
 	beq end
-	;sta $bb80,y
-	;cpy #7
+
 	beq end
 	cmp #"/"
 	bne concat_in_bufnom
@@ -6929,6 +6936,10 @@ send_root_to_filename
 	jmp loop
 
 file_not_found
+#ifdef CPU_65C02
+	ply ; pull because there is push before
+#endif	
+
 	;lda #17
 	;sta $bb80+40
 	ldx #$ff

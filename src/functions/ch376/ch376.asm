@@ -98,7 +98,8 @@ loop
 _ch376_check_exist
 	lda #CH376_CHECK_EXIST ; 
 	sta CH376_COMMAND
-	lda #CH376_DISK_RD_GO
+	lda #$55
+	;sta CH376_DATA
 	sta CH376_COMMAND
 	lda CH376_DATA
 	rts

@@ -181,12 +181,17 @@ str
 /// @brief read bytes from sdcard need to have fileopen done
 /*!
  lda #<$a000
- sta PTR_READ_DEST
- lda #>$a000
- sta PTR_READ_DEST+1 ; all bytes will in be $a000
- lda #$ff ; all bytes (65535 bytes)
- ldy #$ff
  
+ sta PTR_READ_DEST
+ 
+ lda #>$a000
+ 
+ sta PTR_READ_DEST+1 ; all bytes will in be $a000
+ 
+ lda #$ff ; all bytes (65535 bytes)
+ 
+ ldy #$ff
+  
  brk XFREAD
  */
 #define XFREAD $27 
@@ -208,6 +213,13 @@ str
 #define XSCELG $2f ; search line
 
 /// @brief [PRIMITIVE] Open file from ch376 AY contains char * of the path
+/*!
+	lda #<volatile_str
+	
+	ldx #>volatile_str
+	
+	BRK_TELEMON(XOPEN)
+*/	
 #define XOPEN $30
 
 #define XEDTIN $32
@@ -224,6 +236,7 @@ str
 
 /*!
 	ldx #0
+	
 	BRK_TELEMON(XCOSCR)  ; display cursor
  */
 
@@ -235,6 +248,7 @@ str
 
 /*!
 	ldx #0
+	
 	BRK_TELEMON(XCSSCR)  ; display cursor
  */
 
