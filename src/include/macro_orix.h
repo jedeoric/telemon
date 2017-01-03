@@ -1,7 +1,4 @@
 
-#define BRK_TELEMON(value)\
-	.byt 00,value;
-	
 #define PRINT(str)\
 	lda #<str:\
 	ldy #>str:\

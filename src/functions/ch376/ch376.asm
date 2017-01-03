@@ -1,7 +1,15 @@
-
-
-
-
+_ch376_seek_file
+.(
+	ldx #CH376_BYTE_LOCATE
+	stx CH376_COMMAND
+	sta CH376_DATA
+	sty CH376_DATA
+	lda #$00
+	sta CH376_DATA
+	sta CH376_DATA
+	jsr _ch376_wait_response
+	rts
+.)
 
 //@set filename, input : A and Y adress of the string, terminated by 0
 _ch376_set_file_name
@@ -23,22 +31,15 @@ _ch376_set_file_name
 loop	
 	lda BUFNOM,x ; replace by bufnom
 	beq end ; we reached 0 value
-//	sta $bb80,x
 	jsr XMINMA_ROUTINE
-	
-	//sta $bb80+40,x
 	sta CH376_DATA
 	inx
 	cpx #13 ; because we don't manage longfilename shortname =11
 	bne loop
-	
 end	
 	sta CH376_DATA
-
 .)	
 	rts
-
-
 	
 _ch376_file_open
 	.(
@@ -51,7 +52,6 @@ _ch376_file_open
 	ldy #>str_ok_message
 	BRK_TELEMON(XWSTR0)	
 #endif
-	
 	lda #CH376_FILE_OPEN ; $32
 	sta CH376_COMMAND
 	jsr _ch376_wait_response
@@ -75,7 +75,6 @@ _ch376_get_file_size
 	sta TR2
 	lda CH376_DATA
 	sta TR3
-	
 .)
 	rts
 	
@@ -99,8 +98,8 @@ _ch376_check_exist
 	lda #CH376_CHECK_EXIST ; 
 	sta CH376_COMMAND
 	lda #$55
-	;sta CH376_DATA
-	sta CH376_COMMAND
+	sta CH376_DATA
+	;sta CH376_COMMAND
 	lda CH376_DATA
 	rts
 
@@ -121,9 +120,7 @@ _ch376_set_usb_mode
 	rts
 
 	
-_ch376_set_bytes_write
-	ldx #CH376_BYTE_WRITE
-	BIT $ffff ; Jump 2 next bytes
+
 _ch376_set_bytes_read
 	; A and Y contains number of bytes to read
 	ldx #CH376_BYTE_READ

@@ -5,12 +5,15 @@
 /* telemon 2.4                                                         */
 /***********************************************************************/
 
-#include "include/telemon.h"
-#include "include/via6522_1.h"
-#include "include/via6522_2.h"
-#include "include/acia6551.h"
-#include "include/fdc1793.h"
+#include "../../oric-common/include/asm/telemon.h"
+#include "../../oric-common/include/asm/via6522_1.h"
+#include "../../oric-common/include/asm/via6522_2.h"
+#include "../../oric-common/include/asm/acia6551.h"
+#include "../../oric-common/include/asm/fdc1793.h"
 #include "include/macro_orix.h"
+
+
+	
 
 
 #define PATH_CURRENT_MAX_LEVEL 4 ; number of level, if we add more, we should have to many RAM, if you need to set more level add bytes here : ptr_path_current_low and ptr_path_current_high	
@@ -22,7 +25,7 @@
 
 #define BRK_TELEMON(value)\
 	.byt 00,value;\
-
+	
 	
 #define MAX_LENGTH_OF_FILES 9 // We say 8 chars for directory and end of string
 
@@ -52,12 +55,11 @@ FISALO ; address fin
 .dsb 2
 EXSALO ; address à executer
 .dsb 2
-PATH_CURRENT_NUMBER
-.dsb 1
-PATH_CURRENT_PTR_NEXT
-.dsb 2
+*=$536
 PATH_CURRENT
 .dsb MAX_LENGTH_OF_FILES*PATH_CURRENT_MAX_LEVEL ; array
+PATH_CURRENT_NUMBER
+.dsb 1
 NUMBER_OF_COLUMNS
 .dsb 1
 GETOPT_PTR
@@ -1773,7 +1775,7 @@ vectors_telemon_second_table
 	.byt $00,$00 ; nothing $9b
 	.byt <XEXPLO_ROUTINE,>XEXPLO_ROUTINE ; $9c
 	.byt <XPING_ROUTINE,>XPING_ROUTINE ; $9d
-#include "include/ch376.h"
+#include "../../oric-common/include/asm/ch376.h"
 #include "functions/ch376/ch376.asm"
 XCHECK_VERIFY_USBDRIVE_READY_ROUTINE
 #include "functions/ch376/ch376_verify.asm"
@@ -1817,7 +1819,6 @@ loop9
 	lda CH376_DATA ; read the data
 
 	sta (PTR_READ_DEST),y
-	
 
 	iny
 	cpy TR0
@@ -1851,18 +1852,14 @@ finished
 
 XWRITEBYTES_ROUTINE
 .(	
-
-
-	jsr _ch376_set_bytes_write
+	; FIXME : jsr _ch376_set_bytes_write
 
 continue	
-	cmp #$1d ; something to read
+	cmp #CH376_USB_INT_DISK_READ ; something to read
 	beq we_read
 	cmp #CH376_USB_INT_SUCCESS ; finished
 	beq finished 
 	; TODO  in A : $ff X: $ff
-	
-
 	rts
 
 we_read
@@ -6750,12 +6747,10 @@ end
 	; y return the length
 	rts
 .)
-
-
 	
 XOPEN_ABSOLUTE_PATH_CURRENT_ROUTINE
 .(
-	PRINT(ENTER)
+	;PRINT(ENTER)
 	lda #"/"
 	sta BUFNOM
 #ifdef CPU_65C02	
@@ -6805,8 +6800,7 @@ end
 str_not_found
 	.asc "telemon not found",0
 .)	
-ENTER
-	.asc "Enter PATH",0
+
 
 ptr_path_current_low
 .byt <PATH_CURRENT ; 0
@@ -6818,18 +6812,19 @@ ptr_path_current_high
 .byt >PATH_CURRENT+MAX_LENGTH_OF_FILES
 .byt >PATH_CURRENT+MAX_LENGTH_OF_FILES*2
 .byt >PATH_CURRENT+MAX_LENGTH_OF_FILES*3
+
+ENTER
+	.asc "Enter PATH telemon",0		
 	
+	
+ENTER_POUET
+	.asc "POUET",0	
 	
 XOPEN_ROUTINE
 .(
 	// A and X contains char * pointer ex /usr/bin/toto.txt but it does not manage the full path yet
 	sta RES
 	stx RES+1
-	;XOPEN_ABSOLUTE_PATH_CURRENT_ROUTINE
-
-	;lda RES
-	;sta $bb80
-
 	; check if usbkey is available
 	jsr _ch376_verify_SetUsbPort_Mount
 	cmp #1
@@ -6838,64 +6833,64 @@ XOPEN_ROUTINE
 	ldx #00
 	txa
 	rts
+
 next
 	
 	ldy #0
 	lda (RES),y
-	sta $bb80+1,y
+	;
 	cmp #"/"
 	beq it_is_absolute
-	PRINT(ENTER)
+	
 	; here it's relative
-	jsr XOPEN_ABSOLUTE_PATH_CURRENT_ROUTINE
+	jmp XOPEN_ABSOLUTE_PATH_CURRENT_ROUTINE ; Read current path and read
+	
 it_is_absolute	
 init_and_go
 
+	lda #"/"
+	sta BUFNOM
+
 #ifdef CPU_65C02
-	stz BUFNOM ; INIT	
+	ldx #0
+	stz BUFNOM+1 ; INIT	
 #else	
 	ldx #0 ; used to write in BUFNOM
-	stx BUFNOM ; INIT	
+	stx BUFNOM+1 ; INIT	
 #endif	
+
+	jsr open_and_read_go
+
 
 loop
 	lda (RES),y
 	beq end
-
-	beq end
 	cmp #"/"
-	bne concat_in_bufnom
-
-	cpy #0 ; / is it the first char ?
-	beq send_root_to_filename
-	; If we are here it's time to send to BUFNOM
-	;inx
+	bne next_char
 #ifdef CPU_65C02
-	phy
-#else	
-	sty TR7
-#endif
-
+	stz BUFNOM,x
+#else
 	lda #0
 	sta BUFNOM,x
-	jsr _ch376_set_file_name
-	jsr _ch376_file_open
+#endif	
+	
+	jsr open_and_read_go
+	
 	cmp #CH376_ERR_MISS_FILE
-	beq file_not_found 
-#ifdef CPU_65C02
-	ply
-#else	
-	ldy TR7
-#endif		
-	iny
-	jmp init_and_go
-
-concat_in_bufnom
+	beq file_not_found 	
+	jmp loop
+next_char		
+	;rts
 	sta BUFNOM,x
+	;sta $bb80,x
 	iny
 	inx
-	bne loop
-
+#ifdef CPU_65C02	
+	bra loop
+#else
+	jmp loop
+#endif
+	
 not_slash_first_param
 	; Call here setfilename
 	ldx #0 ; Flush param in order to send parameter
@@ -6905,46 +6900,56 @@ end
 	cpy #0
 	beq skip
 	sta BUFNOM,x
-open_and_read
-	; were are without / at the end, it means that it's a file
-	jsr _ch376_set_file_name
-	jsr _ch376_file_open
-	cmp #CH376_ERR_MISS_FILE
-	beq file_not_found
+	jsr open_and_read_go
+	;lda #"A"
+	;sta $bb80+39
+	lda #00
 	rts
-	;PRINT(BUFNOM)
-	; if we are here, we must return fp pointer
+
 
 skip
 	ldx #$00
 	txa
 	rts
-send_root_to_filename
-	sta BUFNOM
-	lda #$00
-	sta BUFNOM+1
+open_and_read_go
+/******DEBUG ********/
+	;lda RES
+	;pha
+;	lda RES+1
+	;pha
+/****** END DEBUG ********/
+#ifdef CPU_65C02
+	phy
+#else
+	sty TR7
+#endif	
 	jsr _ch376_set_file_name
 	jsr _ch376_file_open
-	cmp #CH376_ERR_MISS_FILE
-	beq file_not_found 
+
+	sta TR6 ; store return 
 ;	PRINT(BUFNOM)
-;	BRK_TELEMON(XCRLF)
-	;rts
-	ldx #$00 
-	stx BUFNOM ; Initialize again
-	ldy #1 ; because it's "/" in the first char, it means that we are here _/_usr/bin/toto.txt
-	jmp loop
+	;jsr XCRLF_ROUTINE
 
-file_not_found
+	ldx #0
 #ifdef CPU_65C02
-	ply ; pull because there is push before
-#endif	
-
-	;lda #17
-	;sta $bb80+40
-	ldx #$ff
-	txa
+	ply
+#else
+	ldy TR7 ; because it's "/" in the first char, it means that we are here _/_usr/bin/toto.txt
+#endif		
+	
+	iny
+/******DEBUG ********/	
+	;pla
+	;sta RES+1
+	;pla 
+	;sta RES
+/****** END DEBUG ********/	
+	lda TR6 ; GET error of _ch376_file_open return
 	rts
+file_not_found 
+	ldx #$ff
+	rts
+	
 .)
 
 
@@ -6973,9 +6978,9 @@ Lef97
 ACC2_ACC1
 	jsr LF1EC 
 XA2NA1_ROUTINE	
-	lda $65
+	lda ACC1S ;$65 
 	eor #$ff
-	sta $65
+	sta ACC1S ; $65
 	eor $6d
 	sta $6e
 	lda ACC1E
