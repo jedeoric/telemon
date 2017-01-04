@@ -6506,7 +6506,7 @@ LED62
 	LDX #$00
 LED64
 	JSR Lec6b 
-	STA $052C,X ; FIXME
+	STA FTYPE,X 
 	INX
 	CPX #$07
 	BNE LED64
@@ -6747,6 +6747,8 @@ send_set_filename_and_fileopen
 	sta BUFNOM,y
 #endif	
 
+
+
 #ifdef CPU_65C02
 	phx
 #else	
@@ -6781,13 +6783,15 @@ end
 
 
 
-; Use RES, A X Y TR4 	
+; Use RES, A X Y TR4 cd 	
 XOPEN_ROUTINE
 
 .(
 	// A and X contains char * pointer ex /usr/bin/toto.txt but it does not manage the full path yet
 	sta RES
 	stx RES+1
+
+	
 	sty TR4 ; save flags
 	
 	; check if usbkey is available
@@ -6810,6 +6814,7 @@ next
 	; here it's relative
 	jsr XOPEN_ABSOLUTE_PATH_CURRENT_ROUTINE ; Read current path (and open)
 	ldy #0
+	ldx #0
 	jmp read_file
 ;	rts
 	
@@ -6830,6 +6835,7 @@ init_and_go
 	jsr open_and_read_go
 
 read_file
+
 loop
 	lda (RES),y
 	beq end
@@ -6868,7 +6874,12 @@ end
 	cpy #0
 	beq skip
 	sta BUFNOM,x
+	/*
+	lda #"-"
+	jsr XWR0_ROUTINE
+	
 	PRINT_INTO_TELEMON(BUFNOM)
+*/
 	; Optimize, it's crap
 	lda TR4 ; Get flags
 	AND #O_RDONLY
