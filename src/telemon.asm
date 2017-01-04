@@ -10,62 +10,18 @@
 #include "../../oric-common/include/asm/via6522_2.h"
 #include "../../oric-common/include/asm/acia6551.h"
 #include "../../oric-common/include/asm/fdc1793.h"
-#include "include/macro_orix.h"
+#include "../../oric-common/include/asm/ch376.h"
 
+#include "../../oric-common/include/asm/macro_orix.h"
 
-	
-
-
-#define PATH_CURRENT_MAX_LEVEL 4 ; number of level, if we add more, we should have to many RAM, if you need to set more level add bytes here : ptr_path_current_low and ptr_path_current_high	
+#define CALL_TELEMON_XMINMA\
+jsr XMINMA_ROUTINE
 
 #define CDRIVE $314
 
 #define bank_signature $ff00
 
-
-#define BRK_TELEMON(value)\
-	.byt 00,value;\
-	
-	
-#define MAX_LENGTH_OF_FILES 9 // We say 8 chars for directory and end of string
-
-; interrupt primitives
-
-; Switch to keyboard, A containts value :
-; 00 Qwerty
-; 02 french
-; 04 accent
-; 01 azerty
-; 03 bwana
-; 05 accent off
-
-; Page 0 variables
-
-/********************************************************************** PAGE 0 VARIABLES */
-
-#include "include/telemon_zp.inc"
-
-*=$052C
-FTYPE ; Type (b7=1 basic,  b6 : bloc, b4 sequentiel, b3 fichier direct, b0=auto)
-TEMP_ORIX_2
-.dsb 1
-DESALO ; address depart
-.dsb 2
-FISALO ; address fin
-.dsb 2
-EXSALO ; address à executer
-.dsb 2
-*=$536
-PATH_CURRENT
-.dsb MAX_LENGTH_OF_FILES*PATH_CURRENT_MAX_LEVEL ; array
-PATH_CURRENT_NUMBER
-.dsb 1
-NUMBER_OF_COLUMNS
-.dsb 1
-GETOPT_PTR
-.dsb 1 ; Store the index of the current opt
-TEMP_ORIX_1
-.dsb 1
+#include "../../oric-common/vars/telemon_vars.inc.asm"
 
 
 .text
@@ -1661,7 +1617,7 @@ vectors_telemon
 	.byt <XSCELG_ROUTINE,>XSCELG_ROUTINE ; XSCELG $2f
 	.byt <XOPEN_ROUTINE,>XOPEN_ROUTINE ; $30
 
-	.byt $00,$00 ; nothing  $31
+	.byt <XOPEN_ABSOLUTE_PATH_CURRENT_ROUTINE,>XOPEN_ABSOLUTE_PATH_CURRENT_ROUTINE ; Open from current path $31
 
 	.byt <XEDTIN_ROUTINE,>XEDTIN_ROUTINE; XEDTIN $32
 	.byt <XECRPR_ROUTINE,>XECRPR_ROUTINE; XECRPR $33 $ece6
@@ -1775,10 +1731,10 @@ vectors_telemon_second_table
 	.byt $00,$00 ; nothing $9b
 	.byt <XEXPLO_ROUTINE,>XEXPLO_ROUTINE ; $9c
 	.byt <XPING_ROUTINE,>XPING_ROUTINE ; $9d
-#include "../../oric-common/include/asm/ch376.h"
-#include "functions/ch376/ch376.asm"
+
+#include "../../oric-common/lib/asm/ch376.asm"
 XCHECK_VERIFY_USBDRIVE_READY_ROUTINE
-#include "functions/ch376/ch376_verify.asm"
+#include "../../oric-common/lib/asm/ch376_verify.asm"
 
 
 ; [IN] AY contains the length to read
@@ -6749,8 +6705,10 @@ end
 .)
 	
 XOPEN_ABSOLUTE_PATH_CURRENT_ROUTINE
+
+_cd_to_current_realpath_new
 .(
-	;PRINT(ENTER)
+
 	lda #"/"
 	sta BUFNOM
 #ifdef CPU_65C02	
@@ -6759,68 +6717,73 @@ XOPEN_ABSOLUTE_PATH_CURRENT_ROUTINE
 	lda #0
 	sta BUFNOM+1
 #endif	
+
 	jsr _ch376_set_file_name
 	jsr _ch376_file_open
-	;PRINT(BUFNOM)
-	ldx #0
-loop
-	cpx PATH_CURRENT_NUMBER
-	beq end
 
-	lda ptr_path_current_low,x
-	ldy ptr_path_current_high,x
+	
+	ldx #1
+	lda ORIX_PATH_CURRENT,x
+	beq end ; Because ORIX_PATH_CURRENT= /,0 no need to continue
+restart	
+	ldy #0
+loop	
+	
+	lda ORIX_PATH_CURRENT,x
+	beq send_set_filename_and_fileopen
+	cmp #"/"
+	beq send_set_filename_and_fileopen
+	sta BUFNOM,y
+	iny
+	inx
+	jmp loop
+	
+send_set_filename_and_fileopen
+
+#ifdef CPU_65C02
+	stz BUFNOM,y
+#else
+	lda #0
+	sta BUFNOM,y
+#endif	
+
 #ifdef CPU_65C02
 	phx
 #else	
-	stx TR5
-#endif	
-	STRCPY_BY_AY_SRC(BUFNOM)
+	stx TR6
+#endif
+
 	jsr _ch376_set_file_name
 	jsr _ch376_file_open
 	cmp #CH376_ERR_MISS_FILE
 	bne next
-	PRINT(BUFNOM) ; MACRO
-	PRINT(str_not_found) ; MACRO
 	lda #1
 	rts
 next	
 #ifdef CPU_65C02
 	plx
+	lda ORIX_PATH_CURRENT,x
+	beq end
 	inx
-	bra loop
-#else	
-	ldx TR5
+	bra restart
+#else
+	ldx TR6
+	lda ORIX_PATH_CURRENT,x
+	beq end
 	inx
-	jmp loop
+	jmp restart
 #endif	
 end	
-	lda #0 ; OK
 	rts
-
-str_not_found
-	.asc "telemon not found",0
-.)	
-
-
-ptr_path_current_low
-.byt <PATH_CURRENT ; 0
-.byt <PATH_CURRENT+MAX_LENGTH_OF_FILES
-.byt <PATH_CURRENT+MAX_LENGTH_OF_FILES*2
-.byt <PATH_CURRENT+MAX_LENGTH_OF_FILES*3
-ptr_path_current_high
-.byt >PATH_CURRENT
-.byt >PATH_CURRENT+MAX_LENGTH_OF_FILES
-.byt >PATH_CURRENT+MAX_LENGTH_OF_FILES*2
-.byt >PATH_CURRENT+MAX_LENGTH_OF_FILES*3
-
-ENTER
-	.asc "Enter PATH telemon",0		
+.)
 	
-	
-ENTER_POUET
-	.asc "POUET",0	
+
+
+
+
 	
 XOPEN_ROUTINE
+
 .(
 	// A and X contains char * pointer ex /usr/bin/toto.txt but it does not manage the full path yet
 	sta RES
@@ -6951,7 +6914,8 @@ file_not_found
 	rts
 	
 .)
-
+str_absolute
+.asc "absolute",0
 
 XLIGNE_ROUTINE
 	; REMOVEME minitel
