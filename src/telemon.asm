@@ -6781,13 +6781,15 @@ end
 
 
 
-	
+; Use RES, A X Y TR4 	
 XOPEN_ROUTINE
 
 .(
 	// A and X contains char * pointer ex /usr/bin/toto.txt but it does not manage the full path yet
 	sta RES
 	stx RES+1
+	sty TR4 ; save flags
+	
 	; check if usbkey is available
 	jsr _ch376_verify_SetUsbPort_Mount
 	cmp #1
@@ -6806,7 +6808,10 @@ next
 	beq it_is_absolute
 	
 	; here it's relative
-	jmp XOPEN_ABSOLUTE_PATH_CURRENT_ROUTINE ; Read current path and read
+	jsr XOPEN_ABSOLUTE_PATH_CURRENT_ROUTINE ; Read current path (and open)
+	ldy #0
+	jmp read_file
+;	rts
 	
 it_is_absolute	
 init_and_go
@@ -6824,7 +6829,7 @@ init_and_go
 
 	jsr open_and_read_go
 
-
+read_file
 loop
 	lda (RES),y
 	beq end
@@ -6863,6 +6868,24 @@ end
 	cpy #0
 	beq skip
 	sta BUFNOM,x
+	PRINT_INTO_TELEMON(BUFNOM)
+	; Optimize, it's crap
+	lda TR4 ; Get flags
+	AND #O_RDONLY
+	cmp #O_RDONLY
+	beq read_only
+	lda TR4
+	AND #O_WRONLY
+	cmp #O_WRONLY
+	beq write_only
+	jmp skip
+write_only
+	jsr _ch376_set_file_name
+	;jsr _ch376_file_open
+	jsr _ch376_file_create
+	rts
+
+read_only	
 	jsr open_and_read_go
 	;lda #"A"
 	;sta $bb80+39
