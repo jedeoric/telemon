@@ -6779,9 +6779,7 @@ end
 	rts
 .)
 	
-
-
-
+//#include "functions/XOPEN.asm"
 
 ; Use RES, A X Y TR4 cd 	
 XOPEN_ROUTINE
@@ -6818,20 +6816,11 @@ next
 	jmp read_file
 ;	rts
 	
-it_is_absolute	
+it_is_absolute
+
 init_and_go
-
-	lda #"/"
-	sta BUFNOM
-
-#ifdef CPU_65C02
+	jsr _open_root
 	ldx #0
-	stz BUFNOM+1 ; INIT	
-#else	
-	ldx #0 ; used to write in BUFNOM
-	stx BUFNOM+1 ; INIT	
-#endif	
-
 	jsr open_and_read_go
 
 read_file
@@ -6847,7 +6836,9 @@ loop
 	lda #0
 	sta BUFNOM,x
 #endif	
-	
+
+	;PRINT_INTO_TELEMON(BUFNOM)
+	;RETURN_LINE_INTO_TELEMON
 	jsr open_and_read_go
 	
 	cmp #CH376_ERR_MISS_FILE
@@ -6874,12 +6865,13 @@ end
 	cpy #0
 	beq skip
 	sta BUFNOM,x
-	/*
-	lda #"-"
-	jsr XWR0_ROUTINE
 	
-	PRINT_INTO_TELEMON(BUFNOM)
-*/
+
+	
+
+	
+	
+
 	; Optimize, it's crap
 	lda TR4 ; Get flags
 	AND #O_RDONLY
@@ -6889,23 +6881,41 @@ end
 	AND #O_WRONLY
 	cmp #O_WRONLY
 	beq write_only
-	jmp skip
+	/*
+		lda #"S"
+	jsr XWR0_ROUTINE
+	PRINT_INTO_TELEMON(BUFNOM)
+		lda #"S"
+	jsr XWR0_ROUTINE	
+	*/
+	; In all others keys, readonly read :!
+	jmp read_only
 write_only
 	jsr _ch376_set_file_name
 	;jsr _ch376_file_open
 	jsr _ch376_file_create
 	rts
 
-read_only	
-	jsr open_and_read_go
-	;lda #"A"
-	;sta $bb80+39
-	lda #00
+read_only
+	;PRINT_INTO_TELEMON(BUFNOM)
+	jsr _ch376_set_file_name
+	jsr _ch376_file_open	
+	;jsr open_and_read_go
+	cmp #CH376_ERR_MISS_FILE
+	beq file_not_found 	
+;	lda #"F"
+;	jsr XWR0_ROUTINE	
+;	lda #"o"
+;	jsr XWR0_ROUTINE	
+	; cc65 needs everything 
+	lda #$00
+	ldx #$00
 	rts
 
 
 skip
-	ldx #$00
+
+	ldx #$ff
 	txa
 	rts
 open_and_read_go
@@ -6924,9 +6934,12 @@ open_and_read_go
 	jsr _ch376_file_open
 
 	sta TR6 ; store return 
-;	PRINT(BUFNOM)
-	;jsr XCRLF_ROUTINE
+	;PRINT_INTO_TELEMON(BUFNOM)
 
+	;lda #"-"
+;	jsr XWR0_ROUTINE	
+
+	
 	ldx #0
 #ifdef CPU_65C02
 	ply
@@ -6944,12 +6957,28 @@ open_and_read_go
 	lda TR6 ; GET error of _ch376_file_open return
 	rts
 file_not_found 
+	; return NULL
+	lda #"#"
+	jsr XWR0_ROUTINE
 	ldx #$ff
+	lda #$ff
 	rts
 	
 .)
-str_absolute
-.asc "absolute",0
+
+_open_root
+	lda #"/"
+	sta BUFNOM
+
+#ifdef CPU_65C02
+	;ldx #0
+	stz BUFNOM+1 ; INIT	
+#else	
+	lda #0 ; used to write in BUFNOM
+	sta BUFNOM+1 ; INIT	
+#endif
+
+	rts
 
 XLIGNE_ROUTINE
 	; REMOVEME minitel
