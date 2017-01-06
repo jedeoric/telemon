@@ -22,7 +22,7 @@ copy a.o65 ..\release\telemon%RELEASE%.rom
 
 copy ..\release\telemon%RELEASE%.rom %ORICUTRON%\roms\telemon%RELEASE%.rom
 
-IF "%UNITTEST%"=="NO" GOTO End
+IF "%1" NEQ "" GOTO End
 cd %ORICUTRON%
 oricutronoffset -mt -d teledisks\stratsed.dsk
 :End

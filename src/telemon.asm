@@ -1627,7 +1627,7 @@ vectors_telemon
 	.byt <XSCROH_ROUTINE,>XSCROH_ROUTINE ; $37
 	.byt <XSCROB_ROUTINE,>XSCROB_ROUTINE ; $38 XSCROB
 	.byt <XSCRNE_ROUTINE,>XSCRNE_ROUTINE ; $39
-	.byt $00,$00 ; $3a 
+	.byt <XCLOSE_ROUTINE,>XCLOSE_ROUTINE ; $3a 
 	.byt $00,$00 ; $3b
 	.byt <XRECLK_ROUTINE,>XRECLK_ROUTINE ; $3c
 	.byt <XCLCL_ROUTINE,>XCLCL_ROUTINE ; $3d
@@ -1735,6 +1735,11 @@ vectors_telemon_second_table
 #include "../../oric-common/lib/asm/ch376.asm"
 XCHECK_VERIFY_USBDRIVE_READY_ROUTINE
 #include "../../oric-common/lib/asm/ch376_verify.asm"
+
+XCLOSE_ROUTINE
+	rts
+	
+	
 
 
 ; [IN] AY contains the length to read
@@ -6845,9 +6850,9 @@ loop
 	beq file_not_found 	
 	jmp loop
 next_char		
-	;rts
+
 	sta BUFNOM,x
-	;sta $bb80,x
+
 	iny
 	inx
 #ifdef CPU_65C02	
@@ -6866,12 +6871,6 @@ end
 	beq skip
 	sta BUFNOM,x
 	
-
-	
-
-	
-	
-
 	; Optimize, it's crap
 	lda TR4 ; Get flags
 	AND #O_RDONLY
@@ -6892,22 +6891,17 @@ end
 	jmp read_only
 write_only
 	jsr _ch376_set_file_name
-	;jsr _ch376_file_open
 	jsr _ch376_file_create
 	rts
 
 read_only
-	;PRINT_INTO_TELEMON(BUFNOM)
 	jsr _ch376_set_file_name
 	jsr _ch376_file_open	
-	;jsr open_and_read_go
 	cmp #CH376_ERR_MISS_FILE
 	beq file_not_found 	
-;	lda #"F"
-;	jsr XWR0_ROUTINE	
-;	lda #"o"
-;	jsr XWR0_ROUTINE	
-	; cc65 needs everything 
+
+
+	; cc65 needs everything except $ff : if it returns $ff cc65 launch return0 (null)
 	lda #$00
 	ldx #$00
 	rts
@@ -6934,10 +6928,6 @@ open_and_read_go
 	jsr _ch376_file_open
 
 	sta TR6 ; store return 
-	;PRINT_INTO_TELEMON(BUFNOM)
-
-	;lda #"-"
-;	jsr XWR0_ROUTINE	
 
 	
 	ldx #0
@@ -6958,8 +6948,7 @@ open_and_read_go
 	rts
 file_not_found 
 	; return NULL
-	lda #"#"
-	jsr XWR0_ROUTINE
+
 	ldx #$ff
 	lda #$ff
 	rts
