@@ -19,10 +19,10 @@ cd src
 
 copy a.o65 ..\release\telemon%RELEASE%.rom
 
-
+IF "%1"=="NORUN" GOTO End
 copy ..\release\telemon%RELEASE%.rom %ORICUTRON%\roms\telemon%RELEASE%.rom
 
-IF "%1"=="NORUN" GOTO End
+
 cd %ORICUTRON%
 oricutronoffset -mt -d teledisks\stratsed.dsk
 :End
