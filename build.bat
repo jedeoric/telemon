@@ -1,6 +1,6 @@
 @echo off
 
-SET OSDKB="..\..\..\..\osdk\bin\"
+
 SET ORICUTRON="..\..\..\..\oricutron\"
 
 
@@ -13,7 +13,7 @@ SET ORIGIN_PATH=%CD%
 
 cd src
 
-%OSDKB%\xa.exe -C -W  -e error.txt -l xa_labels.txt  telemon.asm 
+%OSDK%\bin\xa.exe -C -W  -e error.txt -l xa_labels.txt  telemon.asm 
 
 ..\md5sums a.o65 ..\original\telemon.rom
 
