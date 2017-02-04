@@ -1085,7 +1085,9 @@ LC6AF
 	.byt $c4,$c5 ; Keyboard buffer begin $c5c4
 end_keyboard_buffer	
 LC6B1	
-	.byt $80,$c6 ; Keyboard buffer end $c680
+#define TELEMON_KEYBOARD_BUFFER_END $c680
+
+	.byt <TELEMON_KEYBOARD_BUFFER_END,>TELEMON_KEYBOARD_BUFFER_END ; Keyboard buffer end $c680
 	.byt $80,$c6  ; buffer acia/minitel input begin
 	.byt $00,$c8  ; buffer acia/minitel input end
 	.byt $00,$c8   ; buffer acia/minitel output begin
@@ -1093,30 +1095,8 @@ LC6B1
 	.byt $00,$ca ;  buffer printer output begin
 	.byt $00,$d2 ;  buffer printer output end
 
-; test if printer is connected	
-XTSTLP_ROUTINE	
-routine_to_define_18
-	LDX #$00
-	STX V1DRA
-	LDA V1DRB
-	AND #$EF
-	STA V1DRB
-	ORA #$10
-	STA V1DRB
-loop48
-	LDA V1IFR
-	AND #$02
-	BNE next40
-	DEX
-	BNE loop48
-	RTS
-next40
-	lda FLGTEL
-	ora #$02
-	sta FLGTEL
-	rts
 
-	
+#include "functions/xtstlp.asm"
 #include "functions/XOP.asm"
 #include "functions/XCL.asm"
 
@@ -1225,7 +1205,7 @@ LC87A
 	STA ADDRESS_READ_BETWEEN_BANK
 	LDA BUFTRV+2,X
 	STA ADDRESS_READ_BETWEEN_BANK+1
-	LDA $040F
+	LDA BNKOLD
 	STA $0410
 	LDY #$00
 	JSR $0411
@@ -1606,7 +1586,7 @@ vectors_telemon
 	.byt <XNOMFI_ROUTINE,>XNOMFI_ROUTINE ; XNOMFI 
 	.byt <XCRLF_ROUTINE,>XCRLF_ROUTINE ; $25
 	.byt <XDECAY_ROUTINE,>XDECAY_ROUTINE ; XDECAY  $26
-	.byt <XREADBYTES_ROUTINE,>XREADBYTES_ROUTINE ; nothing  $27 
+	.byt <XREADBYTES_ROUTINE,>XREADBYTES_ROUTINE ; $27 
 	.byt <XBINDX_ROUTINE,>XBINDX_ROUTINE ; XBINDX $28
 	.byt <XDECIM_ROUTINE,>XDECIM_ROUTINE ; $29
 	.byt <XHEXA_ROUTINE,>XHEXA_ROUTINE ; 2a
@@ -1628,7 +1608,8 @@ vectors_telemon
 	.byt <XSCROB_ROUTINE,>XSCROB_ROUTINE ; $38 XSCROB
 	.byt <XSCRNE_ROUTINE,>XSCRNE_ROUTINE ; $39
 	.byt <XCLOSE_ROUTINE,>XCLOSE_ROUTINE ; $3a 
-	.byt $00,$00 ; $3b
+	.byt <XWRITEBYTES_ROUTINE,>XWRITEBYTES_ROUTINE ; nothing  $3b
+	;.byt $00,$00 ; $3b
 	.byt <XRECLK_ROUTINE,>XRECLK_ROUTINE ; $3c
 	.byt <XCLCL_ROUTINE,>XCLCL_ROUTINE ; $3d
 	.byt <XWRCLK_ROUTINE,>XWRCLK_ROUTINE ; $3e
@@ -1748,9 +1729,9 @@ XCLOSE_ROUTINE
 XREADBYTES_ROUTINE
 .(
 		; use ptr1 to count bytes
-	ldx #00
-	stx ptr1
-	stx ptr1+1
+;	ldx #00
+	;stx ptr1
+	;stx ptr1+1
 
 	jsr _ch376_set_bytes_read
 
@@ -1769,12 +1750,12 @@ we_read
 
 	lda CH376_DATA ; contains length read
 	sta TR0; Number of bytes to read
-	clc
-	adc ptr1
-	bcc next14
-	inc ptr1+1
+;	clc
+	;adc ptr1
+	;;bcc next14
+	;inc ptr1+1
 next14	
-	sta ptr1
+	;sta ptr1
 	ldy #0
 loop9
 	lda CH376_DATA ; read the data
@@ -1800,9 +1781,9 @@ next13
 	jmp continue
 finished
 	; TODO  return bytes read
-	lda ptr1
+	;lda ptr1
 	;lda #<8000
-	ldx ptr1+1
+	;ldx ptr1+1
 	;ldx #>8000
 	rts	
 .)
@@ -1813,49 +1794,47 @@ finished
 
 XWRITEBYTES_ROUTINE
 .(	
-	; FIXME : jsr _ch376_set_bytes_write
+    ; save length
+;	sta TR0
+;	sty TR1
 
-continue	
-	cmp #CH376_USB_INT_DISK_READ ; something to read
-	beq we_read
+	; use ptr1 to count bytes
+	jsr _ch376_set_bytes_write
 	cmp #CH376_USB_INT_SUCCESS ; finished
-	beq finished 
-	; TODO  in A : $ff X: $ff
+	beq start_write
 	rts
+start_write
+    lda     #CH376_CMD_WR_REQ_DATA
+    sta     CH376_COMMAND
+    ldy     CH376_DATA ; contains length read
+    sta     TR0; Number of bytes to read
 
-we_read
-	lda #CH376_RD_USB_DATA0
-	sta CH376_COMMAND
-
-	lda CH376_DATA ; contains length read
-	sta TR0; Number of bytes to read
 	ldy #0
-loop9
-	lda CH376_DATA ; read the data
-
-	sta (PTR_READ_DEST),y
+loop:
+    lda     (PTR_READ_DEST),y
+    sta     CH376_DATA ; read the data
 	iny
-	cpy TR0
-	bne loop9
-	tya
+    dec     TR0
+    bne     loop
+
+	; compute PTR_READ_DEST
+	sty     TR0
+	lda     PTR_READ_DEST
 	clc
-	adc PTR_READ_DEST
-	bcc next13
-	inc PTR_READ_DEST+1
-
-next13
-	sta PTR_READ_DEST
-
-	;jmp end_cat
-	lda #CH376_BYTE_RD_GO
-	sta CH376_COMMAND
-	jsr _ch376_wait_response
-	jmp continue
-finished
-
-	;ldx #0
-	; TODO  return bytes read
+	adc     TR0
+	bcc     don_t_inc
+	inc     PTR_READ_DEST+1
+don_t_inc	
+	sta     PTR_READ_DEST
+	
+	
+    lda     #CH376_BYTE_WR_GO
+    sta     CH376_COMMAND
+    jsr     _ch376_wait_response
+	cmp     #CH376_USB_INT_SUCCESS ; finished
+    bne     start_write
 	rts	
+	
 .)
 
 
@@ -6888,7 +6867,11 @@ end
 	jsr XWR0_ROUTINE	
 	*/
 	; In all others keys, readonly read :!
+#ifdef CPU_65C02
+	bra read_only
+#else	
 	jmp read_only
+#endif	
 write_only
 	jsr _ch376_set_file_name
 	jsr _ch376_file_create
@@ -7354,24 +7337,24 @@ LF1EC:
         sty     $7E
         ldy     #$04
         lda     ($7D),y
-        sta     $6C
+        sta     ADMEN+3 ; $6C
         dey
         lda     ($7D),y
-        sta     $6B
+        sta     ADMEN+2 ; $6B
         dey
         lda     ($7D),y
-        sta     $6A
+        sta     ADMEN+1 ; $6a
         dey
         lda     ($7D),y
-        sta     $6D
+        sta     ADMEN+4
         eor     $65
-        sta     $6E
-        lda     $6D
+        sta     ADMEN+5; $6E
+        lda     ADMEN+4 ; $6d
         ora     #$80
-        sta     $69
+        sta     ADMEN ; $69
         dey
         lda     ($7D),y
-        sta     $68
+        sta     FLGMEN ; $68
         lda     ACC1E
         rts
 	

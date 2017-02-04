@@ -4,7 +4,7 @@
 SET ORICUTRON="..\..\..\..\oricutron\"
 
 
-SET RELEASE="2_5"
+SET RELEASE="3_0"
 SET UNITTEST="NO"
 
 SET ORIGIN_PATH=%CD%
@@ -26,6 +26,6 @@ copy ..\release\telemon%RELEASE%.rom %ORICUTRON%\roms\telemon%RELEASE%.rom
 
 
 cd %ORICUTRON%
-oricutronoffset -mt -d teledisks\stratsed.dsk
+oricutronV4 -mt -d teledisks\stratsed.dsk
 :End
 cd %ORIGIN_PATH%
