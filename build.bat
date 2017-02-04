@@ -13,9 +13,11 @@ SET ORIGIN_PATH=%CD%
 
 cd src
 
+del a.o65
+
 %OSDK%\bin\xa.exe -C -W  -e error.txt -l xa_labels.txt  telemon.asm 
 
-..\md5sums a.o65 ..\original\telemon.rom
+..\md5sums a.o65
 
 IF "%1"=="NORUN" GOTO End
 

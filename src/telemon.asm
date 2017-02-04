@@ -17,6 +17,8 @@
 #define CALL_TELEMON_XMINMA\
 jsr XMINMA_ROUTINE
 
+#define FROM_TELEMON 
+
 #define CDRIVE $314
 
 #define bank_signature $ff00
@@ -1718,126 +1720,12 @@ XCHECK_VERIFY_USBDRIVE_READY_ROUTINE
 #include "../../oric-common/lib/asm/ch376_verify.asm"
 
 XCLOSE_ROUTINE
-	rts
+	jmp _ch376_file_close
 	
-	
-
-
-; [IN] AY contains the length to read
-; [IN] PTR_READ_DEST must be set because it's the ptr_dest
-
 XREADBYTES_ROUTINE
-.(
-		; use ptr1 to count bytes
-;	ldx #00
-	;stx ptr1
-	;stx ptr1+1
-
-	jsr _ch376_set_bytes_read
-
-continue	
-	cmp #$1d ; something to read
-	beq we_read
-	cmp #CH376_USB_INT_SUCCESS ; finished
-	beq finished 
-	; TODO  in A : $ff X: $ff
-	lda #0
-	tax
-	rts
-we_read
-	lda #CH376_RD_USB_DATA0
-	sta CH376_COMMAND
-
-	lda CH376_DATA ; contains length read
-	sta TR0; Number of bytes to read
-;	clc
-	;adc ptr1
-	;;bcc next14
-	;inc ptr1+1
-next14	
-	;sta ptr1
-	ldy #0
-loop9
-	lda CH376_DATA ; read the data
-
-	sta (PTR_READ_DEST),y
-
-	iny
-	cpy TR0
-	bne loop9
-	tya
-	clc
-	adc PTR_READ_DEST
-	bcc next13
-	inc PTR_READ_DEST+1
-next13
-	sta PTR_READ_DEST
-	
-
-	;jmp end_cat
-	lda #CH376_BYTE_RD_GO
-	sta CH376_COMMAND
-	jsr _ch376_wait_response
-	jmp continue
-finished
-	; TODO  return bytes read
-	;lda ptr1
-	;lda #<8000
-	;ldx ptr1+1
-	;ldx #>8000
-	rts	
-.)
-
-
-; [IN] AY contains the length to write
-; [IN] PTR_READ_DEST must be set because it's the ptr_dest
-
+#include "functions/xread.asm"
 XWRITEBYTES_ROUTINE
-.(	
-    ; save length
-;	sta TR0
-;	sty TR1
-
-	; use ptr1 to count bytes
-	jsr _ch376_set_bytes_write
-	cmp #CH376_USB_INT_SUCCESS ; finished
-	beq start_write
-	rts
-start_write
-    lda     #CH376_CMD_WR_REQ_DATA
-    sta     CH376_COMMAND
-    ldy     CH376_DATA ; contains length read
-    sta     TR0; Number of bytes to read
-
-	ldy #0
-loop:
-    lda     (PTR_READ_DEST),y
-    sta     CH376_DATA ; read the data
-	iny
-    dec     TR0
-    bne     loop
-
-	; compute PTR_READ_DEST
-	sty     TR0
-	lda     PTR_READ_DEST
-	clc
-	adc     TR0
-	bcc     don_t_inc
-	inc     PTR_READ_DEST+1
-don_t_inc	
-	sta     PTR_READ_DEST
-	
-	
-    lda     #CH376_BYTE_WR_GO
-    sta     CH376_COMMAND
-    jsr     _ch376_wait_response
-	cmp     #CH376_USB_INT_SUCCESS ; finished
-    bne     start_write
-	rts	
-	
-.)
-
-
+#include "functions/xwrite.asm"
 
 XMENU_ROUTINE
 menu_deroulant
@@ -2084,8 +1972,6 @@ Lcd51
 	tay
 	bit $68
 	rts
-	
-
 
 put_cursor_in_61_x	
 	lda #$1f
@@ -2098,91 +1984,8 @@ put_cursor_in_61_x
 	jmp XWR0_ROUTINE 
 
 	
-	
-
-XDECAL_ROUTINE
-	pha
-	txa
-	pha 
-	tya
-	pha
-	sec
-	lda $06
-	sbc $04
-	tay
-	lda DECFIN+1
-	sbc $05
-	tax
-	bcc Lcdb9 
-	stx $0b
-
-	lda DECCIB
-	cmp $04
-	lda DECCIB+1
-	sbc $05
-	bcs Lcdbf 
-	tya
-	eor #$ff
-	adc #1
-	tay 
-	sta $0a
-	bcc Lcd97
-	dex
-	inc DECFIN+1
-Lcd97	
-	sec
-	lda DECCIB
-	sbc $0a
-	sta DECCIB
-	bcs Lcda2
-
-	dec DECCIB+1
-Lcda2	
-	clc
-	lda DECFIN+1
-	sbc $0b
-	sta DECFIN+1
-	inx
-Lcdaa	
-	lda (DECFIN),y
-	sta (DECCIB),y
-	iny 
-	bne Lcdaa
-	inc DECFIN+1
-	inc DECCIB+1
-	dex
-	bne	Lcdaa
-Lcdb8	
-	sec
-Lcdb9	
-	pla
-	tay
-	pla
-	tax
-	pla
-	rts
-Lcdbf
-	txa
-	clc
-	adc $05
-	sta $05
-	txa
-	clc
-	adc DECCIB+1
-	sta DECCIB+1
-	inx
-Lcdcc	
-	dey
-	lda ($04),y
-	sta (DECCIB),y
-	tya
-	bne Lcdcc
-	dec $05
-	dec DECCIB+1
-	dex
-	bne Lcdcc
-	beq Lcdb8
-	
+XDECAL_ROUTINE	
+#include "functions/xdecal.asm"
 
 data_for_decimal_conversion
 const_10_decimal_low	
@@ -2220,179 +2023,31 @@ convert_into_decimal_0_to_9999
 
 	
 XBINDX_ROUTINE
-; AY contains the number
-; X ...
-.(
-	STA TR1
-	STY TR2
-	
-	LDA #$00 ; 65c02
-	STA TR3
-	STA TR4
-loop35
-	LDA #$FF
-	STA TR0
-loop32
-	INC TR0
-	SEC
-	LDA TR1
-	TAY
-	SBC const_10_decimal_low,X 
-	STA TR1
-	LDA TR2
-	PHA
-	SBC const_10_decimal_high,X ; 
-	STA TR2
-	PLA
-	BCS loop32
-	STY TR1
-	STA TR2
-	LDA TR0
-	BEQ loop33
-	STA TR3
-	BNE loop34+1
-loop33
-	LDY TR3
-	BNE loop34+1
-	LDA DEFAFF
-loop34
-	.byt $2c
-	ora #$30	
-
-	JSR lce32 
-	DEX
-	BPL loop35
-	LDA TR1
-	ORA #$30
-lce32	
-	LDY TR4
-
-	STA (TR5),Y
-	INC TR4
-	RTS
-.)
+#include "functions/xbindx.asm"
 
 XDECIM_ROUTINE
-	PHA
-	LDA #$00 ; 65c02
-	STA TR5
-	LDA #$01
-	STA TR6
-	PLA
-	JSR XBINDX_ROUTINE
-	LDY #$00
-loop31
-
-	LDA FUFTRV,Y
-	jSR XWR0_ROUTINE
-	INY
-	CPY TR4
-	BNE loop31
-	RTS
+#include "functions/xdecim.asm"
 	
-	
-XHEXA_ROUTINE	
-	pha 
-	and #$0f
-	jsr Lce60 
-	tay
-	pla
-	lsr
-	lsr
-	lsr
-	lsr
-Lce60
-	ora #$30
-	cmp #$3a
-	bcc Lce68
-	adc #$6
-Lce68
-	rts
+XHEXA_ROUTINE
+#include "functions/xhexa.asm"	
 
 XMUL40_ROUTINE
-Lce69
-mult_by_40
-	ldy #0
-	sta RES
-	sty RES+1
-	asl
-	rol RES+1
-	asl
-	rol RES+1
-	adc RES
-	bcc Lce7b
-	inc RES+1
-Lce7b
-	asl
-	rol RES+1
-	asl
-	rol RES+1
-	asl
-	rol RES+1
-	sta RES
-	ldy RES+1
-	rts
+#include "functions/xmul40.asm"	
 
 #include "functions/XADRES.asm"
-
-
 	
 XMULT_ROUTINE
-
-	sta $10
-	sty $11
-	ldx #00
-	stx TR0
-	stx TR1
-	stx $0e
-	stx $0f
-	stx RESB
-	stx RESB+1
-	ldx #$10
-LCEAB	
-	lsr $11
-	ror $10
-	bcc LCECA
-	clc
-	
-	lda RES
-	adc TR0
-	sta TR0
-	
-	lda RES+1
-	adc TR1
-	sta TR1
-	
-	lda RESB
-	adc $0e
-	sta $0e
-	
-	lda RESB+1
-	adc $0f
-	sta $0f
-LCECA
-	asl RES
-	rol RES+1
-	rol RESB
-	rol RESB+1
-	
-	lda TR4
-	ora $11
-	beq Lcedb
-	dex
-	bne LCEAB 
-Lcedb	
-	rts
-
+#include "functions/xmult.asm"	
 
 XDIVIS_ROUTINE	
+.(
 	sta TR0
 	sty TR1
 	ldx #0
 	stx RESB
 	stx RESB+1
 	ldx #$10
-Lcee8	
+loop9
 	asl RES
 	rol RES+1
 	rol RESB
@@ -2404,17 +2059,18 @@ Lcee8
 
 	lda RESB+1
 	sbc TR1
-	bcc LCF02
+	bcc skip
 	sty RESB
 	sta RESB+1
 	inc RES
-LCF02	
+skip
 	dex
-	bne Lcee8
+	bne loop9
 	rts
+.)
 
 XEFFHI_ROUTINE
-	lda #00
+	lda #$00
 	ldy #$a0
 	sta RES
 	sty RES+1
@@ -2580,7 +2236,7 @@ XNOMFI_ROUTINE
 	inc RES
 	ldy DRVDEF
 	sty BUFNOM
-	sty $500
+	sty DRIVE
 	ldy #$0c
 	lda #$3f
 Ld005	
@@ -2598,7 +2254,7 @@ Ld005
 	cmp #4
 	bcs Ld05c
 	sta BUFNOM
-	sta $500
+	sta DRIVE
 Ld022	
 	ldx #1
 	ldy #$0c

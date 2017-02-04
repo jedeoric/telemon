@@ -1,12 +1,7 @@
 ; [IN] AY contains the length to write
 ; [IN] PTR_READ_DEST must be set because it's the ptr_dest
-
+; [MODIFIED] TR0,PTR_READ_DEST, YA
 .(	
-    ; save length
-;	sta TR0
-;	sty TR1
-
-	; use ptr1 to count bytes
 	jsr _ch376_set_bytes_write
 	cmp #CH376_USB_INT_SUCCESS ; finished
 	beq start_write
@@ -14,13 +9,14 @@
 start_write
     lda     #CH376_CMD_WR_REQ_DATA
     sta     CH376_COMMAND
-    ldy     CH376_DATA ; contains length read
-    sta     TR0; Number of bytes to read
+
+    ldy     CH376_DATA ; contains length of write
+    sta     TR0; Number of bytes write
 
 	ldy #0
 loop:
     lda     (PTR_READ_DEST),y
-    sta     CH376_DATA ; read the data
+    sta     CH376_DATA ; store the data
 	iny
     dec     TR0
     bne     loop
