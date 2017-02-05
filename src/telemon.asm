@@ -893,7 +893,7 @@ code_adress_436
 	INC $0418
 	PLA
 	TAX
-	LDA $0417
+	LDA BNKCIB
 	JSR $046A ; see code_adress_46A	
 	PLA
 	PLP
@@ -1269,7 +1269,7 @@ routine_to_define_12
 	AND #$07
 	BEQ next25
 	ORA #$B0
-	.byt $24
+	.byt $24 ; jump
 next25	
 	txa
 
@@ -1479,21 +1479,26 @@ Lca3e
 
 
 XRECLK_ROUTINE	
-reset_clock
-	lda #0
-	ldx #4
-Lda59	
+.(
+    lda #$00
+	ldx #$04
+loop
 	sta TIMED,x
 	dex
-	bpl Lda59
+	bpl loop
 	lda #1
 	sta FLGCLK_FLAG
 	rts
+.)	
+	
 XCLCL_ROUTINE
+.(
 	lsr FLGCLK
 	rts
-XWRCLK_ROUTINE
+.)	
 
+XWRCLK_ROUTINE
+.(
 	php
 	sei
 	sta ADCLK
@@ -1502,7 +1507,7 @@ XWRCLK_ROUTINE
 	ror FLGCLK
 	plp
 	rts
-
+.)
 	
 	
 Lca75
@@ -1614,11 +1619,12 @@ vectors_telemon
 	.byt <XSCRNE_ROUTINE,>XSCRNE_ROUTINE ; $39
 	.byt <XCLOSE_ROUTINE,>XCLOSE_ROUTINE ; $3a 
 	.byt <XWRITEBYTES_ROUTINE,>XWRITEBYTES_ROUTINE ; nothing  $3b
-	;.byt $00,$00 ; $3b
 	.byt <XRECLK_ROUTINE,>XRECLK_ROUTINE ; $3c
 	.byt <XCLCL_ROUTINE,>XCLCL_ROUTINE ; $3d
 	.byt <XWRCLK_ROUTINE,>XWRCLK_ROUTINE ; $3e
-	.byt $00,$00 ; nothing $3f
+	.byt <XFSEEK_ROUTINE,>XFSEEK_ROUTINE ; fseek $3f
+	
+	
 	.byt <XSONPS_ROUTINE,>XSONPS_ROUTINE ; $40
 	.byt <XEPSG_ROUTINE,>XEPSG_ROUTINE ; $41
 	.byt <XOUPS_ROUTINE,>XOUPS_ROUTINE ; $42 XOUPS ddd8
@@ -1729,6 +1735,9 @@ XREADBYTES_ROUTINE
 #include "functions/xread.asm"
 XWRITEBYTES_ROUTINE
 #include "functions/xwrite.asm"
+XFSEEK_ROUTINE
+#include "functions/xfseek.asm"
+
 
 XMENU_ROUTINE
 menu_deroulant
@@ -7837,39 +7846,41 @@ XTAN_ROUTINE
 	
 XATN_ROUTINE
 LF835
+.(
 	LDA $65
 	PHA
-	BPL LF83D 
+	BPL skip 
 	JSR XNA1_ROUTINE 
-LF83D	
+skip	
 	LDA ACC1E
 	PHA
 	CMP #$81
-	BCC LF84B
+	BCC skip2
 	LDA #<const_atn_1
 	LDY #>const_atn_1 
 	JSR Lf287 
-LF84B	
+skip2	
 	LDA #<const_coef_atn 
 	LDY #>const_coef_atn 
 	JSR LF6E1
 	PLA
 	CMP #$81 
-	BCC LF85E  
+	BCC skip3  
 	LDA #<CONST_SIN_AND_COS 
 	LDY #>CONST_SIN_AND_COS
 	JSR ACC2_ACC1
-LF85E	
+skip3	
 	PLA
-	BPL LF864 
+	BPL skip4
 	JSR XNA1_ROUTINE
-LF864	
+skip4	
 	JSR test_if_degree_mode 
-	BEQ LF86C 
+	BEQ skip5 
 	JMP XDEG_ROUTINE	 
-LF86C
+skip5
 	RTS
-
+.)
+	
 L86d
 const_coef_atn	
 	.byt $0b ; 11 coef
