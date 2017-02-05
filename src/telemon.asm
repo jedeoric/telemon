@@ -413,6 +413,7 @@ loop56
 next56
 	LDA #$00
 	LDY #$C0
+
 	bne next57
 display_cursor	
 
@@ -425,18 +426,20 @@ display_cursor
 	ldy VAPLIC+2  ; address high
 	
 next57
+
 	STA $0415
 	STY $0416
 	STX BNKCIB
 	JMP $040C
 
 routine_to_define_19
+.(
 	CLI
 	LDA #$02
 	STA TIMEUD
-loop57
+loop
 	LDA TIMEUD
-	BNE loop57
+	BNE loop
 	LDX #$0C
 	BRK_TELEMON(XVIDBU) 
 	LDA ACIACR
@@ -446,6 +449,7 @@ loop57
 	LDA #$8F
 	BRK_TELEMON(XCL1) 
 	rts
+.)	
 Lc284
 	BRK_TELEMON(XWR0)
 	
@@ -669,7 +673,7 @@ str_insert_disk
 str_tofix
 	.byt	$0d,$18,$00
 str_license	
-	.asc "Logiciel ecrit par Fabrice BROCHE",0
+	.asc "Ecrit par Fabrice BROCHE",0
 
 
 str_loading_bonjour	
@@ -777,7 +781,6 @@ end6
 
 
 XDEFBU_ROUTINE	
-
 	STX RESB
 	TXA
 	LDX #$FF
@@ -2034,40 +2037,14 @@ XHEXA_ROUTINE
 XMUL40_ROUTINE
 #include "functions/xmul40.asm"	
 
+XADRES_ROUTINE
 #include "functions/XADRES.asm"
 	
 XMULT_ROUTINE
 #include "functions/xmult.asm"	
 
 XDIVIS_ROUTINE	
-.(
-	sta TR0
-	sty TR1
-	ldx #0
-	stx RESB
-	stx RESB+1
-	ldx #$10
-loop9
-	asl RES
-	rol RES+1
-	rol RESB
-	rol RESB+1
-	sec
-	lda RESB
-	sbc TR0
-	tay
-
-	lda RESB+1
-	sbc TR1
-	bcc skip
-	sty RESB
-	sta RESB+1
-	inc RES
-skip
-	dex
-	bne loop9
-	rts
-.)
+#include "functions/xdivis.asm"	
 
 XEFFHI_ROUTINE
 	lda #$00
@@ -2078,110 +2055,26 @@ XEFFHI_ROUTINE
 	ldx #$bf
 	lda #$40
 
-XFILLM_ROUTINE	
-	pha
-	sec
-	tya
-	sbc RES
-	tay
-	txa
-	sbc RES+1
-	tax
-	sty RESB
-	pla
-	ldy #0
-Lcf23	
-	cpy RESB
-	bcs Lcf2c
-	sta (RES),y
-	iny
-	bne Lcf23
-Lcf2c	
-	pha
-	tya
+XFILLM_ROUTINE
+#include "functions/xfillm.asm"	
 	
-	ldy #0
-	jsr XADRES_ROUTINE
-	pla
-	cpx #0
-	beq Lcf44 
-	ldy #0
-Lcf3a	
-	sta (RES),y
-	iny
-	bne Lcf3a
-	inc RES+1
-	dex
-	bne Lcf3a
-Lcf44	
-	rts
+XHIRES_ROUTINE
+#include "functions/xhires.asm"	
 	
-XHIRES_ROUTINE	
-	ldx #$00
-	ldy #$ff
-	sty HRSPAT ; pattern
-	iny
-	jsr Le7f3 
-	lda FLGTEL ; we are already in Hires ?
-	bmi XEFFHI_ROUTINE 
-	ora #$80
+XTEXT_ROUTINE
+#include "functions/xtext.asm"	
 	
-	sta FLGTEL ; Set to Hires flag
-	
-	php 
-	sei
-	lda #$1f
-	sta $bf67 
-	jsr wait_0_3_seconds 
-	jsr move_chars_text_to_hires 
-	lda #$5c
-	ldy #$02
-	ldx #0
-	jsr ldefd 
-	jsr XEFFHI_ROUTINE 
-	plp
-	rts
-
-XTEXT_ROUTINE	
-switch_text
-	lda FLGTEL
-	bpl LCFA3
-	php 
-	
-	sei
-	and #$7f
-	sta FLGTEL
-	jsr move_chars_hires_to_text 
-	lda #$56
-	ldy #$02
-	ldx #0
-	jsr ldefd
-	
-	lda #$1a
-	sta $bfdf
-	jsr wait_0_3_seconds
-	ldx #$28
-	lda #$20
-
-Lcf99	
-	sta $bb7f,x
-	dex
-	bne Lcf99	
-	jsr XCSSCR_ROUTINE
-	plp
-LCFA3	
-	rts
-	
-wait_0_3_seconds ; Wait 0,3333 seconds 	
+wait_0_3_seconds ; Wait 0,3333 seconds 
+.(	
 	ldy #$1f
 	ldx #$00
-Lcfa8
+loop
 	dex
-	bne Lcfa8
+	bne loop
 	dey
-	bne Lcfa8
-	
+	bne loop
 	rts
+.)	
 	
 
 test_if_all_buffers_are_empty
@@ -2230,6 +2123,7 @@ table_to_define_prompt_charset_empty
 	
 
 XNOMFI_ROUTINE
+
 	sta ADDRESS_READ_BETWEEN_BANK
 	sty ADDRESS_READ_BETWEEN_BANK+1
 	stx RES
@@ -2628,7 +2522,7 @@ loop21
 	PHA
 	TAX
 	LDA #$0E
-	JSR routine_to_define_11 
+	JSR XEPSG_ROUTINE
 	LDA #$00
 	STA KBDCOL,Y
 	JSR routine_to_define_12 
@@ -2743,10 +2637,10 @@ Ld9b1
 routine_to_define_4	
 init_keyboard
 	LDA #$FF
-	STA $0303
+	STA V1DDRA
 	STA KEYBOARD_COUNTER+1
 	LDA #$F7
-	STA $0302
+	STA V1DDRB
 	LDA #$01
 	STA KBDVRL
 	STA KBDVRL+1
@@ -2807,46 +2701,14 @@ lda04
 	RTS
 	
 	
-XEPSG_ROUTINE	
-routine_to_define_11
-	PHA
-	STA $030F
-	CMP #$07
-	BNE next21
-	TXA
-	ORA #$40
-	TAX
-next21
-	TYA
-	PHA
-	PHP
-	SEI
-	LDA V1PCR
-	AND #$11
-	TAY
-	ORA #$EE
-	STA V1PCR
-	TYA
-	ORA #$CC
-	STA V1PCR
-	STX $030F
-	TYA
-	ORA #$EC
-	STA V1PCR
-	TYA
-	ORA #$CC
-	STA V1PCR
-	PLP
-	PLA
-	TAY
-	PLA
-	rts
+XEPSG_ROUTINE
+#include "functions/sound/xepsg.asm"	
 
 init_printer	
 da4f
 	LDA #$07
 	LDX #$7F
-	JMP routine_to_define_11
+	JMP XEPSG_ROUTINE
 routine_to_define_8	
 	LDA #$50
 	STA LPRFX
@@ -2950,8 +2812,9 @@ next908
 Ldae1
 	jmp LDB7D 
 
-XLPCRL_ROUTINE	
+XLPCRL_ROUTINE
 Ldae4
+
 	PHA
 	LDA #$0D
 	JSR XLPRBI_ROUTINE 
@@ -2963,11 +2826,13 @@ Ldae4
 Ldaf5
 	PLA
 	RTS
-LDAF7	
-	BMI Ldafe
+LDAF7
+.(	
+	BMI skip
 	LDX #$0C
 	JMP XLISBU_ROUTINE 
-Ldafe
+skip
+.)
 	BCS Ldb09
 	LDA ACIACR
 	AND #$0D
@@ -2977,7 +2842,9 @@ Ldb09
 	LDA ACIACR
 	ORA #$02
 	STA ACIACR
-RTS
+	RTS
+
+
 Ldb12
 /*
                         GESTION DE LA SORTIE MINITEL                       I
@@ -3195,11 +3062,11 @@ LDC2B
 	
 	ldx SCRNB
 	ldy SCRX,x
-	lda ($26),y
+	lda (ADSCR),y
 	sta CURSCR,x
-	lda $26
+	lda ADSCR
 	sta ADSCRL,x
-	lda $27
+	lda ADSCR+1
 	sta ADSCRH,x
 	pla
 	sta FLGSCR,x
@@ -3574,7 +3441,7 @@ LDDE3
 	BNE LDDE3    ;  I                                                 
 	LDA #$07     ;  un JMP $DA4F suffisait ...                        
 	LDX #$3F                                                         
-	JMP routine_to_define_11
+	JMP XEPSG_ROUTINE
 XOUPS_DATA
 LDDF0                                                                               
 	.byt $46,00,00,00,00,00;  p?riode 1,12 ms, fr?quence 880 Hz (LA 4) 
@@ -3595,8 +3462,8 @@ LDDFB
 LDE07
 	LDA SCRY,X  ;  et on calcule l'adresse                           
 	JSR LDE12    ;  de la ligne                                       
-	STA $26      ;  dans ADSCR                                        
-	STY $27      ;                                                    
+	STA ADSCR      ;  dans ADSCR                                        
+	STY ADSCR+1      ;                                                    
 
 	RTS    	
 
@@ -3683,14 +3550,14 @@ XSCROB_ROUTINE
 	STA DECFIN+1                                                          
 	LDA #$D8                                                         
 LDE62																	
-	STA $06     ;   $06-07 contiennent le d?placement                 
+	STA DECFIN     ;   $06-07 contiennent le d?placement                 
 	STX RES    ;    on met la ligne de d?part en RES                  
 	TYA                                                              
 	SEC                                                              
 	SBC RES     ;   on calcule le nombre de lignes                    
 	PHA        ;    on sauve le nombre de lignes                      
 	TXA        ;    ligne de d?but dans A                             
-	BIT $06                                                          
+	BIT DECFIN                                                          
 	BPL LDE71  ;    d?placement n?gatif ?                             
 	TYA        ;    oui, ligne de fin dans A
 LDE71	
@@ -3704,7 +3571,7 @@ LDE7D
 	STA DECCIB      ;  est dans $08-09                                   
 	STY DECCIB+1                                                          
 	CLC           ; on ajoute le d?placement                          
-	ADC $06                                                          
+	ADC DECFIN                                                          
 	STA $04                                                          
 	TYA                                                              
 	ADC DECFIN+1                                                          
@@ -3727,14 +3594,14 @@ LDE9F ;                                                  I
 	BPL LDE9F    ;                                                    I
 	CLC        ;                                                     I
 	LDA $04     ;   on ajoute le d?placement                         I
-	ADC $06     ;   ? l'adresse de base                              I
+	ADC DECFIN     ;   ? l'adresse de base                              I
 	STA $04     ;                                                    I
 	LDA $05     ;                                                    I
 	ADC DECFIN+1     ;                                                    I
 	STA $05      ;                                                   I
 	CLC          ;                                                   I
 	LDA DECCIB     ;   et ? l'adresse d'arriv?e                         I
-	ADC $06     ;                                                    I
+	ADC DECFIN     ;                                                    I
 	STA DECCIB     ;                                                    I
 	LDA DECCIB+1     ;                                                    I
 	ADC DECFIN+1      ;                                                   I
@@ -4981,7 +4848,7 @@ Le6b0
 	STX $0F     ;   on sauve la longueur de la ligne trouv?e         I
 	LDA $5E     ;   on met SCEFIN                                    I
 	LDY $5F     ;                                                    I
-	STA $06     ;   dans DECFIN                                      I
+	STA DECFIN     ;   dans DECFIN                                      I
 	STY DECFIN+1     ;                                                    I
 	LDA RESB     ;   adresse de la ligne trouv?e                      I
 	LDY RESB+1     ;                                                    I
@@ -5008,7 +4875,7 @@ LE6E7
 	BEQ LE738  ;    c'est 0, on devait effacer la ligne -------------- 
 	LDA $5E     ;   on prend la fin du listing                       I
 	LDY $5F    ;                                                     I
-	STA $06    ;    dans DECFIN                                      I
+	STA DECFIN    ;    dans DECFIN                                      I
 	STY DECFIN+1    ;                                                     I
 	LDA RESB    ;    on prend l'adresse de la ligne                   I
 	LDY RESB+1    ;                                                     I
@@ -5274,7 +5141,7 @@ XBOX_ROUTINE
 Le819                                                                                
 	CLC         ;   C=0                                               
 	LDA HRSX     ;   on place les coordon?es actuelles                 
-	STA $06     ;   du curseur dans $06-07                            
+	STA DECFIN     ;   du curseur dans $06-07                            
 	ADC $4D     ;   et les coordonn?es (X+dX,Y+dY)                    
 	STA DECCIB                                                          
 	LDA HRSY                                                          
@@ -5304,7 +5171,7 @@ Le82c
 	LDX #$03 
 LE830
 	LDA $004D,Y  ;  de HRSx                                           
-	STA $06,X    ;  dans $06-7-8-9                                    
+	STA DECFIN,X    ;  dans $06-7-8-9                                    
 	DEY                                                              
 	DEY                                                              
 	DEX                                                              
@@ -5896,12 +5763,6 @@ Leaf3
 	TAX
 	LDY HRSY
 	JMP Le7f3 
-
-
-
-
-	
-
 	
 #include "functions/sound/sounds.asm"
 	

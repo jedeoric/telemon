@@ -7,11 +7,11 @@
 	PLA
 	JSR XBINDX_ROUTINE
 	LDY #$00
-loop9
+loop
 	LDA FUFTRV,Y
 	jSR XWR0_ROUTINE
 	INY
 	CPY TR4
-	BNE loop9
+	BNE loop
 	RTS
 .)

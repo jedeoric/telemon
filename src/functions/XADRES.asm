@@ -1,4 +1,5 @@
-XADRES_ROUTINE
+
+.(
 ; RES +AY = RES and AY
 	clc
 	adc RES
@@ -10,4 +11,5 @@ XADRES_ROUTINE
 	tay
 	pla
 	rts
-	
+.)
+

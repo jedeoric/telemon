@@ -1,6 +1,4 @@
 .(
-Lce69
-mult_by_40
 	ldy #0
 	sta RES
 	sty RES+1
@@ -9,9 +7,9 @@ mult_by_40
 	asl
 	rol RES+1
 	adc RES
-	bcc Lce7b
+	bcc skip
 	inc RES+1
-Lce7b
+skip
 	asl
 	rol RES+1
 	asl
@@ -22,3 +20,4 @@ Lce7b
 	ldy RES+1
 	rts
 .)
+

@@ -66,7 +66,7 @@ Leb7a
 	SBC #$03
 Leb84	
 	ORA #$08
-	JSR routine_to_define_11 	
+	JSR XEPSG_ROUTINE 	
 	CPY #$03
 	BCS Leb99
 	TYA
@@ -74,14 +74,14 @@ Leb84
 	TAY
 	ADC #$01
 	LDX $50
-	JSR routine_to_define_11  	
+	JSR XEPSG_ROUTINE
 	TYA
 	.byt $2c
 Leb99	
 	lda #$06
 	
 	LDX $4F
-	JMP routine_to_define_11 	
+	JMP XEPSG_ROUTINE
 
 
 PING_DATA	

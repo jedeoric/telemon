@@ -7,9 +7,10 @@
 	LDA #$00 ; 65c02
 	STA TR3
 	STA TR4
-loop35
+loop
 	LDA #$FF
 	STA TR0
+	
 loop32
 	INC TR0
 	SEC
@@ -26,10 +27,10 @@ loop32
 	STY TR1
 	STA TR2
 	LDA TR0
-	BEQ loop9
+	BEQ skip
 	STA TR3
 	BNE loop34+1
-loop9
+skip
 	LDY TR3
 	BNE loop34+1
 	LDA DEFAFF
@@ -39,7 +40,7 @@ loop34
 
 	JSR lce32 
 	DEX
-	BPL loop35
+	BPL loop
 	LDA TR1
 	ORA #$30
 lce32	
