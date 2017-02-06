@@ -1,4 +1,6 @@
 ; Use RES, A X Y TR4 cd 	
+; [IN] A and X contains ptr of the string
+; [IN] Y contains flag
 XOPEN_ROUTINE
 .(
 	// A and X contains char * pointer ex /usr/bin/toto.txt but it does not manage the full path yet

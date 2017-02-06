@@ -4,7 +4,7 @@
 SET ORICUTRON="..\..\..\..\oricutron\"
 
 
-SET RELEASE="3_0"
+SET RELEASE="30"
 SET UNITTEST="NO"
 
 SET ORIGIN_PATH=%CD%
