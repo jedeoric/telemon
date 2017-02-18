@@ -11,6 +11,7 @@
 #include "../../oric-common/include/asm/acia6551.h"
 #include "../../oric-common/include/asm/fdc1793.h"
 #include "../../oric-common/include/asm/ch376.h"
+#include "../../oric-common/include/asm/orix.h"
 
 #include "../../oric-common/include/asm/macro_orix.h"
 
@@ -338,7 +339,7 @@ loop50
 	TXA
 	CLC
 loop51	
-	ADC #$41 ; display A, because it adds to c2dc (drives ) 41 (equal to A in ascii table)
+	ADC #"A" ; display A, because it adds to c2dc (drives ) 41 (equal to A in ascii table)
 	BRK_TELEMON(XWR0)
 loop12	
 	inx 
@@ -424,7 +425,9 @@ display_cursor
 
 	lda VAPLIC+1 ; address low
 	ldy VAPLIC+2  ; address high
-	
+
+
+call_routine_in_another_bank	
 next57
 
 	STA $0415
@@ -442,10 +445,12 @@ loop
 	BNE loop
 	LDX #$0C
 	BRK_TELEMON(XVIDBU) 
+#ifdef WITH_ACIA	
 	LDA ACIACR
 	AND #$F3
 	ORA #$08
 	STA ACIACR
+#endif
 	LDA #$8F
 	BRK_TELEMON(XCL1) 
 	rts
@@ -480,8 +485,9 @@ init_via
 	lda #$7f 
 	sta V1IER ; Initialize via1
 	sta V2IER ; Initialize via2
+#ifdef WITH_ACIA	
 	sta ACIASR ; Init ACIA
-
+#endif
 	lda #$00
 	sta CDRIVE
 	lda #$ff
@@ -1193,7 +1199,7 @@ LC868
 	phy
 #else	
 	STX IRQSVX ; save register X
-	STY IRQSVY ; save register X
+	STY IRQSVY ; save register 
 #endif	
 	PLA ; pull P (flag register)
 	STA IRQSVP ; save P (flag register)
@@ -1226,6 +1232,7 @@ LC87A
 	LDA vectors_telemon_second_table+1,X ; Second table because X >127 
 	LDY vectors_telemon_second_table,X ;
 LC8A6
+	; push A and Y vector : when RTI is reached, the stack contains the vector to execute
 	PHA
 	TYA
 	PHA 
@@ -1257,13 +1264,17 @@ LC8BF
 routine_to_define_12
 	TYA
 	PHA
+#ifdef WITH_ACIA	
 	LDA ACIASR 
+#endif	
 	BPL next23
 	LSR TRANSITION_RS232
 	PHA
 	AND #$08
 	BEQ next24
+#ifdef WITH_ACIA	
 	LDX ACIADR
+#endif	
 	PLA
 	PHA
 	AND #$07
@@ -1284,15 +1295,19 @@ next24
 	LDX #$18 
 	JSR XTSTBU_ROUTINE; CORRECTME
 	BCS next26
+#ifdef WITH_ACIA	
 	LDA ACIASR
 	AND #$20
 	BNE next23
+#endif	
 	JSR XLISBU_ROUTINE 
+#ifdef WITH_ACIA	
 	STA ACIADR
 	LDA ACIACT
 	AND #$07
 	STA $3F
 	BCC next23
+#endif	
 next26
 	INC $20
 	BNE next23
@@ -1302,12 +1317,15 @@ next26
 	LSR
 	LSR 
 	LSR
+#ifdef WITH_ACIA	
 	LDA ACIACR
 	AND #$F3
 	BCC next29
 	AND #$FE
+
 next29
 	STA ACIACR
+#endif		
 Lc91b
 next23
 
@@ -2842,15 +2860,19 @@ LDAF7
 	JMP XLISBU_ROUTINE 
 skip
 .)
+#ifdef WITH_ACIA		
 	BCS Ldb09
 	LDA ACIACR
 	AND #$0D
 	ORA #$60
 	BNE Ldb43 
+#endif		
 Ldb09
+#ifdef WITH_ACIA
 	LDA ACIACR
 	ORA #$02
 	STA ACIACR
+#endif	
 	RTS
 
 
@@ -2884,25 +2906,31 @@ LDB26
 	PLA                                                        ;   I I
 	BCS LDB26 ;     si la donn?e n'a pas ?t? ?crite, on boucle     I I
 LDB2F
+#ifdef WITH_ACIA		
 	LDA ACIACR  ;    on prend V2IER                                 I I
 	AND #$F3  ;     %11110011 force b2 ? 0                         I I
 	ORA #$04 ;      et b3 ? 1                                      I I
 	STA ACIACR ;     dans ACIACR                                    I I
+#endif	
 	RTS
 	;                                      < I
 LDB3A
 	BCS LDB53 ;     C=1 on ferme ==================================  I
+#ifdef WITH_ACIA	
 	LDA ACIACR ;     ouverture                                      > I
 	AND #$02 ;      ACIACR ? 0 sauf b1                             I I
 	ORA #$65 ;      %01101001, bits forc?s ? 1                     I I
 Ldb43
 	STA ACIACR ;     dans ACIACR <----------------------------------+--
+#endif	
 	LDA V2DRA ;     V2DRA                                          I  
 	AND #$EF  ;     %11101111 force mode MINITEL                   I  
 
 	STA V2DRA ;                                                    I  
+#ifdef WITH_ACIA
 	LDA #$38  ;     %00111000 dans ACIACT                          I  
 	STA ACIACT ;                                                    I  
+#endif	
 LDB53
 	RTS       ;     et on sort--------------------------------------  
 
@@ -2925,8 +2953,10 @@ init_rs232
 LDB5D
 	BPL LDAF7    ;  lecture, voir MINITEL (pourquoi pas $DAF9 ?)       
 	BCS Ldb09   ;   C=1, on ferme                                    
+#ifdef WITH_ACIA	
 	LDA ACIACR   ;   on ouvre                                          
 	AND #$0D     ;  on fixe le mode de controle
+	
 LDB66	
 	ORA $5A     ;   de la RS232                                       
 	STA ACIACR                                                        
@@ -2934,7 +2964,8 @@ LDB66
 	ORA #$10     ;  %00010000 on force RS232                          
 	STA V2DRA                                                        
 	LDA $59     ;   et on fixe le mode de transmission                
-	STA ACIACT   ;   dans ACIACR                                       
+	STA ACIACT   ;   dans ACIACR               
+#endif	
 	RTS                                                              
                            
                                                                                 
@@ -2942,12 +2973,13 @@ LDB66
 LDB79
 	BPL LDB26     ; ?criture, comme MINITEL                           
 	BCS LDB53    ;;  pas de fermeture (RTS) 
-LDB7D	
+LDB7D
+#ifdef WITH_ACIA
 	LDA ACIACR    ;  ouverture,on lit ACIACR                            
 	AND #$02     ;  isole b1                                          
 	ORA #$05     ;  %00000101 force b0 et b2 ? 1                      
 	BNE LDB66    ;  inconditionnel        	
-
+#endif
                                                                                
      ;                 GESTION DES SORTIES EN MODE TEXT                      
                                                                                 
@@ -6297,8 +6329,10 @@ XOPEN_ROUTINE
 .(
 	// A and X contains char * pointer ex /usr/bin/toto.txt but it does not manage the full path yet
 	sta RES
+	sta RESB
 	stx RES+1
-
+	stx RESB+1
+	
 	
 	sty TR4 ; save flags
 	
@@ -6410,6 +6444,24 @@ read_only
 	beq file_not_found 	
 
 
+	; register filehandle call_routine_in_another_bank	
+	;call_routine_in_another_bank	
+	lda #ORIX_REGISTER_FILEHANDLE
+	sta TR0
+	lda #<ORIX_ROUTINES
+	ldy #>ORIX_ROUTINES
+	ldx #$06 ; id of Orix bank
+	jsr call_routine_in_another_bank
+	/*
+	;jsr $040C
+	
+	ldx #ORIX_REGISTER_FILEHANDLE
+	
+	STA $0415
+	STY $0416
+	STX BNKCIB
+	JMP $040C
+	*/
 	; cc65 needs everything except $ff : if it returns $ff cc65 launch return0 (null)
 	lda #$00
 	ldx #$00

@@ -110,16 +110,19 @@ write_only
 	jsr _ch376_set_file_name
 	;jsr _ch376_file_open
 	jsr _ch376_file_create
+	inc NUMBER_OPENED_FILES
+	lda NUMBER_OPENED_FILES
+	
 	rts
 
 read_only	
 	jsr open_and_read_go
 	cmp #CH376_ERR_MISS_FILE
 	beq file_not_found 	
-	lda #"F"
-	jsr XWR0_ROUTINE	
-	lda #"o"
-	jsr XWR0_ROUTINE	
+;	lda #"F"
+;	jsr XWR0_ROUTINE	
+;	lda #"o"
+;	jsr XWR0_ROUTINE	
 	; cc65 needs everything 
 	lda #$00
 	ldx #$00
