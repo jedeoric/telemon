@@ -1,5 +1,5 @@
 XPLAY_ROUTINE
-	lda $4f
+	lda HRS2
 	asl
 	asl
 	asl

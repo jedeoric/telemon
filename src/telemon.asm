@@ -51,9 +51,10 @@ loop1
 	LSR IOTAB0,X ; init channels (0 to 3)
 	DEX
 	bpl loop1
-
-	LDA #$D0 ; send command to FDC 
-	JSR routine_to_define_2
+;#ifdef WITH_FDC
+	LDA #%11010000; send command to FDC ; Force interrupt : stop any action on microdisc
+	JSR read_microdisc
+;#endif	
 	LDA VIRQ ; testing if VIRQ low byte is $4C ?
 	CMP #$4C
 	BNE end_rout ; non equal to $4C
@@ -90,22 +91,27 @@ before2
 	NOP
 	NOP
 
+	
+#ifdef WITH_FDC	
 	LDX #$03
-C028
+
 loop8
+.(
 	LDA definition_for_CDRIVE_init,X 
 	STA CDRIVE
 
-	LDA #$08
+	LDA #%00001000 ; launch seek
 	STA FDCCR
 	
 	TAY
-c034	
-loop6		
-	INY
-	bne loop6
-	NOP
 
+loop
+	INY
+	bne loop
+	NOP
+.)	
+
+	
 	LDY #$40
 	
 	STX RES
@@ -133,7 +139,9 @@ c055
 	bpl loop8
 	nop
 	INX
-
+#else
+	ldx #0
+#endif
 
 loading_vectors_telemon
 .(
@@ -302,7 +310,7 @@ next35
 	LDX VNMI ; BANK
 	LDA VNMI+1 ; ADRESS low
 	LDY VNMI+2 ; adress hih
-	JMP next57 
+	JMP call_routine_in_another_bank
 next49
 	LDX #$00
 loop49
@@ -373,7 +381,9 @@ loop58
 	LDA #<str_insert_disk
 	LDY #>str_insert_disk
 	BRK_TELEMON(XWSTR0)
-	jsr $b800 ; FIXME  
+#ifdef WITH_RAMOVERLAY
+	jsr $b800 ; FIXME 
+#endif
 	lda #<str_tofix
 	ldy #>str_tofix
 	BRK_TELEMON(XWSTR0)
@@ -382,23 +392,26 @@ next54
 	LDX #$02 ; store default extension
 loop55	
 	LDA str_default_extention,X ;
-	STA BUFDEF,X ; CORRECTME
+	STA EXTDEF,X ; CORRECTME
 	DEX
 	BPL loop55
 	JSR $0600 ; CORRECTME
 	JSR routine_to_define_19
+#ifdef WITH_FDC	
 	LDA FLGTEL ; test if strased is here
 	LSR ; shift FLGTEL value to the right, b0 is in the carry
 	bcs display_cursor ; Strased is loaded, we display the cursor
 	; trying to load bonjour.com 
+	
 	LDA #<str_loading_bonjour ; strased is not here, load bonjour.com !
 	LDY #>str_loading_bonjour
 	LDX #$07
 	BRK_TELEMON(XNOMFI)
 	ldx #$00
-	lda #$7d
+	lda #$7d ; 
 	LDY #$FF 
-	JSR next57
+	JSR call_routine_in_another_bank
+#endif	
 	beq display_cursor ; Display cursor
 	LDA FLGTEL ; something is wrong
 	ORA #$04
@@ -415,7 +428,7 @@ next56
 	LDA #$00
 	LDY #$C0
 
-	bne next57
+	bne call_routine_in_another_bank
 display_cursor	
 
 	LDX #$00
@@ -428,7 +441,7 @@ display_cursor
 
 
 call_routine_in_another_bank	
-next57
+;next57
 
 	STA $0415
 	STY $0416
@@ -445,7 +458,7 @@ loop
 	BNE loop
 	LDX #$0C
 	BRK_TELEMON(XVIDBU) 
-#ifdef WITH_ACIA	
+#ifdef WITH_ACIA
 	LDA ACIACR
 	AND #$F3
 	ORA #$08
@@ -467,10 +480,10 @@ Lc286
 next	
 	CMP #$01
 	BNE Lc284
-	LDA #$00
-	LDY #$E0
-	LDX #$00
-	BEQ next57
+	LDA #$00 
+	LDY #$E0 ; CALL $E000
+	LDX #$00 ; Switch to OVERLAY RAM
+	BEQ call_routine_in_another_bank
 .)	
 
 telemon_convert_to_decimal
@@ -485,9 +498,12 @@ init_via
 	lda #$7f 
 	sta V1IER ; Initialize via1
 	sta V2IER ; Initialize via2
-#ifdef WITH_ACIA	
+	
+#ifdef WITH_ACIA
 	sta ACIASR ; Init ACIA
 #endif
+
+
 	lda #$00
 	sta CDRIVE
 	lda #$ff
@@ -518,6 +534,7 @@ definition_for_CDRIVE_init
 loading_code_to_page_6
 	jmp $0650
 // This code to pattern "ENDPATTERN" could be deleted
+;#ifdef WITH_RAMOVERLAY
 	lda #$00 ; 2 bytes
 L0605	
 	sta V2DRA ; 3 bytes ; switch to overlay ram ?
@@ -528,6 +545,7 @@ loop40
 	INX
 	BNE loop40 ; copy 256 bytes to BUFROU in OVERLAY RAM
 ; reading all connected bank (cardridges)!
+;#endif
 // ENDPATTERN 
 	LDX #$07 ; loops with all banks
 loop47
@@ -654,13 +672,29 @@ str_drive
 str_telemon
 	.asc $0d,$0a,"TELEMON V"
 str_telemon_version
-	.asc "3.0"
+	.asc "3.1"
 str_cpu	
 #ifdef CPU_65C02
 	.asc " 65C02"
 #else
 	.asc " 6502"
 #endif
+
+#ifdef WITH_ACIA
+#else
+.asc $0d,$0a,"Build : NOACIA"
+#endif
+
+#ifdef WITH_FDC
+#else
+.asc " NOFDC"
+#endif
+
+#ifdef WITH_RAMOVERLAY
+#else
+.asc " NORAMOVERLAY"
+#endif
+
 
 str_oric_international
 	.asc $0d,$0a,"(c) 1986 ORIC International",$0d,$0a,$00
@@ -698,26 +732,30 @@ Lc45f
 
 
 	
-loading_vectors_b800
+loading_vectors_b800 ; switch to RAM
+
 	LDA #%11101000
 	STA V2DRA
-	LDA #$00
-	LDY #$C1
+	LDA #<BUF1
+	LDY #>BUF1
 	STA RES
 	STY RES+1
+	
 	LDX #$01
 	STX FDCSR 
+
 	JSR $B84F ; FIXME
-	LDA $C100 ; FIXME
+
+	LDA BUF1 
 	bne next100
 	
-	LDA $C103 ; FIXME
-	LDY $C104 ; FIXME
+	LDA BUF1+3 
+	LDY BUF1+4 
 	STA RES
 loop101	
 	STY RES+1
 loop102	
-	CPX $C101
+	CPX BUF1+1
 
 	BNE next101
 	
@@ -731,20 +769,22 @@ next101
 	STX FDCSR
 	JSR $B84F ; FIXME      
 	INC RES+1  
-	DEC $C102 ; FIXME      
+	DEC BUF1+2 ; FIXME      
 	BNE loop102
-	JSR $C105 ; FIXME
+	JSR BUF1+5 ; FIXME
 	LDA $FFFB ; FIXME
 	STA BNKST
 next100
 	LDA #$EF
 	STA V2DRA
+
 	RTS
 loop105	
 address_b84F
-	LDA #$88
+	LDA #%10001000 ; read sector
 	STA FDCCR
 	LDY #$04
+; WAITING
 loop100
 	DEY
 	BNE loop100
@@ -752,6 +792,7 @@ loop103
 	LDA FDCCR
 	LSR
 	bcc end6
+address_b85F	
 	LDA $0318 ; FIXME
 	bmi loop103
 	LDA FDCDR
@@ -763,9 +804,10 @@ address_b86a
 	
 routine_to_define_2	
 read_microdisc
+
 c4d1
 
-	STA FDCCR
+	STA FDCCR ; Command register
 
 	LDY #$03
 	  
@@ -1262,20 +1304,22 @@ LC8B9
 ; routine BRK ?
 LC8BF
 routine_to_define_12
+
 	TYA
 	PHA
-#ifdef WITH_ACIA	
+
 	LDA ACIASR 
-#endif	
+
 	BPL next23
 	LSR TRANSITION_RS232
 	PHA
 	AND #$08
 	BEQ next24
-#ifdef WITH_ACIA	
+
 	LDX ACIADR
-#endif	
+
 	PLA
+	
 	PHA
 	AND #$07
 	BEQ next25
@@ -1295,19 +1339,19 @@ next24
 	LDX #$18 
 	JSR XTSTBU_ROUTINE; CORRECTME
 	BCS next26
-#ifdef WITH_ACIA	
+
 	LDA ACIASR
 	AND #$20
 	BNE next23
-#endif	
+
 	JSR XLISBU_ROUTINE 
-#ifdef WITH_ACIA	
+#ifdef WITH_ACIA
 	STA ACIADR
 	LDA ACIACT
 	AND #$07
 	STA $3F
 	BCC next23
-#endif	
+#endif
 next26
 	INC $20
 	BNE next23
@@ -1325,7 +1369,7 @@ next26
 
 next29
 	STA ACIACR
-#endif		
+#endif	
 Lc91b
 next23
 
@@ -2259,7 +2303,7 @@ Ld08f
 	bcc Ld0a4 
 	ldy #2
 Ld098	
-	lda $055d,y
+	lda EXTDEF,y
 	
 	sta $0521,y
 	dey
@@ -2552,7 +2596,9 @@ loop21
 	JSR XEPSG_ROUTINE
 	LDA #$00
 	STA KBDCOL,Y
+#ifdef WITH_ACIA	
 	JSR routine_to_define_12 
+#endif	
 	LDA V1DRB
 	AND #$B8
 	TAX
@@ -2860,19 +2906,20 @@ LDAF7
 	JMP XLISBU_ROUTINE 
 skip
 .)
-#ifdef WITH_ACIA		
+#ifdef WITH_ACIA
 	BCS Ldb09
+	
 	LDA ACIACR
 	AND #$0D
 	ORA #$60
 	BNE Ldb43 
-#endif		
+#endif
 Ldb09
 #ifdef WITH_ACIA
 	LDA ACIACR
 	ORA #$02
 	STA ACIACR
-#endif	
+#endif
 	RTS
 
 
@@ -2906,31 +2953,31 @@ LDB26
 	PLA                                                        ;   I I
 	BCS LDB26 ;     si la donn?e n'a pas ?t? ?crite, on boucle     I I
 LDB2F
-#ifdef WITH_ACIA		
+
 	LDA ACIACR  ;    on prend V2IER                                 I I
 	AND #$F3  ;     %11110011 force b2 ? 0                         I I
 	ORA #$04 ;      et b3 ? 1                                      I I
 	STA ACIACR ;     dans ACIACR                                    I I
-#endif	
+
 	RTS
 	;                                      < I
 LDB3A
 	BCS LDB53 ;     C=1 on ferme ==================================  I
-#ifdef WITH_ACIA	
+
 	LDA ACIACR ;     ouverture                                      > I
 	AND #$02 ;      ACIACR ? 0 sauf b1                             I I
 	ORA #$65 ;      %01101001, bits forc?s ? 1                     I I
 Ldb43
 	STA ACIACR ;     dans ACIACR <----------------------------------+--
-#endif	
+
 	LDA V2DRA ;     V2DRA                                          I  
 	AND #$EF  ;     %11101111 force mode MINITEL                   I  
 
 	STA V2DRA ;                                                    I  
-#ifdef WITH_ACIA
+
 	LDA #$38  ;     %00111000 dans ACIACT                          I  
 	STA ACIACT ;                                                    I  
-#endif	
+
 LDB53
 	RTS       ;     et on sort--------------------------------------  
 
@@ -2953,7 +3000,7 @@ init_rs232
 LDB5D
 	BPL LDAF7    ;  lecture, voir MINITEL (pourquoi pas $DAF9 ?)       
 	BCS Ldb09   ;   C=1, on ferme                                    
-#ifdef WITH_ACIA	
+
 	LDA ACIACR   ;   on ouvre                                          
 	AND #$0D     ;  on fixe le mode de controle
 	
@@ -2965,7 +3012,7 @@ LDB66
 	STA V2DRA                                                        
 	LDA $59     ;   et on fixe le mode de transmission                
 	STA ACIACT   ;   dans ACIACR               
-#endif	
+
 	RTS                                                              
                            
                                                                                 
@@ -2974,12 +3021,12 @@ LDB79
 	BPL LDB26     ; ?criture, comme MINITEL                           
 	BCS LDB53    ;;  pas de fermeture (RTS) 
 LDB7D
-#ifdef WITH_ACIA
+
 	LDA ACIACR    ;  ouverture,on lit ACIACR                            
 	AND #$02     ;  isole b1                                          
 	ORA #$05     ;  %00000101 force b0 et b2 ? 1                      
 	BNE LDB66    ;  inconditionnel        	
-#endif
+
                                                                                
      ;                 GESTION DES SORTIES EN MODE TEXT                      
                                                                                 
@@ -5305,25 +5352,25 @@ Le885
 	STY HRSY     ;   dans HRSX et HRSY                                 
 	BIT $4E    ;    dX n?gatif ?                                      
 	BPL LE89D  ;    non ----------------------------------------------
-	LDA $4D    ;    oui, on compl?mente                              I
+	LDA HRS1    ;    oui, on compl?mente                              I
 	EOR #$FF    ;   dX                                               I
-	STA $4D    ;                                                     I
-	INC $4D    ;    ? 2                                              I
+	STA HRS1    ;                                                     I
+	INC HRS1    ;    ? 2                                              I
 LE89D
 	BIT $50    ;    dY n?gatif ? <------------------------------------
 	BPL LE8A9  ;    non ---------------------------------------------- 
-	LDA $4F    ;    oui on compl?mente                               I
+	LDA HRS2    ;    oui on compl?mente                               I
 	EOR #$FF   ;    dY                                               I
-	STA $4F    ;                                                     I
-	INC $4F    ;    ? 2                                              I
+	STA HRS2    ;                                                     I
+	INC HRS2    ;    ? 2                                              I
 LE8A9
-	LDA $4D    ;    on teste dX et dY <-------------------------------
-	CMP $4F                                                          
+	LDA HRS1    ;    on teste dX et dY <-------------------------------
+	CMP HRS2                                                          
 	BCC LE8ED   ;   dX<dY -------------------------------------------- 
 	PHP         ;   dX>=dY , on trace selon dX                       I
-	LDA $4D     ;   on prends dX                                     I
+	LDA HRS1     ;   on prends dX                                     I
 	BEQ LE8EB  ;    dX=0, on sort -------------------------------    I 
-	LDX $4F    ;    X=dY                                        I    I
+	LDX HRS2    ;    X=dY                                        I    I
 	JSR Le921  ;    on calcule dY/dX                            I    I 
 	PLP        ;                                                I    I
 	BNE LE8C0  ;    dX<>dY -----------------------------------  I    I 
@@ -5358,9 +5405,9 @@ LE8EB
 	PLP      ;   I  <--------------------------------------------    I
 	RTS       ;  I                                                   I
 LE8ED
-	LDA $4F   ;  I  on trace la droite selon dY <---------------------
+	LDA HRS2   ;  I  on trace la droite selon dY <---------------------
 	BEQ LE8EA  ; ---dY=0, on sort                                      
-	LDX $4D   ;     X=dX                                              
+	LDX HRS1   ;     X=dX                                              
 	JSR Le921 ;     on calcule dX/dY dans RES                          
 LE8F6
 	BIT $50                                                          
@@ -5383,7 +5430,7 @@ LE916
 	JSR XHRSCD_ROUTINE  ; I  on d?place vers la droite <--------------        I 
 LE919	
 	JSR XHRSSE_ROUTINE	 ; -->on affiche le point <----------------------------- 
-	DEC $4F    ;    et on d?crit dY       FIXME                             
+	DEC HRS2    ;    et on d?crit dY       FIXME                             
 	BNE LE8F6                                                       ;
 	RTS         ;   avant de sortir de longueur des lignes            
 
@@ -5401,8 +5448,8 @@ Le921
            ;                    ROUTINE CURSET                               
 XCURSE_ROUTINE
 Le92f                                                                               
-	LDX $4D      ;  X=HRSX                FIXME                            
-	LDY $4F     ;   Y=HRSY                FIXME
+	LDX HRS1      ;  X=HRSX                FIXME                            
+	LDY HRS2     ;   Y=HRSY                FIXME
 	JSR le94e    ;  on v?rifie les coordonn?es                   
 LE936
 	JSR Le7f3    ;  on place le curseur en X,Y                        
@@ -5424,11 +5471,11 @@ Action:V?rifie si l'adressage relatif du curseur est dans les limites de l'?cran
 Le942  
 	CLC                                                              
 	LDA HRSX     ;   on prend HRSX                                     
-	ADC $4D     ;   plus le d?placement horizontal                    
+	ADC HRS1     ;   plus le d?placement horizontal                    
 	TAX          ;  dans X                                            
 	CLC                                                              
 	LDA HRSY     ;   HRSY                                              
-	ADC $4F     ;   plus le d?placement vertical                      
+	ADC HRS2     ;   plus le d?placement vertical                      
 	TAY         ;   dans Y           
 
 /*
@@ -5602,12 +5649,12 @@ Le9cb
 	STA $56      ;  car le trac? du cercle en tient compte            
 	LDA HRSY      ;  on prend HRSY                                     
 	SEC                                                              
-	SBC $4D     ;   -rayon                                            
+	SBC HRS1     ;   -rayon                                            
 	TAY          ;  dans Y                                            
 	LDX HRSX     ;   on prend HRSX                                     
 	JSR Le7f3    ;  et on place le premier point du cercle (X,Y-R)      
 	LDX #$08    ;   X=7+1 pour calculer N tel que Rayon<2^N.          
-	LDA $4D     ;   on prend le rayon                                 
+	LDA HRS1     ;   on prend le rayon                                 
 LE9E5
 	DEX         ;   on enl?ve une puissance                           
 	ASL         ;   on d?cale le rayon ? gauche                       
@@ -5618,7 +5665,7 @@ LE9E5
 	STA $10     ;   et sfY                                            
 	ASL         ;   A=0                                               
 	STA $0F     ;   dans seX                                          
-	LDA $4D     ;   A=Rayon                                           
+	LDA HRS1     ;   A=Rayon                                           
 	STA $11     ;   dans seY                                          
 LE9F8
 	SEC                                                              
@@ -5674,7 +5721,7 @@ Lea51
 	LDA $0F   ;     seX=0 ? <-----------------------------------------
 	BNE LE9F8  ;    non, on boucle                                        
 	LDA $11    ;    oui, seY=rayon?                                   
-	CMP $4D                                                          
+	CMP HRS1                                                          
 	BNE LE9F8  ;    non, on boucle                                  
 	PLA        ;    oui, on a fait le tour                            
 	TAY        ;    on reprend les coordonn?es du curseur sauv?es     
