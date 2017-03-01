@@ -10,9 +10,10 @@ XRD2_ROUTINE
 XRD3_ROUTINE		
 	lda #$0c
 
+; read keyboard	
 Lc7da
 .(
-	STA $19
+	STA work_channel
 	LDA #$04
 	STA $1A
 	TXA

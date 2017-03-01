@@ -16,7 +16,7 @@ cd src
 del a.o65
 
 %OSDK%\bin\xa.exe -C -W  -e error.txt -DWITH_ACIA -DWITH_FDC -DWITH_RAMOVERLAY -l xa_labels.txt  telemon.asm 
-%OSDK%\bin\xa.exe -C -W  -e error.txt -l xa_labels_for_atmos.txt -DATMOS  -o ..\release\telemon%RELEASE%_for_atmos.rom  telemon.asm 
+%OSDK%\bin\xa.exe -C -W  -e error.txt -l xa_labels_for_atmos.txt   -DATMOS -DWITH_DEBUG  -o ..\release\telemon%RELEASE%_for_atmos.rom  telemon.asm 
 rem %OSDK%\bin\xa.exe -C -W  -e error.txt -l xa_labels.txt -o telemon_noacia_nofdc.rom  telemon.asm 
 
 ..\md5sums a.o65

@@ -46,15 +46,17 @@ telemon
 	jsr XALLKB_ROUTINE
 	; init channels loading 15
 
+
+
 	LDX #$0F
 loop1
 	LSR IOTAB0,X ; init channels (0 to 3)
 	DEX
 	bpl loop1
-;#ifdef WITH_FDC
+#ifdef WITH_FDC
 	LDA #%11010000; send command to FDC ; Force interrupt : stop any action on microdisc
 	JSR read_microdisc
-;#endif	
+#endif	
 	LDA VIRQ ; testing if VIRQ low byte is $4C ?
 	CMP #$4C
 	BNE end_rout ; non equal to $4C
@@ -66,13 +68,16 @@ loop1
 	CLC
 	bcc next2
 end_rout
+
+
+
 	lda #01 ; store that stratsed is missing
 	sec
 next2
 	sta FLGTEL ; store that stratsed is missing
 	ror FLGRST
 	bmi next1
-	jmp routine_to_define_3 
+	jmp compute_rom_ram
 next1
 	LDX #$2F
 next8		
@@ -91,7 +96,7 @@ before2
 	NOP
 	NOP
 
-	
+
 #ifdef WITH_FDC	
 	LDX #$03
 
@@ -102,18 +107,14 @@ loop8
 
 	LDA #%00001000 ; launch seek
 	STA FDCCR
-	
 	TAY
-
 loop
 	INY
 	bne loop
 	NOP
 .)	
-
 	
 	LDY #$40
-	
 	STX RES
 c03C
 .(
@@ -161,10 +162,16 @@ loop
 c072	
 	bne loop
 .)
+
+
+
+; Just fill ram with BUFROU
 	JSR $0603
 
-routine_to_define_3 	
-c0ac
+
+
+	
+compute_rom_ram	
 	LDA #$00
 .(
 loop
@@ -222,7 +229,8 @@ before1
 	STA VNMI,X ; 
 	DEX
 	BPL before1
-	JSR routine_to_define_4 
+
+	JSR init_keyboard
 next5
 	LDA KBDCOL+4 ; 
 	AND #$90
@@ -231,11 +239,20 @@ next5
 	ORA #$40
 	STA FLGTEL
 next6
-	JSR routine_to_define_9 ; $DF5B 
+
+	JSR init_screens ; $DF5B 
 	JSR routine_to_define_8	 ; routine_to_define_8
+
+#ifdef WITH_MINITEL	
 	JSR init_minitel ; 
+#endif	
+
 	JSR init_joystick ; $DFAB
+
+#ifdef WITH_ACIA	
 	JSR init_rs232 ; $DB54 
+#endif	
+
 	; Here we go :  set up keyboard !
 	LDA FLGKBD
 	LSR
@@ -263,7 +280,7 @@ next32
 	
 	bpl telemon_hot_reset	; no
 
-	; display telestrat at the fiest line
+	; display telestrat at the first line
 	LDA #<str_telestrat
 	LDY #>str_telestrat
 	BRK_TELEMON(XWSTR0)
@@ -287,13 +304,19 @@ next32
 	LDA #<str_KOROM
 	LDY #>str_KOROM
 	BRK_TELEMON(XWSTR0)
+
+	
 ; adress : $c146
 telemon_hot_reset	
 	jsr XTSTLP_ROUTINE ; printer connected ?
+
 	bne next34 
 	BRK_TELEMON(XCRLF)
+
+	
 	JMP next35
 next34	
+
 	BIT FLGRST; does it test printer ? not a printer
 	BPL next35 ; jumps if Negative flag is ok
 	; display printer
@@ -303,22 +326,29 @@ next34
 
 next35	
 
+	
 	BIT FLGRST
 	BMI next49
 	JSR routine_to_define_19 
 	; load VNMI Number of bank and address
+
+	
 	LDX VNMI ; BANK
 	LDA VNMI+1 ; ADRESS low
 	LDY VNMI+2 ; adress hih
 	JMP call_routine_in_another_bank
 next49
+
+	
+#ifdef WITH_FDC	
+.(
 	LDX #$00
-loop49
+loop
 	LDA TABDRV,X
 	BNE next50
 	INX
 	CPX #$04
-	BNE loop49
+	BNE loop
 
 	BEQ next58 ; 
 ; c11a
@@ -329,8 +359,12 @@ next50
 	BEQ next51 ; If 0, then no need to display "," because it's A drive
 	LDA #","
 	BRK_TELEMON(XWR0) ; display ','
+.)	
+#endif	
 c1b5
-next51	
+next51
+
+#ifdef WITH_FDC	
 	lda #<str_drive
 	ldy #>str_drive
 	BRK_TELEMON(XWSTR0)  ; display DRIVE:
@@ -349,16 +383,23 @@ loop50
 loop51	
 	ADC #"A" ; display A, because it adds to c2dc (drives ) 41 (equal to A in ascii table)
 	BRK_TELEMON(XWR0)
-loop12	
+.(	
+loop	
 	inx 
 	CPX #$04
 	beq next61
 	LDA TABDRV,X ;3 
-	beq loop12	
+	beq loop
+.)	
 	lda #"-" ; display - to separate drive 2
 	BRK_TELEMON(XWR0) ; 2
+
 next52	
 	jmp loop50 ;3
+#endif	
+
+
+
 next58	
 	lda SCRX
 	beq loop58
@@ -373,14 +414,18 @@ loop58
 	ldy #>str_telemon
 	
 	BRK_TELEMON(XWSTR0)
+	
+	
 	lda #$00
 	sta BNKST ; Switch to ram overlay ?
 	LDA FLGTEL ; does stratsed is load ?
 	LSR
-	BCS next54
+	BCS copy_default_extension
+#ifdef WITH_FDC	
 	LDA #<str_insert_disk
 	LDY #>str_insert_disk
 	BRK_TELEMON(XWSTR0)
+#endif	
 #ifdef WITH_RAMOVERLAY
 	jsr $b800 ; FIXME 
 #endif
@@ -388,14 +433,26 @@ loop58
 	ldy #>str_tofix
 	BRK_TELEMON(XWSTR0)
 
-next54
+
+copy_default_extension
+.(
 	LDX #$02 ; store default extension
-loop55	
+loop
 	LDA str_default_extention,X ;
 	STA EXTDEF,X ; CORRECTME
 	DEX
-	BPL loop55
+	BPL loop
+.)	
+	
+	
 	JSR $0600 ; CORRECTME
+
+	; Don't remove these 3 nops
+    nop
+	nop 
+	nop
+		
+	
 	JSR routine_to_define_19
 #ifdef WITH_FDC	
 	LDA FLGTEL ; test if strased is here
@@ -450,14 +507,18 @@ call_routine_in_another_bank
 
 routine_to_define_19
 .(
+
 	CLI
 	LDA #$02
 	STA TIMEUD
 loop
 	LDA TIMEUD
 	BNE loop
+#ifdef	WITH_RAMOVERLAY
 	LDX #$0C
 	BRK_TELEMON(XVIDBU) 
+#endif	
+
 #ifdef WITH_ACIA
 	LDA ACIACR
 	AND #$F3
@@ -466,6 +527,8 @@ loop
 #endif
 	LDA #$8F
 	BRK_TELEMON(XCL1) 
+
+	
 	rts
 .)	
 Lc284
@@ -503,9 +566,11 @@ init_via
 	sta ACIASR ; Init ACIA
 #endif
 
-
+#ifdef WITH_FDC
 	lda #$00
 	sta CDRIVE
+#endif
+
 	lda #$ff
 	sta V1DDRA
 	
@@ -533,8 +598,11 @@ definition_for_CDRIVE_init
 
 loading_code_to_page_6
 	jmp $0650
+
 // This code to pattern "ENDPATTERN" could be deleted
-;#ifdef WITH_RAMOVERLAY
+; $603
+; FIXME KEYBOARD
+#ifdef WITH_RAMOVERLAY
 	lda #$00 ; 2 bytes
 L0605	
 	sta V2DRA ; 3 bytes ; switch to overlay ram ?
@@ -544,25 +612,31 @@ loop40
 	STA BUFROU,X ; store data in c500 
 	INX
 	BNE loop40 ; copy 256 bytes to BUFROU in OVERLAY RAM
+#else
+	.dsb 16,$ea
+#endif	
+
 ; reading all connected bank (cardridges)!
-;#endif
-// ENDPATTERN 
+
+
 	LDX #$07 ; loops with all banks
 loop47
 	STX V2DRA ; Switch to each Bank ;
 ; reading cardridge bank
 	LDY #$00
-loop43 
+.(
+loop
 	LDA bank_signature,Y ; first iteration is equal to $00
 	PHA ; push A (first iteration $a0)
-loop41
+loop2
 	ADC #$04 ; add 4
-	BCC loop41 ; Loop until it reached $00
+	BCC loop2 ; Loop until it reached $00
 	PLA ; 
 	CMP bank_signature,Y ;  did signature changed ? ?
 	BNE loop42+1
 	INY
-	BNE loop43
+	BNE loop
+.)	
 loop45
 	; At the 
 	STY $FFFB ; Store  trying to fix someting on RAM ?
@@ -588,14 +662,17 @@ loop46
 	lda #$07
 	sta V2DRA ; return to telemon bank
 	rts
+	
 Lc330
+.(
 	ldx #0
 	jsr $065e ; FIXME
 	ldx #$06 ; bank 6
-Lcc337	
+loop	
 	jsr $065e ; FIXME
 	dex 
-	bne Lcc337
+	bne loop
+.)	
 	rts
 	lda BNKST,x 
 	bpl Lc365 
@@ -672,7 +749,7 @@ str_drive
 str_telemon
 	.asc $0d,$0a,"TELEMON V"
 str_telemon_version
-	.asc "3.1"
+	.asc "3.0"
 str_cpu	
 #ifdef CPU_65C02
 	.asc " 65C02"
@@ -802,23 +879,23 @@ address_b86a
 	JMP $B85F ; address_b85f
 
 	
-routine_to_define_2	
+
 read_microdisc
-
-c4d1
-
+.(
 	STA FDCCR ; Command register
 
 	LDY #$03
-	  
-loop10
+loop
 	DEY
-	BNE loop10
-next11
+	BNE loop
+	
+loop2
 	LDA FDCCR
 	LSR
-	BCS next11
-end7	
+	BCS loop2
+.)
+
+end7
 	rts
 	nop
 end6
@@ -872,7 +949,12 @@ XTSTBU_ROUTINE
 
 next19
 	SEC
+#ifdef WITH_RAMOVERLAY	
+; FIXME KEYBOARD
 	JMP $0409
+#else
+	rts
+#endif	
 Lc518
 XLISBU_ROUTINE
 	bit XLISBU_ROUTINE
@@ -883,8 +965,13 @@ LC51D
 	
 next20
 	CLC
+	
+#ifdef WITH_RAMOVERLAY		
+; FIXME KEYBOARD
 	JMP $0409
-
+#else
+	rts
+#endif
 ;*********************************************************************************	
 ; CODE INSERTED IN PAGE 4	
 ;*********************************************************************************	
@@ -901,8 +988,11 @@ code_adress_40c
 	JMP $0436 ; 436 see  code_adress_436
 code_adress_40f
 	.byt $00 ; init old bank to 0
+; 410	
 	.byt $00 ; used for 
+; 411	
 	jmp $04af
+; 414	
 	.byt $4c,$00,$00
 data_adress_417 	
 .byt $00 ; Init BNKCIB with 0
@@ -911,6 +1001,7 @@ data_adress_418
 
 ; This routines is used to read buffers in RAM overlay
 code_adress_419	
+#ifdef WITH_RAMOVERLAY
 	PHP
 	SEI
 	PHA
@@ -927,6 +1018,9 @@ code_adress_419
 	PLP
 	ASL 
 	TYA
+#else
+	.dsb 28
+#endif
 	RTS
 code_adress_436
 
@@ -2706,8 +2800,7 @@ data_to_define_KBDCOL
 Ld9a9	
 	.byt $01,$02,$04,$08,$10,$20,$40
 	.byt $80
-Ld9b1	
-routine_to_define_4	
+
 init_keyboard
 	LDA #$FF
 	STA V1DDRA
@@ -2731,6 +2824,7 @@ init_keyboard
 	LDA #$00
 	STA KBDCTC
 	RTS
+	
 send_14_paramaters_to_psg	
 ld9e7
 	CLC
@@ -2954,30 +3048,36 @@ LDB26
 	BCS LDB26 ;     si la donn?e n'a pas ?t? ?crite, on boucle     I I
 LDB2F
 
+#ifdef WITH_ACIA
 	LDA ACIACR  ;    on prend V2IER                                 I I
 	AND #$F3  ;     %11110011 force b2 ? 0                         I I
 	ORA #$04 ;      et b3 ? 1                                      I I
 	STA ACIACR ;     dans ACIACR                                    I I
+#endif
 
 	RTS
 	;                                      < I
 LDB3A
 	BCS LDB53 ;     C=1 on ferme ==================================  I
 
+#ifdef WITH_ACIA
 	LDA ACIACR ;     ouverture                                      > I
 	AND #$02 ;      ACIACR ? 0 sauf b1                             I I
 	ORA #$65 ;      %01101001, bits forc?s ? 1                     I I
 Ldb43
 	STA ACIACR ;     dans ACIACR <----------------------------------+--
+#endif
 
+#ifdef WITH_MINITEL
 	LDA V2DRA ;     V2DRA                                          I  
 	AND #$EF  ;     %11101111 force mode MINITEL                   I  
-
 	STA V2DRA ;                                                    I  
+#endif
 
+#ifdef WITH_ACIA
 	LDA #$38  ;     %00111000 dans ACIACT                          I  
 	STA ACIACT ;                                                    I  
-
+#endif
 LDB53
 	RTS       ;     et on sort--------------------------------------  
 
@@ -2988,11 +3088,12 @@ init_rs232
 	;	b4 : external clock for 0, 1 for internal clock
 	;	b6 - b5 : 00=8 bits, 01=7 bits, 10=6 bits, 11=5 bits
 	;	b7 : 0=stop, 1= 2 or 1.5 stops
-
+#ifdef WITH_ACIA
 	LDA #$1E 
 	STA RS232T
 	LDA #$00
 	STA RS232C
+#endif	
 	rts
 
 	                                                                              
@@ -3001,10 +3102,13 @@ LDB5D
 	BPL LDAF7    ;  lecture, voir MINITEL (pourquoi pas $DAF9 ?)       
 	BCS Ldb09   ;   C=1, on ferme                                    
 
+#ifdef WITH_ACIA
 	LDA ACIACR   ;   on ouvre                                          
 	AND #$0D     ;  on fixe le mode de controle
-	
+#endif	
+
 LDB66	
+#ifdef WITH_ACIA
 	ORA $5A     ;   de la RS232                                       
 	STA ACIACR                                                        
 	LDA V2DRA                                                        
@@ -3012,7 +3116,7 @@ LDB66
 	STA V2DRA                                                        
 	LDA $59     ;   et on fixe le mode de transmission                
 	STA ACIACT   ;   dans ACIACR               
-
+#endif
 	RTS                                                              
                            
                                                                                 
@@ -3819,8 +3923,8 @@ next17
 	rts
 
 init_screens
-LDF5B
-routine_to_define_9
+
+
 	LDA #$1A
 	STA $BFDF ; Switch to text mode
 	JSR routine_to_define_22 
