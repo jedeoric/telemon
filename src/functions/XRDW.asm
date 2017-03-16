@@ -15,29 +15,29 @@ Lc7da
 .(
 	STA work_channel
 	LDA #$04
-	STA $1A
+	STA i_o_counter
 	TXA
 	PHA
 	TYA
 	PHA
-LC7E4	
-	LDX $19
-	LDA $02AE,X ; FIXME
-	bpl LC7F9
+loop	
+	LDX work_channel
+	LDA IOTAB0,X ; FIXME
+	bpl skip
 
 	cmp #$88
-	bcs  LC7F9
+	bcs skip
 
 	tax
 	ldy #$40
-	jsr Lc81c
+	jsr send_command_A
 	sta $1d
-	bcc LC7FF 
-LC7F9	
-	inc $19
-	dec $1a
-	bne LC7E4 
-LC7FF	
+	bcc skip2
+skip	
+	inc work_channel
+	dec i_o_counter
+	bne loop
+skip2
 	pla
 	tay
 	pla

@@ -81,7 +81,7 @@ next2
 next1
 	LDX #$2F
 next8		
-	LDA data_to_define_1,X
+	LDA adress_of_adiodb_vector,X
 	STA ADIOB,X 
 	DEX
 	bpl next8
@@ -93,11 +93,12 @@ loop4
 	bpl loop4	
 before2
 	
-	NOP
-	NOP
+
 
 
 #ifdef WITH_FDC	
+	NOP
+	NOP
 	LDX #$03
 
 loop8
@@ -339,9 +340,9 @@ next35
 	JMP call_routine_in_another_bank
 next49
 
-	
+.(	
 #ifdef WITH_FDC	
-.(
+
 	LDX #$00
 loop
 	LDA TABDRV,X
@@ -356,14 +357,14 @@ next50
 	TXA
 	PHA
 	LDA SCRX ; load X cursor position 
-	BEQ next51 ; If 0, then no need to display "," because it's A drive
+	BEQ skip ; If 0, then no need to display "," because it's A drive
 	LDA #","
 	BRK_TELEMON(XWR0) ; display ','
-.)	
+	
 #endif	
-c1b5
-next51
 
+skip
+.)
 #ifdef WITH_FDC	
 	lda #<str_drive
 	ldy #>str_drive
@@ -552,7 +553,7 @@ next
 telemon_convert_to_decimal
 	LDY #$00 ; 00
 	LDX #$20 ;
-	STX $14
+	STX DEFAFF
 	LDX #$01
 	JMP XDECIM_ROUTINE 
 	
@@ -613,7 +614,7 @@ loop40
 	INX
 	BNE loop40 ; copy 256 bytes to BUFROU in OVERLAY RAM
 #else
-	.dsb 16,$ea
+	.dsb 15,$ea ; fill woth nops
 #endif	
 
 ; reading all connected bank (cardridges)!
@@ -953,6 +954,10 @@ next19
 ; FIXME KEYBOARD
 	JMP $0409
 #else
+	;inc $8000
+	;lda $8000
+	;sta $bb80
+	clc
 	rts
 #endif	
 Lc518
@@ -970,6 +975,10 @@ next20
 ; FIXME KEYBOARD
 	JMP $0409
 #else
+	; here A contains the ascii of the key pressed
+	;lda $8000
+	;lda #0
+	;sec
 	rts
 #endif
 ;*********************************************************************************	
@@ -1292,6 +1301,7 @@ Lc81c
 
 Lc838	
 data_to_define_1
+adress_of_adiodb_vector
 	; length must be $30
 	; used to set I/O vectors
 	.byt <manage_I_O_keyboard,>manage_I_O_keyboard ; 0
@@ -1456,15 +1466,15 @@ next26
 	LSR 
 	LSR
 #ifdef WITH_ACIA	
+.(
 	LDA ACIACR
 	AND #$F3
-	BCC next29
+	BCC skip
 	AND #$FE
-
-next29
+skip
 	STA ACIACR
+.)	
 #endif	
-Lc91b
 next23
 
 
@@ -1480,13 +1490,17 @@ Lc91e
 	LDA #$04
 	STA FLGCLK_FLAG
 	BIT FLGLPR
-	BPL Lc930
+.(	
+	BPL skip
 	JSR Lca2f 
-Lc930
+skip
+.)
 	LDA TIMEUD
-	BNE lc936
+.(	
+	BNE skip
 	DEC TIMEUD+1
-lc936
+skip
+.)
 	DEC TIMEUD
 	SEC
 	INC TIMED
@@ -1495,9 +1509,12 @@ lc936
 	BCC Lc973
 	STA TIMED
 	BIT FLGCLK
-	BPL Lc94e
+.(	
+	BPL skip
 	JSR Lca75 
-Lc94e
+skip	
+.)
+
 	INC TIMES
 	LDA TIMEUS
 	BNE Lc957
@@ -2212,12 +2229,12 @@ XDIVIS_ROUTINE
 #include "functions/xdivis.asm"	
 
 XEFFHI_ROUTINE
-	lda #$00
-	ldy #$a0
+	lda #<$a000
+	ldy #>$a000
 	sta RES
 	sty RES+1
-	ldy #$68
-	ldx #$bf
+	ldy #<$bf68
+	ldx #>$bf68
 	lda #$40
 
 XFILLM_ROUTINE
@@ -2496,23 +2513,22 @@ init_minitel
 	rts
 
 manage_keyboard
+.(
 	jsr XALLKB_ROUTINE 
 	beq Ld812
 	ldx KBDFLG_KEY
-	bpl Ld7f1 
+	bpl skip 
 	lda KBD_UNKNOWN   ; CORRECTME
 	and $01e8,x
 	bne Ld807
-Ld7f1	
+skip
 	dey
 	lda KBDCOL,y
 	sta KBD_UNKNOWN  ; CORRECTME
 	tya
 	ora #$80
 	sta KBDFLG_KEY
-	jsr Ld81f 
-Ld800	
-routine_to_define_20
+	jsr XKBDAS_ROUTINE  ; convert in ascii and manage buffer
 ;	CLD
 	LDA KBDVRR 
 	JMP next60
@@ -2529,12 +2545,14 @@ next60
 	STA KBDVRL+1 ; CORRECTME
 end2
 	RTS
+.)		
 next75
-	jmp Ld8dd 
+	jmp Ld8dd
+
 Ld81f
 
 XKBDAS_ROUTINE
-	JSR LC8BF 
+	JSR LC8BF ; manage rs232
 	LDA #$00
 	PHA
 	LDA KBDFLG_KEY 
@@ -2750,35 +2768,36 @@ out1
 
 
 manage_I_O_keyboard
-Ld95c
-	bmi Ld985 
+.(
+	bmi skip2
 	lda #1
 	sta  KEYBOARD_COUNTER+2
 	sta  KEYBOARD_COUNTER 
 	php
 	sei
 	ldx #0
-	jsr XLISBU_ROUTINE 
-	bcs Ld982 
-	sta KBDKEY
+	jsr XLISBU_ROUTINE ; Read if we have data in keyboard buffer
+	bcs skip 
+	sta KBDKEY ; A contains a key, we store it on KBDKEY
 	ldx #00
 	jsr XLISBU_ROUTINE 
-	bcs Ld982 
+	bcs skip
 	sta KBDSHT
 	lda KBDKEY
 	plp
 	clc
 	rts
-Ld982	
+skip
+	; at this step, there is no keyboard key in the buffer
 	plp
 	sec
 	rts
-Ld985	
-	bcc Ld98d
+skip2	
+	bcc skip3
 	lda #$40
 	sta V1IER
 	rts
-Ld98d	
+skip3	
 	lda V1ACR
 	ora #$40
 	sta V1ACR
@@ -2789,7 +2808,7 @@ Ld98d
 	sty $305
 	lda #$c0
 	sta V1IER
-	
+.)	
 
 flush_keyboard_buffer
 	ldx #$00
