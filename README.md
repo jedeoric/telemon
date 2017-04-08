@@ -10,6 +10,11 @@ CPU : 6502
 
 ## Timeline
 
+### 2017-03-17
+* fread/fopen/fclose are working
+* fwrite is working at 50%
+* build info added (date)
+
 ### 2016-10-09
 * Working on 3.0 version : adding fread/fopen from usb key
 * some minitel routines are removed

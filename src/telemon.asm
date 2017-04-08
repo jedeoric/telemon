@@ -92,8 +92,6 @@ loop4
 	DEX
 	bpl loop4	
 before2
-	
-
 
 
 #ifdef WITH_FDC	
@@ -752,10 +750,19 @@ str_telemon
 str_telemon_version
 	.asc "3.0"
 str_cpu	
+
+
+#ifndef  __DATEBUILT__
+#define __DATEBUILT__ "16/03/2017"
+#endif
+.asc $0d,$0a
+str_compile_time
+.asc "Build : __DATEBUILT__ "
+
 #ifdef CPU_65C02
-	.asc " 65C02"
+	.asc "65C02 "
 #else
-	.asc " 6502"
+	.asc "6502 "
 #endif
 
 #ifdef WITH_ACIA
@@ -765,7 +772,7 @@ str_cpu
 
 #ifdef WITH_FDC
 #else
-.asc " NOFDC"
+.asc "NOFDC"
 #endif
 
 #ifdef WITH_RAMOVERLAY
@@ -3402,7 +3409,7 @@ Action:Place le curseur sur une tabulation, colonne multiple de 8.
   
   
 CTRL_A_START
-LDCEB
+.(
 	LDA SCRX,X ; ->on lit ala colonne                                
 	AND #$F8     ;I on la met ? 0                                     
 	ADC #$07     ;I on place sur une tabulation 8 (C=1)               
@@ -3417,12 +3424,13 @@ LDCEB
 
 	LDA SCRX,X ; I on prend la colonne                              I
 	AND #$07   ;  I est-on sur une tabulation                        I
-	BNE LDCEB  ;   --non, on tabule...                                I
+	BNE CTRL_A_START  ;   --non, on tabule...                                I
 	RTS       ;                                                      I
 LDD09
 	STA SCRX,X ;   on sauve la colonne <-----------------------------
 	RTS         ;   et on sort codes A                               I
-                                                                                
+.)	
+	
 ;                             CODE 4 - CTRL D                               
 CTRL_D_START
 LDD0D                                                                                
@@ -6495,15 +6503,12 @@ end
 
 ; Use RES, A X Y TR4 cd 	
 XOPEN_ROUTINE
-
 .(
 	// A and X contains char * pointer ex /usr/bin/toto.txt but it does not manage the full path yet
 	sta RES
 	sta RESB
 	stx RES+1
 	stx RESB+1
-	
-	
 	sty TR4 ; save flags
 	
 	; check if usbkey is available
@@ -6577,6 +6582,7 @@ not_slash_first_param
 	bne loop
 end
 	cpy #0
+.(	
 	beq skip
 	sta BUFNOM,x
 	
@@ -6620,7 +6626,7 @@ read_only
 	sta TR0
 	lda #<ORIX_ROUTINES
 	ldy #>ORIX_ROUTINES
-	ldx #$06 ; id of Orix bank
+	ldx #$05 ; id of Orix bank
 	jsr call_routine_in_another_bank
 	/*
 	;jsr $040C
@@ -6639,7 +6645,7 @@ read_only
 
 
 skip
-
+.)
 	ldx #$ff
 	txa
 	rts
