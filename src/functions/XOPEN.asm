@@ -6,10 +6,8 @@ XOPEN_ROUTINE
 	// A and X contains char * pointer ex /usr/bin/toto.txt but it does not manage the full path yet
 	sta RES
 	stx RES+1
-
 	
 	sty TR4 ; save flags
-	
 	; check if usbkey is available
 	jsr _ch376_verify_SetUsbPort_Mount
 	cmp #1
@@ -108,21 +106,15 @@ end
 	jmp skip
 write_only
 	jsr _ch376_set_file_name
-	;jsr _ch376_file_open
 	jsr _ch376_file_create
 	inc NUMBER_OPENED_FILES
 	lda NUMBER_OPENED_FILES
-	
 	rts
 
 read_only	
 	jsr open_and_read_go
 	cmp #CH376_ERR_MISS_FILE
 	beq file_not_found 	
-;	lda #"F"
-;	jsr XWR0_ROUTINE	
-;	lda #"o"
-;	jsr XWR0_ROUTINE	
 	; cc65 needs everything 
 	lda #$00
 	ldx #$00
