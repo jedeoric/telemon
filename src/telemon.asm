@@ -2,7 +2,7 @@
 /* DASM and source converted with labels : jede (jede[at]oric[dot]org) */
 /* may and june 2016                                                   */
 /* with the help of G. Meister telemon dasm 						   */
-/* telemon 2.4                                                         */
+/* telemon 3.0                                                         */
 /***********************************************************************/
 
 #include "../../oric-common/include/asm/telemon.h"
@@ -14,6 +14,8 @@
 #include "../../oric-common/include/asm/orix.h"
 
 #include "../../oric-common/include/asm/macro_orix.h"
+
+#define ORIX_ID_BANK $05
 
 #define CALL_TELEMON_XMINMA\
 jsr XMINMA_ROUTINE
@@ -49,10 +51,12 @@ telemon
 
 
 	LDX #$0F
+.(  
 loop1
 	LSR IOTAB0,X ; init channels (0 to 3)
 	DEX
 	bpl loop1
+.)  
 #ifdef WITH_FDC
 	LDA #%11010000; send command to FDC ; Force interrupt : stop any action on microdisc
 	JSR read_microdisc
@@ -543,7 +547,7 @@ next
 	CMP #$01
 	BNE Lc284
 	LDA #$00 
-	LDY #$E0 ; CALL $E000
+	LDY #$E0 ; CALL $E000 FIXME
 	LDX #$00 ; Switch to OVERLAY RAM
 	BEQ call_routine_in_another_bank
 .)	
@@ -6608,7 +6612,7 @@ end
 #ifdef CPU_65C02
 	bra read_only
 #else	
-	jmp read_only
+	jmp read_only ; FIXME : replace jmp by bne to earn one byte
 #endif	
 write_only
 	jsr _ch376_set_file_name
@@ -6624,22 +6628,13 @@ read_only
 
 	; register filehandle call_routine_in_another_bank	
 	;call_routine_in_another_bank	
-	lda #ORIX_REGISTER_FILEHANDLE
-	sta TR0
-	lda #<ORIX_ROUTINES
-	ldy #>ORIX_ROUTINES
-	ldx #$05 ; id of Orix bank
+	lda #ORIX_REGISTER_FILEHANDLE ; register file handle
+	sta TR0                       ; store the id of the routine that will be launched by ORIX_ROUTINES primitive
+	lda #<ORIX_ROUTINES           ; load the adress $ffe0 : it contains the routine in orix which will handle the ORIX_REGISTER_FILEHANDLE call
+	ldy #>ORIX_ROUTINES           ; Orix is used because there is not enough space in Telemon bank. With the 65C816, it could be easier
+	ldx #ORIX_ID_BANK             ; id of Orix bank
 	jsr call_routine_in_another_bank
-	/*
-	;jsr $040C
-	
-	ldx #ORIX_REGISTER_FILEHANDLE
-	
-	STA $0415
-	STY $0416
-	STX BNKCIB
-	JMP $040C
-	*/
+
 	; cc65 needs everything except $ff : if it returns $ff cc65 launch return0 (null)
 	lda #$00
 	ldx #$00
@@ -6708,6 +6703,22 @@ _open_root
 
 	rts
 
+_getEnv
+.(
+	lda #ORIX_GETENV
+  jsr _call_orix_routine
+  rts
+.)  
+
+_call_orix_routine
+	sta TR0
+	lda #<ORIX_ROUTINES
+	ldy #>ORIX_ROUTINES
+	ldx #ORIX_ID_BANK  ; id of Orix bank
+	jsr call_routine_in_another_bank
+  rts
+  
+  
 XLIGNE_ROUTINE
 	; REMOVEME minitel
 ; minitel ; get the line

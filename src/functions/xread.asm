@@ -54,6 +54,5 @@ loop9
 next13
 	sta PTR_READ_DEST
 	rts
-
 .)
 
