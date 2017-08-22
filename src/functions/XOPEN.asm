@@ -89,10 +89,10 @@ end
 	beq skip
 	sta BUFNOM,x
 	
-	lda #"|"
-	jsr XWR0_ROUTINE
+	;lda #"|"
+	;jsr XWR0_ROUTINE
 	
-	PRINT_INTO_TELEMON(BUFNOM)
+	;PRINT_INTO_TELEMON(BUFNOM)
 
 	; Optimize, it's crap
 	lda TR4 ; Get flags
@@ -141,10 +141,10 @@ open_and_read_go
 	jsr _ch376_file_open
 
 	sta TR6 ; store return 
-	PRINT_INTO_TELEMON(BUFNOM)
+	;PRINT_INTO_TELEMON(BUFNOM)
 
-	lda #"-"
-	jsr XWR0_ROUTINE	
+	;lda #"-"
+	;jsr XWR0_ROUTINE	
 
 	
 	ldx #0
