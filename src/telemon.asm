@@ -35,40 +35,38 @@ telemon
 
 	SEI
 	CLD
-	LDX #$FF
+	LDX     #$FF
 	TXS ; init stack
-#ifdef CPU_65C02
-	stz $0418
+#ifdef     CPU_65C02
+	stz     $0418
 #else	
 	inx
-	stx $0418 ; Store in BNKCIB ?? ok but already init with label data_adress_418, when loading_vectors_telemon is executed
+	stx     $0418 ; Store in BNKCIB ?? ok but already init with label data_adress_418, when loading_vectors_telemon is executed
 #endif
-	jsr init_via ; OK
-	jsr init_printer ; OK
-	jsr XALLKB_ROUTINE
+	jsr     init_via ; OK
+	jsr     init_printer ; OK
+	jsr     XALLKB_ROUTINE
 	; init channels loading 15
 
-
-
-	LDX #$0F
+	LDX     #$0F
 .(  
 loop1
-	LSR IOTAB0,X ; init channels (0 to 3)
+	LSR     IOTAB0,X ; init channels (0 to 3)
 	DEX
-	bpl loop1
+	bpl     loop1
 .)  
 #ifdef WITH_FDC
-	LDA #%11010000; send command to FDC ; Force interrupt : stop any action on microdisc
-	JSR read_microdisc
+	LDA     #%11010000; send command to FDC ; Force interrupt : stop any action on microdisc
+	JSR     read_microdisc
 #endif	
-	LDA VIRQ ; testing if VIRQ low byte is $4C ?
-	CMP #$4C
-	BNE end_rout ; non equal to $4C
-	LDA KBDCOL+5
-	AND #$20
-	BNE end_rout
-	LDA FLGTEL
-	AND #%00000001 ; Stratsed is here b0=1 strased not here 
+	LDA     VIRQ ; testing if VIRQ low byte is $4C ?
+	CMP     #$4C
+	BNE     end_rout ; non equal to $4C
+	LDA     KBDCOL+5
+	AND     #$20
+	BNE     end_rout
+	LDA     FLGTEL
+	AND     #%00000001 ; Stratsed is here b0=1 strased not here 
 	CLC
 	bcc next2
 end_rout
@@ -311,7 +309,8 @@ next32
 
 	
 ; adress : $c146
-telemon_hot_reset	
+telemon_hot_reset
+#ifdef WITH_PRINTER	
 	jsr XTSTLP_ROUTINE ; printer connected ?
 
 	bne next34 
@@ -327,27 +326,17 @@ next34
 	LDA #<str_printer
 	LDY #>str_printer
 	BRK_TELEMON(XWSTR0)
-
+#endif
+  
 next35	
 
-	
-	BIT FLGRST
-	BMI next49
-  /*
-	JSR routine_to_define_19 
-	; load VNMI Number of bank and address
+	nop ; keep theses nops, because hot reset won't work (don't know why)
+  nop ; keep theses nops, because hot reset won't work (don't know why)
 
-	
-	LDX VNMI ; BANK
-	LDA VNMI+1 ; ADRESS low
-	LDY VNMI+2 ; adress hih
-	JMP call_routine_in_another_bank
-  */
 next49
 
 .(	
 #ifdef WITH_FDC	
-
 	LDX #$00
 loop
 	LDA TABDRV,X
@@ -365,7 +354,6 @@ next50
 	BEQ skip ; If 0, then no need to display "," because it's A drive
 	LDA #","
 	BRK_TELEMON(XWR0) ; display ','
-	
 #endif	
 
 skip
@@ -414,12 +402,13 @@ next61
 	BRK_TELEMON(XCRLF)
 	
 loop58	
+	BIT FLGRST                          ; Is it hot reset 
+	BPL don_t_display_telemon_signature ; Yes don't display telemon str
 	; display TELEMON
 	lda #<str_telemon
-
 	ldy #>str_telemon
-	
 	BRK_TELEMON(XWSTR0)
+don_t_display_telemon_signature   
 	
 	
 	lda #$00
@@ -429,9 +418,6 @@ loop58
 	LDA FLGTEL ; does stratsed is load ?
 	LSR
 	BCS copy_default_extension
-#endif
-  
-#ifdef WITH_FDC	
 	LDA #<str_insert_disk
 	LDY #>str_insert_disk
 	BRK_TELEMON(XWSTR0)
@@ -456,8 +442,10 @@ loop
 .)	
 #endif	
 	
+  BIT FLGRST                  ; hot reset ?
+	BPL don_t_display_signature ; Don't display signature
 	JSR $0600 ; CORRECTME
-
+don_t_display_signature
 	; Don't remove these 3 nops
   ;nop
 	nop 
@@ -525,6 +513,7 @@ routine_to_define_19
 loop
 	LDA TIMEUD
 	BNE loop
+
 #ifdef	WITH_RAMOVERLAY
 	LDX #$0C
 	BRK_TELEMON(XVIDBU) 
@@ -539,7 +528,6 @@ loop
 	LDA #$8F
 	BRK_TELEMON(XCL1) 
 
-	
 	rts
 .)	
 Lc284

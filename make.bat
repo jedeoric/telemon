@@ -13,6 +13,8 @@ del a.o65
 For /f "tokens=1-4 delims=/ " %%a in ('date /t') do (set mydate=%%c-%%b-%%a)
 For /f "tokens=1-2 delims=/:" %%a in ('time /t') do (set mytime=%%a:%%b)
 
+REM OPTION for compiling : -DWITH_PRINTER  -DWITH_ACIA -DWITH_RAMOVERLAY  -WITH_FDC
+
 SET MYDATE=%mydate% %mytime%
 rem ADD WITH_FDC for FDC
 %OSDK%\bin\xa.exe -C -W  -e error.txt -DWITH_ACIA -DWITH_RAMOVERLAY -l xa_labels.txt  telemon.asm 
@@ -21,8 +23,6 @@ rem ADD WITH_FDC for FDC
 
 rem %OSDK%\bin\xa.exe -C -W  -e error.txt -l xa_labels_for_atmos.txt   -DATMOS -DWITH_DEBUG -D__DATEBUILT__="%MYDATE%"  -o ..\release\telemon%RELEASE%_for_atmos.rom  telemon.asm 
 rem %OSDK%\bin\xa.exe -C -W  -e error.txt -l xa_labels.txt -o telemon_noacia_nofdc.rom  telemon.asm 
-
-
 
 IF "%1"=="NORUN" GOTO End
 

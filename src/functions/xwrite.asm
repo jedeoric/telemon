@@ -2,9 +2,9 @@
 ; [IN] PTR_READ_DEST must be set because it's the ptr_dest
 ; [MODIFIED] TR0,PTR_READ_DEST, YA
 .(	
-  jsr _ch376_set_bytes_write
-  cmp #CH376_USB_INT_SUCCESS ; finished
-  beq start_write
+  jsr     _ch376_set_bytes_write
+  cmp     #CH376_USB_INT_SUCCESS ; finished
+  beq     start_write
   rts
 start_write
   lda     #CH376_CMD_WR_REQ_DATA
