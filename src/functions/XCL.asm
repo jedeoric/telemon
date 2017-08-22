@@ -1,24 +1,25 @@
 XCL0_ROUTINE
 
-	ldx #0
+	ldx #$00
 	.byt $2c
 XCL1_ROUTINE	
-	ldx #4
+	ldx #$04
 	.byt $2c
 XCL2_ROUTINE	
-	ldx #8
+	ldx #$08
 	.byt $2c	
-XCL3_ROUTINE	
+XCL3_ROUTINE
+.(
 	ldx #$0c
-	ldy #3
-	cmp #0
+	ldy #$03
+	cmp #$00
 	beq Lc74e
-Lc731	
+loop	
 	cmp IOTAB0,x
 	beq Lc73b 
 	inx
 	dey
-	bpl Lc731
+	bpl loop
 Lc73a	
 	rts
 Lc73b	
@@ -38,5 +39,5 @@ Lc74e
 	dey
 	bpl Lc74e
 	rts
-	
+.)	
 	

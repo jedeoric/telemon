@@ -12,40 +12,45 @@ XOP2_ROUTINE
 XOP3_ROUTINE	
 	ldx #$0c
 	pha
-Lc6f1	
-	pla
-	cmp IOTAB0,x
-	beq Lc704 
-	ldy IOTAB0,x
-	bpl Lc705
-	inx
-	pha
-	txa
-	and #$03
-	bne Lc6f1
-	pla
-Lc704	
-	rts
-Lc705
+.(
+  .(	  
+  loop
+    pla
+    cmp     IOTAB0,x
+    beq     skip2
+    ldy     IOTAB0,x
+    bpl     skip
+    inx
+    pha
+    txa
+    and     #$03
+    bne     loop
+    pla
+  skip2	
+    rts
+  .)  
+skip
+  .(
+    ldy     #$0f
+  loop	
+    cmp     IOTAB0,y
+    beq     skip2
+    dey
 
-	ldy #$0f
-Lc707	
-	cmp IOTAB0,y
-	beq Lc71b
-	dey
+    bpl     loop
+    stx     work_channel
+    pha
 
-	bpl Lc707
-	stx $19
-	pha
+    ldy     #$80
+    tax
+    
+    jsr     Lc81c 
 
-	ldy #$80
-	tax
-	
-	jsr Lc81c 
-
-	ldx $19
-	pla
-Lc71b	
-	sta IOTAB0,x
-	clc
-	rts
+    ldx     work_channel
+    pla
+  skip2	
+    sta     IOTAB0,x
+    clc
+    rts
+  .)  
+.)

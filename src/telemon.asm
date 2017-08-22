@@ -28,7 +28,6 @@ jsr XMINMA_ROUTINE
 
 #include "../../oric-common/vars/telemon_vars.inc.asm"
 
-
 .text
 *=$c000
 
@@ -227,6 +226,7 @@ next3
 	bne loop38 ; jump to $c092, adress c0b7
 	BIT FLGRST; 
 	BPL next5
+  
 	LDX #$0B ; copy to $2F4 12 bytes
 before1
 	LDA data_vectors_VNMI_VIRQ_VAPLIC,X ; SETUP VNMI, VIRQ, VAPLIC
@@ -333,6 +333,7 @@ next35
 	
 	BIT FLGRST
 	BMI next49
+  /*
 	JSR routine_to_define_19 
 	; load VNMI Number of bank and address
 
@@ -341,6 +342,7 @@ next35
 	LDA VNMI+1 ; ADRESS low
 	LDY VNMI+2 ; adress hih
 	JMP call_routine_in_another_bank
+  */
 next49
 
 .(	
@@ -422,14 +424,19 @@ loop58
 	
 	lda #$00
 	sta BNKST ; Switch to ram overlay ?
+  
+#ifdef WITH_FDC  
 	LDA FLGTEL ; does stratsed is load ?
 	LSR
 	BCS copy_default_extension
+#endif
+  
 #ifdef WITH_FDC	
 	LDA #<str_insert_disk
 	LDY #>str_insert_disk
 	BRK_TELEMON(XWSTR0)
-#endif	
+#endif
+	
 #ifdef WITH_RAMOVERLAY
 	jsr $b800 ; FIXME 
 #endif
@@ -437,7 +444,7 @@ loop58
 	ldy #>str_tofix
 	BRK_TELEMON(XWSTR0)
 
-
+#ifdef WITH_FDC
 copy_default_extension
 .(
 	LDX #$02 ; store default extension
@@ -447,7 +454,7 @@ loop
 	DEX
 	BPL loop
 .)	
-	
+#endif	
 	
 	JSR $0600 ; CORRECTME
 
@@ -630,13 +637,13 @@ loop47
 	LDY #$00
 .(
 loop
-	LDA bank_signature,Y ; first iteration is equal to $00
-	PHA ; push A (first iteration $a0)
+	LDA bank_signature,Y  ; first iteration is equal to $00
+	PHA                   ; push A (first iteration $a0)
 loop2
-	ADC #$04 ; add 4
-	BCC loop2 ; Loop until it reached $00
+	ADC #$04              ; add 4
+	BCC loop2             ; Loop until it reached $00
 	PLA ; 
-	CMP bank_signature,Y ;  did signature changed ? ?
+	CMP bank_signature,Y  ;  did signature changed ? ?
 	BNE loop42+1
 	INY
 	BNE loop
@@ -703,6 +710,9 @@ Lc352
 	iny
 	
 	bne Lc352
+
+  
+  
 Lc365	
 	lda BNKST,x
 	asl
@@ -722,7 +732,7 @@ Lc382
 	.byt $4c,$00,$00
 data_vectors_VNMI_VIRQ_VAPLIC
 	; 12 bytes
-	.byt $07,<display_developper,>display_developper ; VAPLIC vectors : bank + address ?
+	.byt $07,<display_developper,>display_developper ; VAPLIC vectors : bank + address ? useless
 	.byt $4c,$00,$00 ; ADIOB vector
 VIRQ_CODE
 	jmp $0406 ; stored in $2FA (VIRQ) 
@@ -730,14 +740,9 @@ VIRQ_CODE
 	.byt $00 ; will be stored in $2fE
 	.byt $00 ; will be stored in $2FF
 display_developper	
-; VAPLIC execution
-; VAPLIC Routines
-/**************************** BEGIN LOOP ON DEVELOPER NAME !*/
-	LDA #<str_license
-	LDY #>str_license
-	BRK_TELEMON(XWSTR0)
-loop_str_licence	
-	jmp loop_str_licence 
+// Garbage fixme
+
+
 /**************************** END LOOP ON DEVELOPPR NAME !*/
 
 str_telestrat	
@@ -749,7 +754,6 @@ str_KOROM
 str_drive
 	.asc "Drive:",0
 	
-	
 str_telemon
 	.asc $0d,$0a,"TELEMON V"
 str_telemon_version
@@ -758,7 +762,7 @@ str_cpu
 
 
 #ifndef  __DATEBUILT__
-#define __DATEBUILT__ "16/03/2017"
+#define __DATEBUILT__ 16/03/2017
 #endif
 .asc $0d,$0a
 str_compile_time
@@ -797,20 +801,21 @@ store_str1
 store_str2	
 	.byt $1b,$3a,$6a,$43,$14,$00
 
-	
+#ifdef WITH_FDC		
 str_insert_disk	
 	.asc $8c,"Inserez une disquette",0 ; 8c for blink
+#endif  
 str_tofix
 	.byt	$0d,$18,$00
 str_license	
 	.asc "Ecrit par Fabrice BROCHE",0
 
-
+#ifdef WITH_FDC	
 str_loading_bonjour	
 	.asc "BONJOUR"
 str_default_extention
 	.asc "COM";
-	
+#endif  
 ; ERROR for BONJOURCOM
 
 
@@ -1280,14 +1285,8 @@ Lc75d
 ; NOERROR
 
 #include "functions/XWRx.asm"
-
 #include "functions/XWSTRx.asm"
-
-
-
 #include "functions/XRDW.asm"
-
-
 #include "functions/XWRD.asm"	
 
 

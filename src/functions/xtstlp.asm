@@ -1,25 +1,24 @@
 ; test if printer is connected	
 XTSTLP_ROUTINE	
-routine_to_define_18
 .(
-	LDX #$00
-	STX V1DRA
-	LDA V1DRB
-	AND #$EF
-	STA V1DRB
-	ORA #$10
-	STA V1DRB
-loop48
-	LDA V1IFR
-	AND #$02
-	BNE next40
+	LDX     #$00
+	STX     V1DRA
+	LDA     V1DRB
+	AND     #$EF
+	STA     V1DRB
+	ORA     #$10
+	STA     V1DRB
+loop
+	LDA     V1IFR
+	AND     #$02
+	BNE     next
 	DEX
-	BNE loop48
+	BNE     loop
 	RTS
 
-next40
-	lda FLGTEL
-	ora #$02
-	sta FLGTEL
+next
+	lda     FLGTEL
+	ora     #$02
+	sta     FLGTEL
 	rts
 .)
