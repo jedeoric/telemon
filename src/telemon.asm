@@ -33,6 +33,7 @@ jsr XMINMA_ROUTINE
 *=$c000
 
 telemon
+
 	SEI
 	CLD
 	LDX #$FF
@@ -451,7 +452,7 @@ loop
 	JSR $0600 ; CORRECTME
 
 	; Don't remove these 3 nops
-    nop
+  ;nop
 	nop 
 	nop
 		
