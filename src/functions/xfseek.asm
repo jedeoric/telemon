@@ -9,11 +9,11 @@
 */
 
 .(
-  cpx #SEEK_CUR
-  beq move
+  cpx     #SEEK_CUR
+  beq     move
   rts
 move  
-  jsr _ch376_seek_file
+  jsr      _ch376_seek_file
   rts
 .)
 

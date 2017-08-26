@@ -1,14 +1,14 @@
 /***********************************************************************/
 /* DASM and source converted with labels : jede (jede[at]oric[dot]org) */
 /* may and june 2016                                                   */
-/* with the help of G. Meister telemon dasm 						   */
+/* with the help of G. Meister telemon dasm                            */
 /* telemon 3.0                                                         */
 /***********************************************************************/
 
 #include "../../oric-common/include/asm/telemon.h"
-#include "../../oric-common/include/asm/via6522_1.h"
+#include "include/6522_1.h"
 #include "../../oric-common/include/asm/via6522_2.h"
-#include "../../oric-common/include/asm/acia6551.h"
+#include "include/6551.h"
 #include "../../oric-common/include/asm/fdc1793.h"
 #include "../../oric-common/include/asm/ch376.h"
 #include "../../oric-common/include/asm/orix.h"
@@ -73,74 +73,33 @@ end_rout
 
 
 
-	lda #01 ; store that stratsed is missing
+	lda     #$01 ; store that stratsed is missing
 	sec
 next2
-	sta FLGTEL ; store that stratsed is missing
-	ror FLGRST
-	bmi next1
-	jmp compute_rom_ram
+	sta     FLGTEL ; store that stratsed is missing
+	ror     FLGRST
+	bmi     next1
+	jmp     compute_rom_ram
 next1
-	LDX #$2F
+	LDX     #$2F
 next8		
-	LDA adress_of_adiodb_vector,X
-	STA ADIOB,X 
+	LDA     adress_of_adiodb_vector,X
+	STA     ADIOB,X 
 	DEX
-	bpl next8
-	LDX #$04
-loop4	
-	LDA data_to_define_6,X 
-	STA CSRND,X
+	bpl     next8
+	LDX     #$04
+.(  
+loop
+	LDA     data_to_define_6,X 
+	STA     CSRND,X
 	DEX
-	bpl loop4	
+	bpl     loop
+.)  
 before2
 
 
-#ifdef WITH_FDC	
-	NOP
-	NOP
-	LDX #$03
-
-loop8
-.(
-	LDA definition_for_CDRIVE_init,X 
-	STA CDRIVE
-
-	LDA #%00001000 ; launch seek
-	STA FDCCR
-	TAY
-loop
-	INY
-	bne loop
-	NOP
-.)	
-	
-	LDY #$40
-	STX RES
-c03C
-.(
-loop
-	LDA FDCCR
-	LSR
-	bcc next10
-	INC RES
-	bne loop
-	DEY
-	bne loop
-	TYA
-.)
-	beq next9
-next10	
-	LSR FLGTEL
-	LDA #$AA
-next9	
-
-	STA TABDRV,X
-	DEX
-c055	
-	bpl loop8
-	nop
-	INX
+#ifdef WITH_FDC
+#include "functions/fdc1793.asm"	
 #else
 	ldx #0
 #endif
@@ -151,51 +110,45 @@ loading_vectors_telemon
 // notice that $700 is fill but could be used for others things, because $700 will be in RAM overlay 
 // This means that $700 could be erase. $600 should be deleted too (how many bytes ?), because some parts are used to read banks
 loop
-	LDA loading_vectors_page_4,X ; X should be equal to 0
-	STA $0400,X
-	LDA loading_vectors_b800,X 
-	STA $B800,X
-	LDA loading_code_to_page_6,X 
-	STA $0600,X
-	LDA data_to_define_4,X 
-	STA $0700,X ; used to copy in Overlay RAM ... see  loop40 label
-	INX ; loop until 256 bytes are filled
+	LDA     loading_vectors_page_4,X ; X should be equal to 0
+	STA     $0400,X
+	LDA     loading_vectors_b800,X 
+	STA     $B800,X
+	LDA     loading_code_to_page_6,X 
+	STA     $0600,X
+	LDA     data_to_define_4,X 
+	STA     $0700,X                    ; used to copy in Overlay RAM ... see  loop40 label
+	INX                                ; loop until 256 bytes are filled
 c072	
 	bne loop
 .)
-
-
-
 ; Just fill ram with BUFROU
 	JSR $0603
-
-
-
 	
 compute_rom_ram	
-	LDA #$00
+	LDA     #$00
 .(
 loop
 	PHA
 	TAX
-	JSR XDEFBU_ROUTINE 
+	JSR     XDEFBU_ROUTINE 
 	PLA
 	CLC
-	ADC #$0C
-	CMP #$30
-	bne loop
-	LDA #$00 ; INIT VALUE of the rom to 0 bytes
-	STA KOROM
+	ADC     #$0C
+	CMP     #$30
+	bne     loop
+	LDA     #$00 ; INIT VALUE of the rom to 0 bytes
+	STA     KOROM
 .)	
-	LDA #$40 ; INIT VALUE of the RAM to 64 Kbytes
-	STA KORAM
+	LDA     #$40 ; INIT VALUE of the RAM to 64 Kbytes
+	STA     KORAM
 
-	LDX #$07
-loop38		; $c092
-	LDY BNKST,X
+	LDX     #$07
+loop38		
+	LDY     BNKST,X
 	
 	TYA
-	AND #$10
+	AND     #$10
 	BNE next3
 	TYA
 	PHA
@@ -213,19 +166,18 @@ loop38		; $c092
 	ADC KOROM
 	STA KOROM
 c0ad
-	; loop
-	bcc next3;adress C0AD  jump to $C0B6
+	bcc next3
 next4
 	TYA
 	ADC KORAM
 	STA KORAM
 next3
 	DEX
-	bne loop38 ; jump to $c092, adress c0b7
+	bne loop38
 	BIT FLGRST; 
 	BPL next5
   
-	LDX #$0B ; copy to $2F4 12 bytes
+	LDX #$0B                            ; copy to $2F4 12 bytes
 before1
 	LDA data_vectors_VNMI_VIRQ_VAPLIC,X ; SETUP VNMI, VIRQ, VAPLIC
 	STA VNMI,X ; 
@@ -312,11 +264,8 @@ next32
 telemon_hot_reset
 #ifdef WITH_PRINTER	
 	jsr XTSTLP_ROUTINE ; printer connected ?
-
 	bne next34 
 	BRK_TELEMON(XCRLF)
-
-	
 	JMP next35
 next34	
 
@@ -330,8 +279,8 @@ next34
   
 next35	
 
-	nop ; keep theses nops, because hot reset won't work (don't know why)
-  nop ; keep theses nops, because hot reset won't work (don't know why)
+	nop ; keep theses nops, because hot reset won't work (still don't know why)
+  nop ; keep theses nops, because hot reset won't work (still don't know why)
 
 next49
 
@@ -358,41 +307,10 @@ next50
 
 skip
 .)
+
 #ifdef WITH_FDC	
-	lda #<str_drive
-	ldy #>str_drive
-	BRK_TELEMON(XWSTR0)  ; display DRIVE:
-	; let's go to display all Drive availables
-	PLA
-	PHA
-	TAX
-	lda $c2dc,x
-	sta CDRIVE
-	STX DRVDEF ; set drive by default
-	PLA
-	TAX
-loop50	
-	TXA
-	CLC
-loop51	
-	ADC #"A" ; display A, because it adds to c2dc (drives ) 41 (equal to A in ascii table)
-	BRK_TELEMON(XWR0)
-.(	
-loop	
-	inx 
-	CPX #$04
-	beq next61
-	LDA TABDRV,X ;3 
-	beq loop
-.)	
-	lda #"-" ; display - to separate drive 2
-	BRK_TELEMON(XWR0) ; 2
-
-next52	
-	jmp loop50 ;3
-#endif	
-
-
+#include "functions/fdc_display_drive_letters.asm"
+#endif
 
 next58	
 	lda SCRX
@@ -409,7 +327,6 @@ loop58
 	ldy #>str_telemon
 	BRK_TELEMON(XWSTR0)
 don_t_display_telemon_signature   
-	
 	
 	lda #$00
 	sta BNKST ; Switch to ram overlay ?
@@ -508,15 +425,18 @@ routine_to_define_19
 .(
 
 	CLI
+  ;BIT FLGRST                       ; hot reset ?
+	;BPL don_t_reset_date             ; Don't reset time if we had a reset  
 	LDA #$02
 	STA TIMEUD
 loop
 	LDA TIMEUD
 	BNE loop
+;don_t_reset_date
 
 #ifdef	WITH_RAMOVERLAY
 	LDX #$0C
-	BRK_TELEMON(XVIDBU) 
+	BRK_TELEMON(XVIDBU)              ; Flush buffers
 #endif	
 
 #ifdef WITH_ACIA
@@ -525,9 +445,9 @@ loop
 	ORA #$08
 	STA ACIACR
 #endif
+
 	LDA #$8F
 	BRK_TELEMON(XCL1) 
-
 	rts
 .)	
 Lc284
@@ -721,6 +641,7 @@ Lc382
 data_vectors_VNMI_VIRQ_VAPLIC
 	; 12 bytes
 	.byt $07,<display_developper,>display_developper ; VAPLIC vectors : bank + address ? useless
+;$2f7  
 	.byt $4c,$00,$00 ; ADIOB vector
 VIRQ_CODE
 	jmp $0406 ; stored in $2FA (VIRQ) 
@@ -3154,7 +3075,7 @@ LDB7D
                                                                                
      ;                 GESTION DES SORTIES EN MODE TEXT                      
                                                                                 
-;Principe:tellement habituel que ?a en devient monotone... mais bien pratique !  
+;Principe:tellement habituel que cela en devient monotone... mais bien pratique !  
 LDB86
 	PHA       ;     on sauve A et P                                   
 	PHP                                                              

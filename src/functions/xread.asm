@@ -24,11 +24,6 @@ readme
 	jmp continue
 finished
 	jsr we_read
-	; TODO  return bytes read
-	;lda ptr1
-	;lda #<8000
-	;ldx ptr1+1
-	;ldx #>8000
 	rts	
 
 we_read
