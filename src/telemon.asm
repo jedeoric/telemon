@@ -5,10 +5,12 @@
 /* telemon 3.0                                                         */
 /***********************************************************************/
 
-#include "../../oric-common/include/asm/telemon.h"
+#include "include/telemon.h"
 #include "include/6522_1.h"
-#include "../../oric-common/include/asm/via6522_2.h"
+#include "include/6522_2.h"
 #include "include/6551.h"
+
+
 #include "../../oric-common/include/asm/fdc1793.h"
 #include "../../oric-common/include/asm/ch376.h"
 #include "../../oric-common/include/asm/orix.h"
@@ -26,7 +28,7 @@ jsr XMINMA_ROUTINE
 
 #define bank_signature $ff00
 
-#include "../../oric-common/vars/telemon_vars.inc.asm"
+#include "include/telemon_vars.inc.asm"
 
 .text
 *=$c000
@@ -660,8 +662,7 @@ str_KORAM
 	.asc " Ko RAM,",0
 str_KOROM
 	.asc " Ko ROM",$0d,$0a,$00
-str_drive
-	.asc "Drive:",0
+
 	
 str_telemon
 	.asc $0d,$0a,"TELEMON V"
@@ -1260,13 +1261,10 @@ LC868
 	; SP = P register
 	; SP-1 = PC+2 adress of brk sent
 	; SP-2 = PC+1
-#ifdef CPU_65C02
-	phx
-	phy
-#else	
+
 	STX IRQSVX ; save register X
 	STY IRQSVY ; save register 
-#endif	
+
 	PLA ; pull P (flag register)
 	STA IRQSVP ; save P (flag register)
 	AND #%00010000 ; test B flag B flag means an that we reach a brk commands
@@ -1305,13 +1303,10 @@ LC8A6
 	LDA IRQSVP  ; fetch P flag
 	PHA ; push P flag to return in correct state
 	LDA IRQSVA
-#ifdef CPU_65C02	
-	ply
-	plx
-#else
+
 	LDY IRQSVY
 	LDX IRQSVX
-#endif	
+
 	RTI
 LC8B3
 next200
@@ -2227,169 +2222,10 @@ table_to_define_prompt_charset_empty
 	
 
 XNOMFI_ROUTINE
+  ; FIXME remove me maybe
+  rts
 
-	sta ADDRESS_READ_BETWEEN_BANK
-	sty ADDRESS_READ_BETWEEN_BANK+1
-	stx RES
-	inc RES
-	ldy DRVDEF
-	sty BUFNOM
-	sty DRIVE
-	ldy #$0c
-	lda #$3f
-Ld005	
-	sta BUFNOM,y
-	dey
-	bne Ld005
-	txa 
-	beq Ld049 
-	
-	cpx #1
-	bne Ld034 
-	jsr Ld0df 
-	sec
-	sbc #$41
-	cmp #4
-	bcs Ld05c
-	sta BUFNOM
-	sta DRIVE
-Ld022	
-	ldx #1
-	ldy #$0c
-	lda #$3f
-Ld028	
-	cmp BUFNOM,y
-	beq Ld032
-	dey
-	bne Ld028
-	clc
-	rts
-Ld032	
-	sec
-	rts
-Ld034
-	ldy #1
-	jsr Ld0df
-	cmp #$2d
-	bne Ld05c
-	ldy #0
-	jsr Ld0df
-	sec
-	sbc #$41
-	bcs Ld04a 
-Ld047	
-	ldx #$81
-Ld049	
-	rts
-Ld04a
-	cmp #4
-	bcs Ld047
-	cpx #2
-	bne Ld056
-	sta DRVDEF
-	rts
-Ld056
 
-	sta BUFNOM
-	ldy #2
-	.byt $2c
-Ld05c	
-	ldy #0
-	ldx #0
-Ld060	
-	jsr Ld0df 
-	bcs Ld082
-	cmp #"."
-	beq Ld082
-	cmp #"*" ; is it '*' ?
-	beq Ld08f 
-Ld06d	
-	jsr test_if_a_is_valid_in_a_filename 
-	bcc Ld078
-Ld072	
-	ldx #$80
-Ld074
-	rts
-Ld075
-	ldx #$82
-	rts
-Ld078
-	cpx #9
-	beq Ld075
-	
-	sta BUFNOM+1,x
-	inx 
-	bne Ld060
-Ld082	
-	lda #$20
-Ld084	
-	cpx #9
-	beq Ld08e 
-	sta BUFNOM+1,x
-	inx
-	bne Ld084
-Ld08e	
-	dey
-Ld08f	
-	ldx #0
-	jsr Ld0df 
-	bcc Ld0a4 
-	ldy #2
-Ld098	
-	lda EXTDEF,y
-	
-	sta $0521,y
-	dey
-	bpl Ld098
-Ld0a1	
-	jmp Ld022 
-Ld0a4	
-	cmp #"." ; is it '.' ?
-	bne Ld072
-	jsr Ld0df 
-	bcs Ld08e
-	dey
-Ld0ae	
-	jsr Ld0df 
-	bcc Ld0c1 
-	lda #$20
-LD0B5	
-	cpx #3
-	beq Ld0a1
-	sta $0521,x
-	inx
-	bne LD0B5
-	beq Ld0a1
-Ld0c1
-	cmp #$2a
-	bne Ld0cd
-	jsr Ld0df 
-	bcs Ld0a1
-	ldx #$83
-	rts
-Ld0cd	
-	jsr test_if_a_is_valid_in_a_filename
-	bcs Ld072 
-	cpx #3
-	beq Ld0dc
-	sta $0521,x
-	inx
-	bne Ld0ae 
-Ld0dc	
-	ldx #$84
-	rts
-	
-Ld0df
-	jsr $0411
-	jsr uppercase_char
-	iny 
-	cpy RES
-	bcs Ld0ef
-	cmp #$20
-	beq Ld0df
-	clc
-Ld0ef	
-	rts
 	
 XMINMA_ROUTINE
 uppercase_char
@@ -5862,7 +5698,7 @@ Lead0
 	JSR Le7f3
 Lead3	
 	PLA
-	JSR Lff31 
+	JSR ZADCHA_ROUTINE 
 	LDY #$00
 Lead9	
 	STY RES
@@ -6106,7 +5942,10 @@ LED24
 	LDA $0E
 	JMP send_A_to_serial_output_with_check 
 
+
 read_header_file
+  ; used for RS232 FIXME but it's used to have a tape file.
+/*
 Led34	
 	
 	JSR Lec6b
@@ -6147,6 +5986,7 @@ LED64
 	BNE LED64
 	JSR Lec6b 
 	ORA #$30
+  */
 	JMP Ldbb5
 
 XCONSO_ROUTINE	
@@ -6545,7 +6385,8 @@ read_only
 	jsr call_routine_in_another_bank
 
 	; cc65 needs everything except $ff : if it returns $ff cc65 launch return0 (null)
-	lda #$00
+  ; A is return from Orix filehandle
+	;lda #$00
 	ldx #$00
 	rts
 
@@ -8532,7 +8373,7 @@ Lff00
 	ldy #00
 	jsr Lff27 
 	beq Lff26
-	jsr Lff31
+	jsr ZADCHA_ROUTINE
 	inc ADDRESS_READ_BETWEEN_BANK
 	bne Lff10
 	inc ADDRESS_READ_BETWEEN_BANK+1
@@ -8560,8 +8401,6 @@ Lff27
 Lff2e	
 	jmp $411
 ZADCHA_ROUTINE	
-Lff31	
-compute_address_of_a_char
 	ldx #$13
 	stx RESB+1
 	asl
@@ -8579,8 +8418,7 @@ compute_address_of_a_char
 Lff4b
 	rts
 	
-Lff4c	
-select_keyboard_mode
+
 XGOKBD_ROUTINE
 	cmp #$04
 	beq Lff85
@@ -8630,7 +8468,7 @@ LFF98
 	.byt $5b ; Accent circonflexe
 	.byt $1c,$22,$1c,$02,$1e,$22,$1e,$00
 u_accent_circonflexe	
-LFFA1
+
 	.byt $60
 	.byt $1c,$22,$00,$22,$22,$26,$1a,$00
 LFFAA	

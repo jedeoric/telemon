@@ -40,5 +40,8 @@ rem copy ..\release\telemon%RELEASE%_for_atmos.rom %ORICUTRON%\roms\telemon%RELE
 
 cd %ORICUTRON%
 oricutronV4 -mt  --symbols "%ORIGIN_PATH%\src\xa_labels.txt"
+
+
 :End
 cd %ORIGIN_PATH%
+%OSDK%\bin\MemMap "%ORIGIN_PATH%\src\xa_labels.txt" docs/memmap.html Telemon docs/telemon.css
