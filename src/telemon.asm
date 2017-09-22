@@ -57,10 +57,7 @@ loop1
 	DEX
 	bpl     loop1
 .)  
-#ifdef WITH_FDC
-	LDA     #%11010000; send command to FDC ; Force interrupt : stop any action on microdisc
-	JSR     read_microdisc
-#endif	
+
 	LDA     VIRQ ; testing if VIRQ low byte is $4C ?
 	CMP     #$4C
 	BNE     end_rout ; non equal to $4C
@@ -100,11 +97,11 @@ loop
 before2
 
 
-#ifdef WITH_FDC
-#include "functions/fdc1793.asm"	
-#else
+;#ifdef WITH_FDC
+;#include "functions/fdc1793.asm"	
+;#else
 	ldx #0
-#endif
+;#endif
 
 loading_vectors_telemon
 .(
@@ -310,9 +307,9 @@ next50
 skip
 .)
 
-#ifdef WITH_FDC	
-#include "functions/fdc_display_drive_letters.asm"
-#endif
+;#ifdef WITH_FDC	
+;#include "functions/fdc_display_drive_letters.asm"
+;#endif
 
 next58	
 	lda SCRX
@@ -333,14 +330,14 @@ don_t_display_telemon_signature
 	lda #$00
 	sta BNKST ; Switch to ram overlay ?
   
-#ifdef WITH_FDC  
-	LDA FLGTEL ; does stratsed is load ?
-	LSR
-	BCS copy_default_extension
-	LDA #<str_insert_disk
-	LDY #>str_insert_disk
-	BRK_TELEMON(XWSTR0)
-#endif
+;#ifdef WITH_FDC  
+;	LDA FLGTEL ; does stratsed is load ?
+;	LSR
+;	BCS copy_default_extension
+;	LDA #<str_insert_disk
+;	LDY #>str_insert_disk
+;	BRK_TELEMON(XWSTR0)
+;#endif
 	
 #ifdef WITH_RAMOVERLAY
 	jsr $b800 ; FIXME 
@@ -361,8 +358,8 @@ loop
 .)	
 #endif	
 	
-  BIT FLGRST                  ; hot reset ?
-	BPL don_t_display_signature ; Don't display signature
+ ; BIT FLGRST                  ; hot reset ?
+;	BPL don_t_display_signature ; Don't display signature
 	JSR $0600 ; CORRECTME
 don_t_display_signature
 	; Don't remove these 3 nops
