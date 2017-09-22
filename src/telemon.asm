@@ -111,8 +111,6 @@ loading_vectors_telemon
 loop
 	LDA     loading_vectors_page_4,X ; X should be equal to 0
 	STA     $0400,X
-	LDA     loading_vectors_b800,X 
-	STA     $B800,X
 	LDA     loading_code_to_page_6,X 
 	STA     $0600,X
 	LDA     data_to_define_4,X 
@@ -283,33 +281,8 @@ next35
 
 next49
 
-.(	
-#ifdef WITH_FDC	
-	LDX #$00
-loop
-	LDA TABDRV,X
-	BNE next50
-	INX
-	CPX #$04
-	BNE loop
 
-	BEQ next58 ; 
-; c11a
-next50
-	TXA
-	PHA
-	LDA SCRX ; load X cursor position 
-	BEQ skip ; If 0, then no need to display "," because it's A drive
-	LDA #","
-	BRK_TELEMON(XWR0) ; display ','
-#endif	
 
-skip
-.)
-
-;#ifdef WITH_FDC	
-;#include "functions/fdc_display_drive_letters.asm"
-;#endif
 
 next58	
 	lda SCRX
@@ -329,37 +302,20 @@ don_t_display_telemon_signature
 	
 	lda #$00
 	sta BNKST ; Switch to ram overlay ?
-  
-;#ifdef WITH_FDC  
-;	LDA FLGTEL ; does stratsed is load ?
-;	LSR
-;	BCS copy_default_extension
-;	LDA #<str_insert_disk
-;	LDY #>str_insert_disk
-;	BRK_TELEMON(XWSTR0)
-;#endif
+
+
+    
 	
-#ifdef WITH_RAMOVERLAY
-	jsr $b800 ; FIXME 
-#endif
+
+
+
 	lda #<str_tofix
 	ldy #>str_tofix
 	BRK_TELEMON(XWSTR0)
 
-#ifdef WITH_FDC
-copy_default_extension
-.(
-	LDX #$02 ; store default extension
-loop
-	LDA str_default_extention,X ;
-	STA EXTDEF,X ; CORRECTME
-	DEX
-	BPL loop
-.)	
-#endif	
+
 	
- ; BIT FLGRST                  ; hot reset ?
-;	BPL don_t_display_signature ; Don't display signature
+ 
 	JSR $0600 ; CORRECTME
 don_t_display_signature
 	; Don't remove these 3 nops
@@ -369,22 +325,11 @@ don_t_display_signature
 		
 	
 	JSR routine_to_define_19
-#ifdef WITH_FDC	
-	LDA FLGTEL ; test if strased is here
-	LSR ; shift FLGTEL value to the right, b0 is in the carry
-	bcs display_cursor ; Strased is loaded, we display the cursor
-	; trying to load bonjour.com 
-	
-	LDA #<str_loading_bonjour ; strased is not here, load bonjour.com !
-	LDY #>str_loading_bonjour
-	LDX #$07
-	BRK_TELEMON(XNOMFI)
-	ldx #$00
-	lda #$7d ; 
-	LDY #$FF 
-	JSR call_routine_in_another_bank
-#endif	
-	beq display_cursor ; Display cursor
+
+  BIT FLGRST
+  BPL display_cursor ; Don't display signature	
+;	beq display_cursor ; Display cursor
+/*
 	LDA FLGTEL ; something is wrong
 	ORA #$04
 	STA FLGTEL
@@ -401,13 +346,17 @@ next56
 	LDY #$C0
 
 	bne call_routine_in_another_bank
+  */
 display_cursor	
+
 
 	LDX #$00
 	BRK_TELEMON(XCSSCR) ; display cursors
 	ldx VAPLIC
 	bmi Lc286 
 
+
+  
 	lda VAPLIC+1 ; address low
 	ldy VAPLIC+2  ; address high
 
@@ -424,8 +373,6 @@ routine_to_define_19
 .(
 
 	CLI
-  ;BIT FLGRST                       ; hot reset ?
-	;BPL don_t_reset_date             ; Don't reset time if we had a reset  
 	LDA #$02
 	STA TIMEUD
 loop
@@ -484,10 +431,7 @@ init_via
 	sta ACIASR ; Init ACIA
 #endif
 
-#ifdef WITH_FDC
-	lda #$00
-	sta CDRIVE
-#endif
+
 
 	lda #$ff
 	sta V1DDRA
@@ -708,22 +652,14 @@ store_str1
 store_str2	
 	.byt $1b,$3a,$6a,$43,$14,$00
 
-#ifdef WITH_FDC		
-str_insert_disk	
-	.asc $8c,"Inserez une disquette",0 ; 8c for blink
-#endif  
+
 str_tofix
 	.byt	$0d,$18,$00
 str_license	
 	.asc "Ecrit par Fabrice BROCHE",0
 
-#ifdef WITH_FDC	
-str_loading_bonjour	
-	.asc "BONJOUR"
-str_default_extention
-	.asc "COM";
-#endif  
-; ERROR for BONJOURCOM
+
+
 
 
 
@@ -734,100 +670,8 @@ Lc45f
 
 
 	
-loading_vectors_b800 ; switch to RAM
-
-	LDA #%11101000
-	STA V2DRA
-	LDA #<BUF1
-	LDY #>BUF1
-	STA RES
-	STY RES+1
-	
-	LDX #$01
-	STX FDCSR 
-
-	JSR $B84F ; FIXME
-
-	LDA BUF1 
-	bne next100
-	
-	LDA BUF1+3 
-	LDY BUF1+4 
-	STA RES
-loop101	
-	STY RES+1
-loop102	
-	CPX BUF1+1
-
-	BNE next101
-	
-	LDA #$58
-	JSR $B86D ; FIXME
-	LDX #$00
-	NOP
-	NOP
-next101
-	INX
-	STX FDCSR
-	JSR $B84F ; FIXME      
-	INC RES+1  
-	DEC BUF1+2 ; FIXME      
-	BNE loop102
-	JSR BUF1+5 ; FIXME
-	LDA $FFFB ; FIXME
-	STA BNKST
-next100
-	LDA #$EF
-	STA V2DRA
-
-	RTS
-loop105	
-address_b84F
-	LDA #%10001000 ; read sector
-	STA FDCCR
-	LDY #$04
-; WAITING
-loop100
-	DEY
-	BNE loop100
-loop103
-	LDA FDCCR
-	LSR
-	bcc end6
-address_b85F	
-	LDA $0318 ; FIXME
-	bmi loop103
-	LDA FDCDR
-	STA (RES),Y
-	INY
-address_b86a	
-	JMP $B85F ; address_b85f
-
 	
 
-read_microdisc
-.(
-	STA FDCCR ; Command register
-
-	LDY #$03
-loop
-	DEY
-	BNE loop
-	
-loop2
-	LDA FDCCR
-	LSR
-	BCS loop2
-.)
-
-end7
-	rts
-	nop
-end6
-	LDA FDCCR
-	AND #$1C
-	BEQ end7
-	BNE loop105
 
 
 XDEFBU_ROUTINE	
