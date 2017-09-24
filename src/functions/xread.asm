@@ -26,7 +26,13 @@ readme
   lda     #CH376_BYTE_RD_GO
   sta     CH376_COMMAND
   jsr     _ch376_wait_response
+
+#ifdef     CPU_65C02
+  bra     continue
+#else 
   jmp     continue
+#endif    
+
 finished
   ; at this step PTR_READ_DEST is updated
   rts	
