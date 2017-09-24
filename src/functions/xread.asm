@@ -23,7 +23,7 @@ readme
 	jsr _ch376_wait_response
 	jmp continue
 finished
-	jsr we_read
+;	jsr we_read
 	rts	
 
 we_read
