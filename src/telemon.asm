@@ -6,10 +6,10 @@
 /***********************************************************************/
 
 #include "include/telemon.h"
+#include "include/telemon_vars.h"
 #include "include/6522_1.h"
 #include "include/6522_2.h"
 #include "include/6551.h"
-
 
 #include "../../oric-common/include/asm/fdc1793.h"
 #include "../../oric-common/include/asm/ch376.h"
@@ -34,20 +34,20 @@ jsr XMINMA_ROUTINE
 *=$c000
 
 telemon
-
 	SEI
 	CLD
 	LDX     #$FF
-	TXS ; init stack
+	TXS                         ; init stack
 #ifdef     CPU_65C02
 	stz     $0418
 #else	
 	inx
-	stx     $0418 ; Store in BNKCIB ?? ok but already init with label data_adress_418, when loading_vectors_telemon is executed
+	stx     $0418               ; Store in BNKCIB ?? ok but already init with label data_adress_418, when loading_vectors_telemon is executed
 #endif
-	jsr     init_via ; OK
-	jsr     init_printer ; OK
+	jsr     init_via 
+	jsr     init_printer 
 	jsr     XALLKB_ROUTINE
+   
 	; init channels loading 15
 
 	LDX     #$0F
@@ -69,8 +69,6 @@ loop1
 	CLC
 	bcc next2
 end_rout
-
-
 
 	lda     #$01 ; store that stratsed is missing
 	sec
@@ -95,13 +93,8 @@ loop
 	bpl     loop
 .)  
 before2
+	ldx     #$00
 
-
-;#ifdef WITH_FDC
-;#include "functions/fdc1793.asm"	
-;#else
-	ldx #0
-;#endif
 
 loading_vectors_telemon
 .(
@@ -116,12 +109,10 @@ loop
 	LDA     data_to_define_4,X 
 	STA     $0700,X                    ; used to copy in Overlay RAM ... see  loop40 label
 	INX                                ; loop until 256 bytes are filled
-c072	
 	bne loop
 .)
 ; Just fill ram with BUFROU
 	JSR $0603
-	
 compute_rom_ram	
 	LDA     #$00
 .(
@@ -146,98 +137,100 @@ loop38
 	
 	TYA
 	AND     #$10
-	BNE next3
+	BNE     next3
 	TYA
 	PHA
-	AND #$0F
+	AND     #$0F
 	TAY
 	INY
 	PLA
 	
-	AND #$20
+	AND     #$20
 	CLC
-	BEQ next4
+	BEQ     next4
 
 	TYA
 
-	ADC KOROM
-	STA KOROM
-c0ad
+	ADC     KOROM
+	STA     KOROM
+
 	bcc next3
 next4
 	TYA
-	ADC KORAM
-	STA KORAM
+	ADC     KORAM
+	STA     KORAM
 next3
 	DEX
-	bne loop38
-	BIT FLGRST; 
-	BPL next5
+	bne     loop38
+	BIT     FLGRST; 
+	BPL     next5
   
-	LDX #$0B                            ; copy to $2F4 12 bytes
-before1
-	LDA data_vectors_VNMI_VIRQ_VAPLIC,X ; SETUP VNMI, VIRQ, VAPLIC
-	STA VNMI,X ; 
+	LDX     #$0B                            ; copy to $2F4 12 bytes
+.(  
+loop
+	LDA     data_vectors_VNMI_VIRQ_VAPLIC,X ; SETUP VNMI, VIRQ, VAPLIC
+	STA     VNMI,X ; 
 	DEX
-	BPL before1
-
+	BPL     loop
+.)
 	JSR init_keyboard
 next5
-	LDA KBDCOL+4 ; 
-	AND #$90
-	BEQ next6
-	LDA FLGTEL
-	ORA #$40
-	STA FLGTEL
-next6
-
-	JSR init_screens ; $DF5B 
-	JSR routine_to_define_8	 ; routine_to_define_8
+.(
+	LDA     KBDCOL+4 ; 
+	AND     #$90
+	BEQ     skip
+	LDA     FLGTEL
+	ORA     #$40
+	STA     FLGTEL
+skip
+.)
+	JSR     init_screens 
+	JSR     routine_to_define_8	
 
 #ifdef WITH_MINITEL	
 	JSR init_minitel ; 
 #endif	
 
-	JSR init_joystick ; $DFAB
+	JSR     init_joystick ; $DFAB
 
 #ifdef WITH_ACIA	
-	JSR init_rs232 ; $DB54 
+	JSR     init_rs232 ; $DB54 
 #endif	
 
 	; Here we go :  set up keyboard !
-	LDA FLGKBD
+	LDA     FLGKBD
 	LSR
-	AND #%00000011
+	AND     #%00000011
 	BRK_TELEMON(XGOKBD) 	
-	lda #XKBD ; Setup keyboard on channel 0
+	lda     #XKBD ; Setup keyboard on channel 0
 	BRK_TELEMON(XOP0)
-	lda #XSCR ; Setup screen !  on channel 0
+	lda     #XSCR ; Setup screen !  on channel 0
 	BRK_TELEMON(XOP0) 
 	BRK_TELEMON(XRECLK)  ; Don't know this vector
-	lda #XMDS
+	lda     #XMDS
 	BRK_TELEMON(XOP1)
 
-	lda #<store_str2 ; Write attributes on first line (status line)
-	ldy #>store_str2	
-	bit FLGTEL ;
-	bvc next32
-	lda #XMDS
+	lda     #<store_str2 ; Write attributes on first line (status line)
+	ldy     #>store_str2	
+	bit     FLGTEL ;
+	bvc     next32
+	lda     #XMDS
 	BRK_TELEMON(XOP0)
-	lda #<store_str1
-	ldy #>store_str1
+	lda     #<store_str1
+	ldy     #>store_str1
 next32
 	BRK_TELEMON(XWSTR1)
-	BIT FLGRST ; COLD RESET ?
+	BIT     FLGRST ; COLD RESET ?
 	
-	bpl telemon_hot_reset	; no
+	bpl     telemon_hot_reset	; no
 
 	; display telestrat at the first line
-	LDA #<str_telestrat
-	LDY #>str_telestrat
+	LDA     #<str_telestrat
+	LDY     #>str_telestrat
 	BRK_TELEMON(XWSTR0)
 	; display Oric international 1986
-	lda #<str_oric_international
-	ldy #>str_oric_international
+	lda     #<str_oric_international
+	ldy     #>str_oric_international
 	BRK_TELEMON(XWSTR0) ;display on channel 0
 
 ; it's similar to lda #10 brk xwr0 lda #13 brk XWR0
@@ -266,10 +259,10 @@ telemon_hot_reset
 	JMP next35
 next34	
 
-	BIT FLGRST; does it test printer ? not a printer
-	BPL next35 ; jumps if Negative flag is ok
+	BIT     FLGRST; does it test printer ? not a printer
+	BPL     next35 ; jumps if Negative flag is ok
 	; display printer
-	LDA #<str_printer
+	LDA     #<str_printer
 	LDY #>str_printer
 	BRK_TELEMON(XWSTR0)
 #endif
@@ -278,11 +271,6 @@ next35
 
 	nop ; keep theses nops, because hot reset won't work (still don't know why)
   nop ; keep theses nops, because hot reset won't work (still don't know why)
-
-next49
-
-
-
 
 next58	
 	lda SCRX
@@ -303,18 +291,9 @@ don_t_display_telemon_signature
 	lda #$00
 	sta BNKST ; Switch to ram overlay ?
 
-
-    
-	
-
-
-
 	lda #<str_tofix
 	ldy #>str_tofix
 	BRK_TELEMON(XWSTR0)
-
-
-	
  
 	JSR $0600 ; CORRECTME
 don_t_display_signature
@@ -326,27 +305,9 @@ don_t_display_signature
 	
 	JSR routine_to_define_19
 
-  BIT FLGRST
-  BPL display_cursor ; Don't display signature	
-;	beq display_cursor ; Display cursor
-/*
-	LDA FLGTEL ; something is wrong
-	ORA #$04
-	STA FLGTEL
-	LDX #$06
-loop56	
-	LDA BNKST,X
-	CMP #$EF
-	BEQ next56
-	DEX
-	bpl loop56
-	BMI display_cursor
-next56
-	LDA #$00
-	LDY #$C0
+  BIT FLGRST          ; Fix me remove me
+  BPL display_cursor ; Fix me remove me
 
-	bne call_routine_in_another_bank
-  */
 display_cursor	
 
 
@@ -354,16 +315,12 @@ display_cursor
 	BRK_TELEMON(XCSSCR) ; display cursors
 	ldx VAPLIC
 	bmi Lc286 
-
-
-  
+  ; jump to autostart bank
 	lda VAPLIC+1 ; address low
 	ldy VAPLIC+2  ; address high
 
 
 call_routine_in_another_bank	
-;next57
-
 	STA $0415
 	STY $0416
 	STX BNKCIB
@@ -420,7 +377,6 @@ telemon_convert_to_decimal
 	STX DEFAFF
 	LDX #$01
 	JMP XDECIM_ROUTINE 
-	
 
 init_via
 	lda #$7f 
@@ -430,8 +386,6 @@ init_via
 #ifdef WITH_ACIA
 	sta ACIASR ; Init ACIA
 #endif
-
-
 
 	lda #$ff
 	sta V1DDRA
@@ -561,8 +515,6 @@ Lc352
 	iny
 	
 	bne Lc352
-
-  
   
 Lc365	
 	lda BNKST,x
@@ -630,10 +582,6 @@ str_compile_time
 .asc $0d,$0a,"Build : NOACIA"
 #endif
 
-#ifdef WITH_FDC
-#else
-.asc "NOFDC"
-#endif
 
 #ifdef WITH_RAMOVERLAY
 #else
@@ -658,21 +606,10 @@ str_tofix
 str_license	
 	.asc "Ecrit par Fabrice BROCHE",0
 
-
-
-
-
-
 data_to_define_6
 Lc45f
 	; FIVE Bbytes to load in CSRND
 	.byt $80,$4f,$c7,$52,$58
-
-
-	
-	
-
-
 
 XDEFBU_ROUTINE	
 	STX RESB
@@ -685,7 +622,6 @@ loop
 	INX
 	BCS loop
 .)
-
 
 ROUTINE_TO_DEFINE_40
 set_buffers	
@@ -1063,21 +999,31 @@ Lc81c
 
 Lc838	
 data_to_define_1
+; These bytes are set in  ADIOB (page 2)
 adress_of_adiodb_vector
-	; length must be $30
+	; length must be $30 (48)
 	; used to set I/O vectors
+  ; 0
 	.byt <manage_I_O_keyboard,>manage_I_O_keyboard ; 0
+  ; 1 
 	.byt <ROUTINE_I_O_NOTHING,>ROUTINE_I_O_NOTHING ; not used 
-	.byt <LDAF7,>LDAF7 ; MINITEL (mde) 
-	.byt <LDB5D,>LDB5D ; RSE 
+  ; 2 
+	.byt <LDAF7,>LDAF7                             ; MINITEL (mde) 
+  ; 3
+	.byt <LDB5D,>LDB5D                             ; RSE 
+  ; 4
 	.byt <ROUTINE_I_O_NOTHING,>ROUTINE_I_O_NOTHING ;  not used  
+  ; 5
 	.byt <ROUTINE_I_O_NOTHING,>ROUTINE_I_O_NOTHING ; not used 
+  ; 6
 	.byt <ROUTINE_I_O_NOTHING,>ROUTINE_I_O_NOTHING ; not used 
+  ; 7
 	.byt <ROUTINE_I_O_NOTHING,>ROUTINE_I_O_NOTHING; not used 
-	.byt <LDB86,>LDB86
-	.byt <LDB8C,>LDB8C
-	.byt <LDB92,>LDB92 
-	.byt <LDB98,>LDB98  
+  ; 8
+	.byt <output_window0,>output_window0
+	.byt <output_window1,>output_window1
+	.byt <output_window2,>output_window2
+	.byt <output_window3,>output_window3
 	.byt <ROUTINE_I_O_NOTHING,>ROUTINE_I_O_NOTHING ; not used 
 	.byt <ROUTINE_I_O_NOTHING,>ROUTINE_I_O_NOTHING 
 	.byt <Lda70,>Lda70 ;30
@@ -1483,7 +1429,6 @@ vectors_telemon
 	.byt <XCL1_ROUTINE,>XCL1_ROUTINE ; 5
 	.byt <XCL2_ROUTINE,>XCL2_ROUTINE ; 6
 	.byt <XCL3_ROUTINE,>XCL3_ROUTINE ; 7
-
 	
 	.byt <XRD0_ROUTINE,>XRD0_ROUTINE ; 8
 	.byt <XRD1_ROUTINE,>XRD1_ROUTINE ; 9
@@ -1494,8 +1439,6 @@ vectors_telemon
 	.byt <XRDW1_ROUTINE,>XRDW1_ROUTINE ; 0d
 	.byt <XRDW2_ROUTINE,>XRDW2_ROUTINE ; 0e
 	.byt <XRDW3_ROUTINE,>XRDW3_ROUTINE ; 0f
-	
-
 	
 	.byt <XWR0_ROUTINE,>XWR0_ROUTINE ; ;10  
 	.byt <XWR1_ROUTINE,>XWR1_ROUTINE  ; 
@@ -1512,17 +1455,15 @@ vectors_telemon
 	.byt <XTEXT_ROUTINE,>XTEXT_ROUTINE ; XTEXT ; 19
 	.byt <XHIRES_ROUTINE,>XHIRES_ROUTINE ; XHIRES
 	.byt <XEFFHI_ROUTINE,>XEFFHI_ROUTINE ; XEFFHI ; 1b
-	
-	
 	.byt <XFILLM_ROUTINE,>XFILLM_ROUTINE ; XFILLM
 	.byt <ZADCHA_ROUTINE,>ZADCHA_ROUTINE ; ZADCHA
-	.byt <XTSTLP_ROUTINE,>XTSTLP_ROUTINE ; XTSTLP
+	.byt <XTSTLP_ROUTINE,>XTSTLP_ROUTINE ; XTSTLP should be deleted because it's not needed
 	.byt <XMINMA_ROUTINE,>XMINMA_ROUTINE
 	.byt <XMUL40_ROUTINE,>XMUL40_ROUTINE
 	.byt <XMULT_ROUTINE,>XMULT_ROUTINE
 	.byt <XADRES_ROUTINE,>XADRES_ROUTINE ; XADRES
 	.byt <XDIVIS_ROUTINE,>XDIVIS_ROUTINE ; 
-	.byt <XNOMFI_ROUTINE,>XNOMFI_ROUTINE ; XNOMFI 
+	.byt <XVARS_ROUTINE,>XVARS_ROUTINE ; XNOMFI  should be deleted because it's not needed
 	.byt <XCRLF_ROUTINE,>XCRLF_ROUTINE ; $25
 	.byt <XDECAY_ROUTINE,>XDECAY_ROUTINE ; XDECAY  $26
 	.byt <XREADBYTES_ROUTINE,>XREADBYTES_ROUTINE ; $27  Fread
@@ -1532,7 +1473,7 @@ vectors_telemon
 	.byt <XA1AFF_ROUTINE,>XA1AFF_ROUTINE ; XA1AFF  $2b
 	.byt <XMENU_ROUTINE,>XMENU_ROUTINE ; XMENU $2c
 	.byt <XEDT_ROUTINE,>XEDT_ROUTINE ; XEDT  $2d
-	.byt <XINSER_ROUTINE,>XINSER_ROUTINE ; XINSER  $2e
+	.byt <XINSER_ROUTINE,>XINSER_ROUTINE ; XINSER  $2e should be deleted because it's not needed
 	.byt <XSCELG_ROUTINE,>XSCELG_ROUTINE ; XSCELG $2f
 	.byt <XOPEN_ROUTINE,>XOPEN_ROUTINE ; $30
 
@@ -2060,13 +2001,19 @@ table_to_define_prompt_charset
 	.byt $00,$00,$08,$3c,$3e,$3c,$08,$00,$00
 table_to_define_prompt_charset_empty	
 	.byt $7f,$00,$00,$08,$34,$32,$34,$08,$00,$00
-	
 
-XNOMFI_ROUTINE
-  ; FIXME remove me maybe
+
+; This primitive will get the address of variables built in telemon and orix.	
+
+XVARS_ROUTINE
+  lda XVARS_TABLE_LOW,x
+  ldy XVARS_TABLE_HIGH,x
   rts
-
-
+XVARS_TABLE
+XVARS_TABLE_LOW
+  .byt <ORIX_PATH_CURRENT ; pwd
+XVARS_TABLE_HIGH
+  .byt >ORIX_PATH_CURRENT ; pwd
 	
 XMINMA_ROUTINE
 uppercase_char
@@ -2753,43 +2700,46 @@ LDB7D
      ;                 GESTION DES SORTIES EN MODE TEXT                      
                                                                                 
 ;Principe:tellement habituel que cela en devient monotone... mais bien pratique !  
-LDB86
+output_window0
+.(
 	PHA       ;     on sauve A et P                                   
 	PHP                                                              
-	LDA #$00    ;   fen?tre 0                                         
-	BEQ LDB9C   ;   inconditionnel                                    
-LDB8C
+	LDA     #$00    ;   fen?tre 0                                         
+	BEQ     skip   ;   inconditionnel                                    
++output_window1  
 	PHA                                                              
 	PHP                                                              
-	LDA #$01    ;   fen?tre 1                                         
-	BNE LDB9C    ;                                                 
-
-LDB92	
+	LDA     #$01    ;   fen?tre 1                                         
+	BNE skip    ;                                                 
++output_window2
 	PHA                                                              
 	PHP                                                              
-	LDA #$02     ;  fen?tre 2                                         
-	BNE LDB9C                              ;           
-LDB98
+	LDA     #$02     ;  fen?tre 2                                         
+	BNE skip
++output_window3
 	PHA                                                              
 	PHP                                                              
-	LDA #$03      ; fen?tre 3                                         
-LDB9C
-	STA SCRNB       ; stocke la fen?tre dans SCRNB                      
+	LDA     #$03      ; fen?tre 3                                         
+skip 
+.)
+	STA     SCRNB       ; stocke la fen?tre dans SCRNB                      
 	PLP          ;  on lit la commande                                
-	BPL LDBA4    ;  ?criture -------    
-	JMP LDECE    ;  ouverture      I      
+	BPL     LDBA4    ;  ?criture -------    
+	JMP     LDECE    ;  ouverture      I      
 LDBA4
 	PLA          ;  on lit la donn?e <                                
-	STA $29      ;  que l'on sauve                                    
-	LDA FLGLPR    ;  ?cho sur imprimante ?                             
-	AND #$02                                                         
-	BEQ LDBB3     ; non --------------------------------------        
-	LDA $29      ;  oui, on envoie le code sur imprimante    I        
-	JSR Lda72   ;                                           I  
-LDBB3
-	LDA $29      ;  <-----------------------------------------        
- 
-
+#ifdef WITH_PRINTER  
+	STA     $29      ;  que l'on sauve
+.(	  
+	LDA     FLGLPR    ;  echo on the printer ?
+	AND     #$02                                                         
+	BEQ     skip     ; no  skip
+	LDA     $29      ; yes, send byte to printer
+	JSR     XLPRBI_ROUTINE   ;                                           I  
+skip
+.)
+	LDA     $29      
+#endif 
 Ldbb5
 	STA SCRNB+1
 	PHA
@@ -3927,7 +3877,7 @@ hard_copy_hires
 	STA FLGLPR
 LE25E	
 	LDA data_for_hard_copy-1,X ; Why not data_for_hard_copy instead of data_for_hard_copy+1 ? Because this routine start with X=5 and did a dex/bne instead of bpl/ldx #4. It was $e240 which is "rts"
-	JSR Lda72 
+	JSR XLPRBI_ROUTINE 
 	DEX
 	BNE LE25E 
 	STX TR0
@@ -3935,7 +3885,7 @@ LE269
 	LDX #$06
 LE26B	
 	LDA data_for_hard_copy+4,X
-	JSR Lda72 
+	JSR XLPRBI_ROUTINE 
 	DEX
 	BNE LE26B
 	STX TR1
@@ -3985,7 +3935,7 @@ LE2B1
 	DEC $10
 	BNE LE290 
 	LDA $0F
-	JSR Lda72
+	JSR XLPRBI_ROUTINE
 	DEC $0E
 	BPL LE27A 
 	INC TR1
@@ -3999,7 +3949,7 @@ LE2B1
 	LDX #$04
 LE2D0	
 	LDA data_for_hard_copy+10,X
-	JSR Lda72 
+	JSR XLPRBI_ROUTINE 
 	DEX
 	BNE LE2D0 
 	PLA
@@ -4504,7 +4454,7 @@ Le617
 	BNE Le624
 	
 	JSR Le648 
-	JSR Le66c 
+	JSR XECRPR_ROUTINE 
 	JMP Le45a
 Le624	
 	JSR Le648 
@@ -4550,7 +4500,7 @@ Le648
 	JSR LE656    ;  oui, on envoie le code au minitel                I 
 LE650
 	BIT LE650    ;  V=0 et N=0 pour ?criture <------------------------ 
-	JMP LDB86    ;  dans la fen?tre 0                               
+	JMP output_window0    ;  dans la fen?tre 0                               
                                                                                 
 /*
                  ENVOIE UN CODE AU BUFFER SERIE SORTIE                    
@@ -4572,20 +4522,11 @@ LE656
 	BCS LE656   ;   si l'envoi s'est mal pass?, on recommence --------
 LE66B
 	RTS                     
-	/*																			
-                             AFFICHE LE PROMPT                              
-      */  
-Le66c
+/*																			
+                             AFFICHE LE PROMPT
+*/  
+
 XECRPR_ROUTINE 
-/*
-	BIT FLGTEL  ;    mode minitel ?                                    
-	BVC LE67B   ;   non ---------------------------------------------- 
-	LDA #$19   ;    on envoie SS2 2/E au minitel                     I
-	JSR LE656  ;                                                     I
-	LDA #$2E   ;    donc on affiche la fl?che ->                     I
-	JSR LE656  ;                       E                              I
-*/	
-LE67B
 	LDA #"#"   ;    on affiche un prompt <----------------------------
 	JMP Ldbb5   ;   ? l'?cran               
 																				
@@ -6034,7 +5975,7 @@ _cd_to_current_realpath_new
 	sta BUFNOM+1
 #endif	
 
-	jsr _ch376_set_file_name
+	jsr _ch376_set_file_name    ; send / to chip
 	jsr _ch376_file_open
 
 	
@@ -6059,7 +6000,7 @@ send_set_filename_and_fileopen
 #ifdef CPU_65C02
 	stz BUFNOM,y
 #else
-	lda #0
+	lda #$00
 	sta BUFNOM,y
 #endif	
 
@@ -6177,10 +6118,11 @@ not_slash_first_param
 	iny
 	bne loop
 end
-	cpy #0
+  sta BUFNOM,x
+	cpy #$00
 .(	
 	beq skip
-	sta BUFNOM,x
+	
 	
 	; Optimize, it's crap
 	lda TR4 ; Get flags
@@ -8337,6 +8279,8 @@ e_accent_circonflexe
 	.byt $7e
 	.byt $1c,$22,$1c,$22,$3e,$20,$1c,$00
 
+  
+  
 free_bytes ; 26 bytes
 	.dsb $ffff-free_bytes-5,0 ; 5 because we have 5 bytes after
 ; fffa

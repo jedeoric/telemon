@@ -540,10 +540,9 @@ ORIX_FILE_OPEN_STRUCT
 *=$590
 BUFEDT ; $590
 .dsb MAX_LENGTH_BUFEDT
-
-
-
-
+; send the errno
+ERRNO
+  .dsb 1
 volatile_str
 .dsb 50
 TELEMON_end_variables

@@ -139,12 +139,12 @@ str
 
 #define XDIVIS $23 ; divide RES/AY=RES (RESB reste)
 
-// XNOMFI : Length in X -> BUFNOM and (A and Y for str)
-// X=0 0length
-// X=1 if RAS C=1 if jokers
-//  x=2 ; if drive by default has changed
-//  x>127 ; incorrect name
-#define XNOMFI $24
+// Return the address of var
+// For example, if we want to get PWD var
+// ldx #PWD_PTR
+// BRK_TELEMON(XVARS)
+// A and Y contains low and high address of the vars
+#define XVARS $24
 
 /// @brief Do CRLF
 /// This vector send 0x0a and 0x0d on channel 0
