@@ -2729,51 +2729,51 @@ skip
 LDBA4
 	PLA          ;  on lit la donn?e <                                
 #ifdef WITH_PRINTER  
-	STA     $29      ;  que l'on sauve
+	STA     SCRNB+1      ;  que l'on sauve
 .(	  
 	LDA     FLGLPR    ;  echo on the printer ?
 	AND     #$02                                                         
 	BEQ     skip     ; no  skip
-	LDA     $29      ; yes, send byte to printer
+	LDA     SCRNB+1      ; yes, send byte to printer
 	JSR     XLPRBI_ROUTINE   ;                                           I  
 skip
 .)
-	LDA     $29      
+	LDA     SCRNB+1
 #endif 
 Ldbb5
-	STA SCRNB+1
+	STA     SCRNB+1 ; store the char to display
 	PHA
 	TXA
 	PHA
 	TYA
 	PHA
 	
-	LDX SCRNB
-	LDA ADSCRL,X
-	STA ADSCR
-	LDA ADSCRH,X
-	STA ADSCR+1
+	LDX     SCRNB     ; Get the id of the window
+	LDA     ADSCRL,X  ; get address of the window
+	STA     ADSCR     
+	LDA     ADSCRH,X  
+	STA     ADSCR+1  
 	
-	LDA SCRNB+1
-	CMP #$20
-	BCS Ldc4c
+	LDA     SCRNB+1
+	CMP     #" "       ; is it space ?
+	BCS     Ldc4c      ; No it's a char
 Ldbce	
-	LDA FLGSCR,X
+	LDA     FLGSCR,X
 	PHA
 	
-	JSR XCOSCR_ROUTINE 
-	LDA #>LDC2B-1 ; FIXME ?
+	JSR     XCOSCR_ROUTINE ; switch of cursor
+	LDA     #>LDC2B-1 ; FIXME ?
 	PHA
-	LDA #<LDC2B-1 ; FIXME ?
+	LDA     #<LDC2B-1 ; FIXME ?
 	PHA
-	LDA SCRNB+1
-	ASL ; MULT2 in order to get vector 
+	LDA     SCRNB+1
+	ASL     ; MULT2 in order to get vector 
 	TAY
-	LDA TABLE_OF_SHORTCUT_KEYBOARD+1,Y 
+	LDA     TABLE_OF_SHORTCUT_KEYBOARD+1,Y 
 	PHA
-	LDA TABLE_OF_SHORTCUT_KEYBOARD	,Y 
+	LDA     TABLE_OF_SHORTCUT_KEYBOARD	,Y 
 	PHA
-	LDA #$00
+	LDA     #$00
 	SEC
 	RTS
 
@@ -2840,49 +2840,42 @@ LDC46
 	rts
 Ldc4c
 
-	LDA FLGSCR,X
-	AND #$0C
-	BNE Ldc9a
-	LDA SCRNB+1
-	BPL Ldc5d
-	CMP #$A0
-	BCS Ldc5d
-	AND #$7F
+	LDA     FLGSCR,X
+	AND     #%00001100 
+	BNE     Ldc9a
+	LDA     SCRNB+1
+	BPL     Ldc5d
+	CMP     #$A0  ; Is it higher than 128+32 
+	BCS     Ldc5d ; is it a normal code ?
+  ; yes don't display
+	AND     #$7F  ; yes let's write code
 Ldc5d
-	STA SCRNB+1
-	JSR Ldc6b 
-	LDA #$09
-	STA SCRNB+1
-	JMP Ldbce
+  
+	STA     SCRNB+1
+	JSR     display_char 
+	LDA     #$09
+	STA     SCRNB+1
+skip_code  
+	JMP     Ldbce
 LDC69
-	STA SCRNB+1
-Ldc6b
-	LDY #$80
-	LDA FLGSCR,X
-	AND #$20
-	BNE Ldc76
-	LDY #$00
-Ldc76
+	STA     SCRNB+1
+display_char  
+  
+	LDY     #$80
+	LDA     FLGSCR,X
+	AND     #$20      ; inverse video ?
+.(  
+	BNE     skip 
+	LDY     #$00
+skip
+.)
 	TYA
-	ORA SCRNB+1
-	STA CURSCR,X
-	LDY SCRX,X
+	ORA     SCRNB+1
+	STA     CURSCR,X
+	LDY     SCRX,X
 
-	STA (ADSCR),Y
-	LDA FLGSCR,X
-	AND #$02
-	BEQ Ldc99
-	LDA SCRY,X
-	CMP SCRFY,X
-	BEQ Ldc99
-	TYA
-	ADC #$28
-	TAY
-	LDA CURSCR,X
-	STA (ADSCR),Y
- 	
-	
-Ldc99
+	STA     (ADSCR),Y
+
 	RTS
 Ldc9a
 	and #8
