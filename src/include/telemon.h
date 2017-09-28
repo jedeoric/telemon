@@ -135,7 +135,7 @@ str
 
 #define XMUL40 $20 ; AY=A*40
 #define XMULT $21
-#define XMULT $22 ; AY*RES --> TR0-1-2-3  RES étant une adresse
+#define XADRES $22 ; AY*RES --> TR0-1-2-3  RES étant une adresse
 
 #define XDIVIS $23 ; divide RES/AY=RES (RESB reste)
 
