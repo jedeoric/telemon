@@ -98,10 +98,15 @@ end
 	beq     write_only
 	jmp     skip
 write_only
+
 	jsr     _ch376_set_file_name
+  ;       create the file
 	jsr     _ch376_file_create
+  ;       openit
+  jsr     _ch376_file_open
 	inc     NUMBER_OPENED_FILES
-	lda     NUMBER_OPENED_FILES
+	lda     NUMBER_OPENED_FILES     ; A contains the last FP
+  ldx     #$00
 	rts
 
 read_only	
@@ -158,8 +163,8 @@ open_and_read_go
 	rts
 file_not_found 
 	; return NULL
-	lda #"#"
-	jsr XWR0_ROUTINE
+	;lda #"#"
+	;jsr XWR0_ROUTINE
 	ldx #$ff
 	lda #$ff
 	rts
