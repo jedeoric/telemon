@@ -1592,9 +1592,9 @@ vectors_telemon_second_table
 	.byt <XEXPLO_ROUTINE,>XEXPLO_ROUTINE ; $9c
 	.byt <XPING_ROUTINE,>XPING_ROUTINE ; $9d
 
-#include "../oric-common/lib/xa65/ch376.asm"
+#include "src/include/libs/xa65/ch376.s"
 XCHECK_VERIFY_USBDRIVE_READY_ROUTINE
-#include "../oric-common/lib/xa65/ch376_verify.asm"
+#include "src/include/libs/xa65/ch376_verify.s"
 
 XCLOSE_ROUTINE
 	jmp _ch376_file_close
