@@ -10,12 +10,10 @@
 #include "src/include/6522_1.h"
 #include "src/include/6522_2.h"
 #include "src/include/6551.h"
+#include "src/include/fdc1793.h"
+#include "src/include/ch376.h"
+#include "src/include/macro.h"
 
-#include "../oric-common/include/asm/fdc1793.h"
-#include "../oric-common/include/asm/ch376.h"
-#include "../oric-common/include/asm/orix.h"
-
-#include "../oric-common/include/asm/macro_orix.h"
 
 #define ORIX_ID_BANK $05
 

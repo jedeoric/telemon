@@ -538,4 +538,23 @@ str
 #define SEEK_END        1
 #define SEEK_SET        2
 
+// Below work in progress
 
+
+/*
+[IN] RES the string of the path 
+[OUT] A contains the ID of the file ptr. IF A = 0 then there is an error
+[OUT] X contains the ID of the error
+*/
+#define ORIX_REGISTER_FILEHANDLE $00
+#define ORIX_GETENV $01
+
+
+#define ORIX_ROUTINES $ffe0
+
+
+
+#define ORIX_PWD_VAR $00 ; must be removed used in telemon instead
+
+
+#define ORIX_MAX_FILEOPEN        5 ; /sdin, stdout,stderr
