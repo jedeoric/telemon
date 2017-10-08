@@ -1,14 +1,28 @@
 # telemon 
 
 ## Introduction
-This repo contains telemon 2.4 released in 1986 for the Oric Telestrat
+This repo contains telemon 2.4 released in 1986 for the Oric Telestrat and a new version in master branch : telemon 3
 
-The code is done by Fabrice Broche
+Telemon 3 is designed to work with ORICHD. See : http://orix.oric.org
+
+The V2.4 code is done by Fabrice Broche
+
+The V3.0 code is done by Fabrice Broche (90%) and Jede (10%). Anyway, all minitel and FDC routines had been removed
 
 Assembler : XA
 CPU : 6502
 
 ## Timeline
+
+### 2017-09-24
+
+* corrections de 2 bugs sur la lecture du fichier (l'un pour dans le cas d'une lecture d'une taille vide et donc dépassement de buffer : acceleration de la lecture) (bugs trouvés par Assinie)
+* passage de certains headers (telemon.h, 6522_1.h, 6522_2.h) qui étaient dans Oric-common, dans le repo telemon.
+* passage des variables telemon dans le repo telemon (avant : dans oric-common)
+* nettoyage des appels au FDC (orix devrait démarrer plus vite ainsi que telemon)
+* ajout d'une primitive : XVARS qui permet de récupérer certaines adresses de telemon (pour l'instant, il est possible de récupérer que l'adresse du PWD). Ceci permettra d'avoir des binaires compatibles avec différentes versions de telemon.
+* gestion dans la fonction XREAD du 65C02 qui devrait légèrement accélérer la lecture quand telemon est assemblé pour le 65C02 avec un 65C02 embarqué.
+* correction du bug du XCLOSE qui n'était pas implémenté à la fin du chargement de binaire, ce qui laissait ouvert /bin. Ce bug était connu car XCLOSE faisait planter ORICHD, dès que la primitive était appelée. XCLOSE ne fait plus planter ORICHD
 
 ### 2017-03-17
 * fread/fopen/fclose are working

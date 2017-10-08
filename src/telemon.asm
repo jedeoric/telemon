@@ -2,20 +2,20 @@
 /* DASM and source converted with labels : jede (jede[at]oric[dot]org) */
 /* may and june 2016                                                   */
 /* with the help of G. Meister telemon dasm                            */
-/* telemon 3.0                                                         */
+/* telemon 3.1                                                         */
 /***********************************************************************/
 
-#include "include/telemon.h"
-#include "include/telemon_vars.h"
-#include "include/6522_1.h"
-#include "include/6522_2.h"
-#include "include/6551.h"
+#include "src/include/telemon.h"
+#include "src/include/telemon_vars.h"
+#include "src/include/6522_1.h"
+#include "src/include/6522_2.h"
+#include "src/include/6551.h"
 
-#include "../../oric-common/include/asm/fdc1793.h"
-#include "../../oric-common/include/asm/ch376.h"
-#include "../../oric-common/include/asm/orix.h"
+#include "../oric-common/include/asm/fdc1793.h"
+#include "../oric-common/include/asm/ch376.h"
+#include "../oric-common/include/asm/orix.h"
 
-#include "../../oric-common/include/asm/macro_orix.h"
+#include "../oric-common/include/asm/macro_orix.h"
 
 #define ORIX_ID_BANK $05
 
@@ -28,7 +28,7 @@ jsr XMINMA_ROUTINE
 
 #define bank_signature $ff00
 
-#include "include/telemon_vars.inc.asm"
+#include "src/include/telemon_vars.inc.asm"
 
 .text
 *=$c000
@@ -560,7 +560,7 @@ str_KOROM
 str_telemon
 	.asc $0d,$0a,"TELEMON V"
 str_telemon_version
-	.asc "3.0"
+	.asc "3.1"
 str_cpu	
 
 
@@ -956,9 +956,9 @@ LC6B1
 	.byt $00,$d2 ;  buffer printer output end
 
 
-#include "functions/xtstlp.asm"
-#include "functions/XOP.asm"
-#include "functions/XCL.asm"
+#include "src/functions/xtstlp.asm"
+#include "src/functions/XOP.asm"
+#include "src/functions/XCL.asm"
 
 
 
@@ -971,10 +971,10 @@ XCRLF_ROUTINE
 Lc75d	
 ; NOERROR
 
-#include "functions/XWRx.asm"
-#include "functions/XWSTRx.asm"
-#include "functions/XRDW.asm"
-#include "functions/XWRD.asm"	
+#include "src/functions/XWRx.asm"
+#include "src/functions/XWSTRx.asm"
+#include "src/functions/XRDW.asm"
+#include "src/functions/XWRD.asm"	
 
 
 send_command_A	
@@ -1594,9 +1594,9 @@ vectors_telemon_second_table
 	.byt <XEXPLO_ROUTINE,>XEXPLO_ROUTINE ; $9c
 	.byt <XPING_ROUTINE,>XPING_ROUTINE ; $9d
 
-#include "../../oric-common/lib/xa65/ch376.asm"
+#include "../oric-common/lib/xa65/ch376.asm"
 XCHECK_VERIFY_USBDRIVE_READY_ROUTINE
-#include "../../oric-common/lib/xa65/ch376_verify.asm"
+#include "../oric-common/lib/xa65/ch376_verify.asm"
 
 XCLOSE_ROUTINE
 	jmp _ch376_file_close
@@ -1604,11 +1604,11 @@ XCLOSE_ROUTINE
 
 XFREAD_ROUTINE	
 XREADBYTES_ROUTINE
-#include "functions/xread.asm"
+#include "src/functions/xread.asm"
 XWRITEBYTES_ROUTINE
-#include "functions/xwrite.asm"
+#include "src/functions/xwrite.asm"
 XFSEEK_ROUTINE
-#include "functions/xfseek.asm"
+#include "src/functions/xfseek.asm"
 
 
 XMENU_ROUTINE
@@ -1869,7 +1869,7 @@ put_cursor_in_61_x
 
 	
 XDECAL_ROUTINE	
-#include "functions/xdecal.asm"
+#include "src/functions/xdecal.asm"
 
 data_for_decimal_conversion
 const_10_decimal_low	
@@ -1907,25 +1907,25 @@ convert_into_decimal_0_to_9999
 
 	
 XBINDX_ROUTINE
-#include "functions/xbindx.asm"
+#include "src/functions/xbindx.asm"
 
 XDECIM_ROUTINE
-#include "functions/xdecim.asm"
+#include "src/functions/xdecim.asm"
 	
 XHEXA_ROUTINE
-#include "functions/xhexa.asm"	
+#include "src/functions/xhexa.asm"	
 
 XMUL40_ROUTINE
-#include "functions/xmul40.asm"	
+#include "src/functions/xmul40.asm"	
 
 XADRES_ROUTINE
-#include "functions/XADRES.asm"
+#include "src/functions/xadress.asm"
 	
 XMULT_ROUTINE
-#include "functions/xmult.asm"	
+#include "src/functions/xmult.asm"	
 
 XDIVIS_ROUTINE	
-#include "functions/xdivis.asm"	
+#include "src/functions/xdivis.asm"	
 
 XEFFHI_ROUTINE
 	lda #<$a000
@@ -1937,13 +1937,13 @@ XEFFHI_ROUTINE
 	lda #$40
 
 XFILLM_ROUTINE
-#include "functions/xfillm.asm"	
+#include "src/functions/xfillm.asm"	
 	
 XHIRES_ROUTINE
-#include "functions/xhires.asm"	
+#include "src/functions/xhires.asm"	
 	
 XTEXT_ROUTINE
-#include "functions/xtext.asm"	
+#include "src/functions/xtext.asm"	
 	
 wait_0_3_seconds ; Wait 0,3333 seconds 
 .(	
@@ -2434,7 +2434,7 @@ lda04
 	
 	
 XEPSG_ROUTINE
-#include "functions/sound/xepsg.asm"	
+#include "src/functions/sound/xepsg.asm"	
 
 init_printer	
 da4f
@@ -2873,10 +2873,9 @@ skip
 	ORA     SCRNB+1
 	STA     CURSCR,X
 	LDY     SCRX,X
-
 	STA     (ADSCR),Y
-
 	RTS
+  
 Ldc9a
 	and #8
 	beq LDCB8 
@@ -5509,7 +5508,7 @@ Leaf3
 	LDY HRSY
 	JMP Le7f3 
 	
-#include "functions/sound/sounds.asm"
+#include "src/functions/sound/sounds.asm"
 	
 READ_A_SERIAL_BUFFER_CODE_INPUT
 Lec10

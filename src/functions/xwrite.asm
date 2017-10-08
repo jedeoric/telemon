@@ -10,7 +10,8 @@
   cmp     #CH376_USB_INT_SUCCESS    ; finished
   beq     writeme
   rts     
-continue	
+continue
+   
   cmp     #CH376_USB_INT_DISK_WRITE  ; something to read
   beq     writeme
   cmp     #CH376_USB_INT_SUCCESS    ; finished
@@ -22,11 +23,11 @@ continue
 writeme
    
   jsr     we_write
-
+  
   lda     #CH376_BYTE_WR_GO 
   sta     CH376_COMMAND
   jsr     _ch376_wait_response
-  
+
 #ifdef     CPU_65C02
   bra     continue
 #else 
