@@ -11,6 +11,7 @@ _ch376_verify_SetUsbPort_Mount
 #ifdef SEDORIC_SD
   lda #$01
 #else
+  BRK_TELEMON(XCRLF)
 	lda #<str_usbdrive_controller_not_found
 	ldy #>str_usbdrive_controller_not_found
 	BRK_TELEMON(XWSTR0)
