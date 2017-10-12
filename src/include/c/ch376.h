@@ -64,19 +64,22 @@ unsigned char	ch376_check_exist(unsigned char value);
 unsigned char ch376_ic_get_version(void);
 void 			    ch376_set_usb_mode(unsigned char value);
 unsigned char ch376_disk_mount(void);
-void          ch376_seek_file(int position);// 16 bytes
+unsigned int  ch376_seek_file(int position);// 16 bytes
 
 void 			    ch376_set_file_name(char *filename);
 unsigned char ch376_file_open(void);
-void 			    ch376_set_bytes_write(int value);
-void 			    ch376_set_bytes_read(int value);
+void 			    ch376_set_bytes_write(unsigned int value);
+void 			    ch376_set_bytes_read(unsigned int value);
 unsigned char ch376_file_create();
 unsigned char ch376_dir_create();
 unsigned char ch376_file_erase();
-void          ch376_file_close(unsigned char value);
+// file_close return results of file_close
+unsigned char ch376_file_close(unsigned char value);
 unsigned char ch376_rd_usb_data0(void);
 void          ch376_get_entry(char *);
 void          ch376_process_next_entry_catalog(void);
+
+unsigned char ch376_write(void *ptr);
 /*High level function*/
 
 

@@ -1,5 +1,3 @@
-
-
 ; jede jede@oric.org 2017-01-22
 
     .export 	_ch376_set_file_name
@@ -15,9 +13,12 @@
     .export   _ch376_get_entry
     .export		_ch376_file_create	
     .export 	_ch376_fwrite
+    .export 	_ch376_write
     .export   _ch376_dir_create
     .export   _ch376_file_erase
     .export   _ch376_process_next_entry_catalog
+    
+    .export   _ch376_set_bytes_write
 
     .import 	  popax
     .include    "zeropage.inc"
@@ -84,14 +85,31 @@ CH376_DISK_RD_GO            = $55
 .endproc
 
 .proc _ch376_seek_file
+    ldy     #CH376_BYTE_LOCATE
+    sty     CH376_COMMAND    
+    
     sta     CH376_DATA
-    sty     CH376_DATA
+    stx     CH376_DATA
+    
     lda     #$00                   ; Don't manage 32 bits length
     sta     CH376_DATA
     sta     CH376_DATA
-    ldx     #CH376_BYTE_LOCATE
-    stx     CH376_COMMAND    
+
     jsr     _ch376_wait_response
+    lda     #CH376_RD_USB_DATA0
+    sta     CH376_COMMAND
+    lda     CH376_DATA
+    sta     TR0
+    lda     CH376_DATA
+    sta     TR1
+    ;lda     CH376_DATA
+    ;sta     TR2
+    ;lda     CH376_DATA
+    ;sta     TR3
+    lda     TR0
+    ldx     TR1
+    
+    
     rts
 .endproc
 
@@ -229,7 +247,7 @@ loop:
 ; else A contains answer of the controller
     ldy     #$FF ; We have to wait 35 ms, but well, this loop is broken when controler is OK
 loop3:
-    ldx     #$FF ; don't decrease this counter. Because ch376 won't respond if there is a lower value
+    ldx     #$FF                 ; don't decrease this counter. Because ch376 won't respond if there is a lower value
 loop:
     lda     CH376_COMMAND
     and     #%10000000
@@ -296,8 +314,8 @@ finished:
 ; void _ch376_fwrite(void *ptr,int number)
 .proc _ch376_fwrite
     ; use ptr1 to count bytes
-    sta     ptr2
-    stx     ptr2+1
+    sta     ptr2                  ;  number param
+    stx     ptr2+1                ;  number param
 	
     jsr     popax
     sta     PTR_READ_DEST
@@ -311,13 +329,13 @@ finished:
 	; error 
     rts
 start_write:
-we_read:
+
     lda     #CH376_CMD_WR_REQ_DATA
     sta     CH376_COMMAND
     ldy     CH376_DATA ; contains length read
-    sta     tmp2; Number of bytes to read
+    sty     tmp2; Number of bytes to read
 	
-    ldy     #$0
+    ldy     #$00
 loop:
     lda     (PTR_READ_DEST),y
     sta     CH376_DATA ; read the data
@@ -345,6 +363,50 @@ finished:
     ldx     tmp1+1
     rts	
 .endproc	
+
+
+; void _ch376_write(void *ptr)
+.proc _ch376_write
+    sta     PTR_READ_DEST
+    stx     PTR_READ_DEST+1
+
+start_write:
+
+    lda     #CH376_CMD_WR_REQ_DATA
+    sta     CH376_COMMAND
+    lda     CH376_DATA ; contains length read
+    sta     tmp2; Number of bytes to read
+	
+    ldy     #$00
+loop:
+    lda     (PTR_READ_DEST),y
+    sta     CH376_DATA ; read the data
+    iny
+    dec     tmp2
+    bne     loop
+    ; compute PTR_READ_DEST
+    sty     tmp2  
+    lda     PTR_READ_DEST
+    clc
+    adc     tmp2
+    bcc     don_t_inc
+    inc     PTR_READ_DEST+1
+don_t_inc:	
+    sta     PTR_READ_DEST
+    lda     #CH376_BYTE_WR_GO
+    sta     CH376_COMMAND
+    jsr     _ch376_wait_response
+    cmp     #CH376_USB_INT_SUCCESS ; finished
+    bne     start_write
+    rts
+    ;jmp continue
+finished:
+    lda     tmp1
+    ldx     tmp1+1
+    rts	
+.endproc	
+
+
 
 .proc _ch376_file_create
     lda     #CH376_FILE_CREATE
