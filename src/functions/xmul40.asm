@@ -1,5 +1,5 @@
 .(
-	ldy #0
+	ldy #$00
 	sta RES
 	sty RES+1
 	asl

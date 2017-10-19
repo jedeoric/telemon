@@ -1914,6 +1914,7 @@ XHEXA_ROUTINE
 #include "src/functions/xhexa.asm"	
 
 XMUL40_ROUTINE
+;[out] AY contains the result (and RES too)
 #include "src/functions/xmul40.asm"	
 
 XADRES_ROUTINE
@@ -3855,7 +3856,7 @@ data_for_hard_copy
 	.byt $18,$33,$1b,$0a,$0d,$00,$f0,$4b,$1b,$0d,$0a,$40,$1b,$0a,$0a
 
 XHCHRS_ROUTINE
-LE250
+
 execute_hard_copy_hires
 	jmp (HARD_COPY_HIRES_VECTOR)
 LE253	
@@ -4690,40 +4691,40 @@ Principe:On lit un ? un les chiffres de la chaine stock?e en AY jusqu'? ce
  */ 
 XDECAY_ROUTINE 
 Le749                                                                                
-	STA RES     ;   on sauve l'adresse du nombre                      
+	STA RES      ;   on sauve l'adresse du nombre                      
 	STY RES+1    ;    dans RES                                          
-	LDY #$00   ;    et on met RESB ? 0                                
+	LDY #$00     ;    et on met RESB ? 0                                
 	STY RESB
 	STY RESB+1                                                          
 LE753
-	LDA (RES),Y ;   on lit le code <------------------------------    
-	CMP #$30    ;   inf?rieur ? 0 ?                              I    
-	BCC LE785  ;    oui -----------------------------------------+---- 
-	CMP #$3A    ;   sup?rieur ? 9 ?                              I   I
-	BCS LE785  ;   oui -----------------------------------------+---O 
-	AND #$0F    ;   on isole le chiffre                          I   I
-	PHA        ;    dans la pille                                I   I
-	ASL RESB    ;    RESB*2                                       I   I
-	ROL RESB+1     ;                                                I   I
-	LDA RESB    ;    AX=RESB*2                                    I   I
-	LDX RESB+1    ;                                                 I   I
-	ASL RESB    ;    *4                                           I   I
-	ROL RESB+1    ;                                                 I   I
-	ASL RESB    ;    *8                                           I   I
-	ROL RESB+1   ;                                                  I   I
-	ADC RESB    ;    +RESB*2                                      I   I
-	STA RESB    ;                                                 I   I
-	TXA        ;                                                 I   I
-	ADC RESB+1    ;                                                 I   I
-	STA RESB+1     ;   = RESB*10                                    I   I
-	PLA         ;   plus chiffre lu                              I   I
+	LDA (RES),Y  ;   on lit le code <------------------------------    
+	CMP #$30     ;   inf?rieur ? 0 ?                              I    
+	BCC LE785    ;   oui -----------------------------------------+---- 
+	CMP #$3A     ;   sup?rieur ? 9 ?                              I   I
+	BCS LE785    ;   oui -----------------------------------------+---O 
+	AND #$0F     ;   on isole le chiffre                          I   I
+	PHA          ;    dans la pile                                I   I
+	ASL RESB     ;    RESB*2                                      I   I
+	ROL RESB+1   ;                                                I   I
+	LDA RESB     ;    AX=RESB*2                                   I   I
+	LDX RESB+1   ;                                                I   I
+	ASL RESB     ;   *4                                           I   I
+	ROL RESB+1   ;                                                I   I
+	ASL RESB     ;   *8                                           I   I
+	ROL RESB+1   ;                                                I   I
+	ADC RESB     ;   +RESB*2                                      I   I
+	STA RESB     ;                                                I   I
+	TXA          ;                                                I   I
+	ADC RESB+1   ;                                                I   I
+	STA RESB+1   ;   = RESB*10                                    I   I
+	PLA          ;   plus chiffre lu                              I   I
 	ADC RESB     ;                                                I   I
 	STA RESB     ;                                                I   I
-	BCC LE782  ;                                                 I   I
-	INC RESB+1    ;                                                 I   I
+	BCC LE782    ;                                                I   I
+	INC RESB+1   ;                                                I   I
 LE782
-	INY       ;     on ajoute un chiffre lu                      I   I
-	BNE LE753 ;     et on recommence  ----------------------------   I
+	INY          ;   on ajoute un chiffre lu                      I   I
+	BNE LE753    ;     et on recommence  ----------------------------   I
 LE785
 	TYA       ;     nombre de chiffres lus <--------------------------
 	TAX       ;     dans X                                            
@@ -4732,43 +4733,40 @@ LE785
 	RTS
 	
 data_for_hires_display
-Le78c
 	.byt $20,$10,$08,$04
 	.byt $02,$01
 
 	
 XHRSSE_ROUTINE	
-LE792
-display_cursor_in_hires
-	CLC       ;     C=0                                               
-	BIT HRS5+1      ;  on fait tourner HRS5+1 sur lui-m?me               
-	BPL LE798   ;   afin de conserver le pattern                     
+	CLC          ;     C=0                                               
+	BIT HRS5+1   ;  on fait tourner HRS5+1 sur lui-même               
+	BPL LE798    ;   afin de conserver le pattern                     
 	SEC 
 LE798	
 	ROL HRS5+1                                                          
-	BCC Le7c0  ;    si b7 de $56   ? 0, on saute <-------------------- 
+	BCC Le7c0      ;    si b7 de $56   ? 0, on saute <-------------------- 
 LE79C
-	LDY $49     ;   sinon on prend X/6                               I
-	LDA ($4B),Y ;   on lit le code actuel                            I
-	ASL         ;   on sort b7                                       I
-	BPL Le7c0   ;   pas pixel, on sort ------------------------------O
-	LDX $4A     ;   on prend le reste de X/6                         I
+	LDY HRSX40     ;   sinon on prend X/6                               I
+	LDA (ADHRS),Y  ;   on lit le code actuel                            I
+	ASL            ;   on sort b7                                       I
+	BPL Le7c0      ;   pas pixel, on sort ------------------------------O
+	LDX HRSX6      ;   on prend le reste de X/6                         I
 	LDA data_for_hires_display,X  ;  on lit le bit correspondant                      I 
-	BIT $57     ;   b7 de HRSFB ? 1 ?                                I
-	BMI LE7BA   ;   b7 ? 1, donc 3 ou 2                              I 
-	BVC L7B3   ;   FB=0 ----------------------------------------    I 
-	ORA ($4B),Y  ;  FB=1, on ajoute le code                     I    I
-	STA ($4B),Y ;   et on le place                              I    I
+	BIT HRSFB      ;   b7 de HRSFB ? 1 ?                                I
+	BMI LE7BA      ;   b7 ? 1, donc 3 ou 2                              I 
+	BVC L7B3       ;   FB=0 ----------------------------------------    I 
+	ORA (ADHRS),Y  ;  FB=1, on ajoute le code                     I    I
+	STA (ADHRS),Y ;   et on le place                              I    I
 	RTS
 L7B3        ;                                               I    I
 	EOR #$7F    ;   on inverse le bit  <-------------------------    I
-	AND ($4B),Y ;   et on l'?teint                                   I
-	STA ($4B),Y  ;  avant de le placer                               I
+	AND (ADHRS),Y ;   et on l'?teint                                   I
+	STA (ADHRS),Y  ;  avant de le placer                               I
 	RTS         ;                                                    I
 LE7BA
 	BVS Le7c0   ;   FB=3, on sort -----------------------------------O 
-	EOR ($4B),Y ;   FB=2, on inverse le bit                          I
-	STA ($4B),Y  ;  et on sort     	a                                I
+	EOR (ADHRS),Y ;   FB=2, on inverse le bit                          I
+	STA (ADHRS),Y  ;  et on sort     	a                                I
 Le7c0
 	RTS  
 /*
@@ -4788,11 +4786,11 @@ Action:Ces quatres routines permettent un d?placement extr?mement rapide du
 XHRSCB_ROUTINE
 Le7c1	
 	CLC       ;     on ajoute 40                                      
-	LDA $4B    ;    ? ADHRS                                           
+	LDA ADHRS    ;    ? ADHRS                                           
 	ADC #$28                                                         
-	STA $4B                                                          
+	STA ADHRS                                                          
 	BCC Le7c0                                                     
-	INC $4C                                                          
+	INC ADHRS+1                                                          
 	RTS     
 /*	
                    DEPLACE LE CURSEUR HIRES VERS LE HAUT                    
@@ -4800,41 +4798,42 @@ Le7c1
 XHRSCH_ROUTINE
  Le7cd
 	SEC      ;      on soustrait 40                                   
-	LDA $4B   ;     ? ADHRS                                           
+	LDA ADHRS   ;     ? ADHRS                                           
 	SBC #$28                                                         
-	STA $4B                                                          
+	STA ADHRS                                                          
 	BCS     Le7c0                                                     
-	DEC $4C                                                          
+	DEC ADHRS+1                                                          
 	RTS      	
 /*	
 
                      DEPLACE LE CURSEUR VERS LA DROITE                      
   */
 XHRSCD_ROUTINE  
-  Le7d9
-	LDX $4A  ;      on d?place d'un pixel                             
+.(  
+	LDX HRSX6  ;      on d?place d'un pixel                             
 	INX                                                              
 	CPX #$06  ;     si on est ? la fin                                
-	BNE Le7e4
+	BNE skip
 	LDX #$00   ;    on revient au d?but                               
-	INC $49     ;   et ajoute une colonne 
-Le7e4
-	STX $4A                                                          
+	INC HRSX40     ;   et ajoute une colonne 
+skip
+	STX HRSX6                                                          
 	RTS    
+.)  
 /*	
                      DEPLACE LE CURSEUR VERS LA GAUCHE                      
-  */
+*/
 XHRSCG_ROUTINE
-Le7e7  
-	LDX $4A                                                          
+.(  
+	LDX HRSX6                                                          
 	DEX         ;   on d?place ? gauche                               
-	BPL Le7f0   ;   si on sort                                        
+	BPL skip   ;   si on sort                                        
 	LDX #$05    ;   on se place ? droite                              
-	DEC $49     ;   et on enl?ve une colonne 
-Le7f0                       
-	STX $4A                                                          
+	DEC HRSX40     ;   et on enl?ve une colonne 
+skip                       
+	STX HRSX6                                                          
 	RTS      	
-
+.)
 
 /*
                          PLACE LE CURSEUR EN X,Y                           
@@ -4847,33 +4846,33 @@ Action:calcule l'adresse du curseur en calculant la position de la ligne par
        En sortie, HSRX,Y,X40,X6 et ADHRS sont ajust?s en fonction de X et Y.    
 */
 
-
+hires_put_coordinate
 Le7f3                                                                                
-	STY HRSY   ;     Y dans HRSY                                       
-	STX HRSX   ;     X dans HRSX                                       
-	TYA       ;     et Y dans A                                       
-	LDY #$00  ;     AY=A, ligne du curseur                            
+	STY HRSY            ;     Y dans HRSY                                       
+	STX HRSX            ;     X dans HRSX                                       
+	TYA                 ;     et Y dans A                                       
+	LDY #$00            ;     AY=A, ligne du curseur                            
 	JSR XMUL40_ROUTINE  ;    on calcule 40*ligne                            
-	STA $4B    ;                                           
+	STA ADHRS           ;                                           
 	CLC                                                              
 	TYA                                                              
-	ADC #$A0    ;   et on ajoute $A000, ?cran HIRES                   
-	STA $4C    ;    dans ADHRS                                        
-	STX RES    ;    on met la colonne dans RES                        
-	LDA #$06   ;    A=6                                               
-	LDY #$00   ;    et Y=0  (dans RES+1)                              
-	STY RES+1   ;     AY=6 et RES=colonne                               
-	JSR XDIVIS_ROUTINE ;     on divise la colonne par 6                       
-	LDA RES   ;     on sauve colonne/6 dans HSRX40                    
-	STA $49  ;                                                        
-	LDA RESB  ;      et le reste dans HRSX6                            
-	STA $4A  ;                                                        
-	RTS      ;      I
+	ADC #$A0            ;   et on ajoute $A000, ?cran HIRES                   
+	STA ADHRS+1         ;    dans ADHRS                                        
+	STX RES             ;    on met la colonne dans RES                        
+	LDA #$06            ;    A=6                                               
+	LDY #$00            ;    et Y=0  (dans RES+1)                              
+	STY RES+1           ;     AY=6 et RES=colonne                               
+	JSR XDIVIS_ROUTINE  ;     on divise la colonne par 6                       
+	LDA RES             ;     on sauve colonne/6 dans HSRX40                    
+	STA HRSX40          ;                                                        
+	LDA RESB            ;      et le reste dans HRSX6                            
+	STA HRSX6           ;                                                        
+	RTS                 ;      I
  /*                                                                               
-                                                                               
+
                        TRACE UN RECTANGLE EN RELATIF                        
-                                                                                
-                                                                                
+
+
 Principe:On calcule les coordonn?es absolues des 4 coins et on trace en absolu. 
          Pas tr?s optimis? en temps tout cela, il aurait ?t? plus simple de     
          de tracer directement en relatif !!!                                   
@@ -4881,16 +4880,16 @@ Principe:On calcule les coordonn?es absolues des 4 coins et on trace en absolu.
 */
 XBOX_ROUTINE
 Le819                                                                                
-	CLC         ;   C=0                                               
-	LDA HRSX     ;   on place les coordon?es actuelles                 
-	STA DECFIN     ;   du curseur dans $06-07                            
-	ADC $4D     ;   et les coordonn?es (X+dX,Y+dY)                    
-	STA DECCIB                                                          
-	LDA HRSY                                                          
-	STA DECFIN+1                                                          
-	ADC $4F                                                          
-	STA DECCIB+1     ;   dans DECCIB-09                                       
-	BCC LE83A   ;   inconditionnel                                    
+	CLC              ;   C=0                                               
+	LDA     HRSX     ;   on place les coordon?es actuelles                 
+	STA     DECFIN   ;   du curseur dans $06-07                            
+	ADC     HRS1     ;   et les coordonn?es (X+dX,Y+dY)                    
+	STA     DECCIB                                                          
+	LDA     HRSY                                                          
+	STA     DECFIN+1                                                          
+	ADC     HRS2                                                          
+	STA     DECCIB+1 ;   dans DECCIB-09                                       
+	BCC     LE83A    ;   inconditionnel                                    
                                                                                 
                                                 	
  /*                                                                              
@@ -4934,7 +4933,7 @@ LE845
 	ROL         ;                                               I    I
 	TAY         ;   et Y                                        I    I
 	LDA $0006,Y  ;  on lit la coordonn?e correspondante         I    I
-	STA $4D,X    ;  et on stocke dans HRSx                      I    I
+	STA HRS1,X    ;  et on stocke dans HRSx                      I    I
 	DEX         ;                                               I    I
 	DEX          ;                                              I    I
 	BPL LE845   ;   on fait les 4 coordonn?es ADRAW -------------    I 
@@ -4953,25 +4952,24 @@ Le862
 Action:on calcule dX et dY les d?placements dans HRS1 et HRS2 et on trace en    
        relatif. En entr?e, comme ADRAW dans HRSx.                               
 */
-Le866
 XDRAWA_ROUTINE
-	LDX $4D     ;   X=colonne                                         
-	LDY $4F     ;   Y=ligne du curseur                                
+	LDX HRS1     ;   X=colonne                                         
+	LDY HRS2     ;   Y=ligne du curseur                                
 	JSR Le7f3   ;   on place le curseur en X,Y                         
 	LDX #$FF    ;   on met -1 dans X pour un changement de signe      
 	SEC         ;   ?ventuel dans les param?tres                      
 	LDA HRS3     ;   on prend X2                                       
-	SBC $4D     ;   -X1                                               
-	STA $4D     ;   dans HRS1 (DX)                                    
+	SBC HRS1     ;   -X1                                               
+	STA HRS1     ;   dans HRS1 (DX)                                    
 	BCS LE87B   ;   si DX<0, on inverse le signe de HRS1              
-	STX $4E     ;   DEC $4E aurait ?t? mieux...                       
+	STX HRS1+1     ;   DEC $4E aurait ?t? mieux...                       
 	SEC
 LE87B
-	LDA $53      ;  on prend Y2                                       
-	SBC $4F      ;  -Y1                                               
-	STA $4F     ;   dans HRS2 (DY)                                    
+	LDA HRS4      ;  on prend Y2                                       
+	SBC HRS2      ;  -Y1                                               
+	STA HRS2     ;   dans HRS2 (DY)                                    
 	BCS XDRAWR_ROUTINE   ;   et si DY n?gatif, on met signe -1                 
-	STX $50     ;   ou DEC $50                                        
+	STX HRS2+1     ;   ou DEC $50                                        
                                                   
 
 
@@ -5051,7 +5049,7 @@ LE8E0
 	JSR XHRSCH_ROUTINE ; II  on d?place vers le haut <----------      I  I    I
 LE8E3
 	JSR XHRSSE_ROUTINE	  ;I-->on affiche le point <---------------------  I    I 
-	DEC $4D   ; I   on d?cremente dX,                           I    I
+	DEC HRS1   ; I   on d?cremente dX,                           I    I
 	BNE LE8C0 ; ----on n'a pas parcouru tout l'axe              I    I 
 LE8EA
 	RTS       ;  -->sinon, on sort                              I    I
@@ -5101,10 +5099,10 @@ Le921
 
            ;                    ROUTINE CURSET                               
 XCURSE_ROUTINE
-Le92f                                                                               
+                                                                              
 	LDX HRS1      ;  X=HRSX                FIXME                            
 	LDY HRS2     ;   Y=HRSY                FIXME
-	JSR le94e    ;  on v?rifie les coordonn?es                   
+	JSR hires_verify_position    ;  on v?rifie les coordonn?es                   
 LE936
 	JSR Le7f3    ;  on place le curseur en X,Y                        
 
@@ -5134,23 +5132,22 @@ Le942
 
 /*
                         TESTE SI X ET Y SONT VALIDES                        
-                                                                                
-                                                                                
-Principe:Si X>239 ou Y>199 alors on ne retourne pas au programme appelant, mais 
-         ? son appelant, en indiquant l'erreur dans HRSERR.                     
-  */                                                                              
-le94e
+Principe:Si X>239 ou Y>199 alors on ne retourne pas au programme appelant, mais son appelant, en indiquant l'erreur dans HRSERR.                     
+*/
+
+hires_verify_position
+.(
 	CPX #$F0     ;  X>=240 ?                                          
-	BCS LE957   ;   oui ---------------------------------------------- 
-	CPY #$C8    ;   Y>=200 ?                                         I
-	BCS LE957   ;  oui ---------------------------------------------O
-	RTS         ;   coordonn?es ok, on sort.                         I
-LE957
+	BCS skip     ;   oui ---------------------------------------------- 
+	CPY #$C8     ;   Y>=200 ?                                         I
+	BCS skip     ;   oui ---------------------------------------------O
+	RTS          ;   coordonnées ok, on sort.                         I
+skip
 	PLA          ;  on d?pile poids fort (>0) <-----------------------
-	STA HRSERR    ;  dans HRSERR                                       
+	STA HRSERR   ;  dans HRSERR                                       
 	PLA          ;  et poids faible de l'adresse de retour            
 	RTS          ;  et on retourne ? l'appelant de l'appelant    
-
+.)
 
 
 XPAPER_ROUTINE
@@ -5300,7 +5297,7 @@ Le9cb
 	LDA HRSY      ;  et HRSY                                           
 	PHA                                                              
 	LDA HRSPAT   ;   et on met le pattern dans $56                     
-	STA $56      ;  car le trac? du cercle en tient compte            
+	STA HRS5+1      ;  car le trac? du cercle en tient compte            
 	LDA HRSY      ;  on prend HRSY                                     
 	SEC                                                              
 	SBC HRS1     ;   -rayon                                            
@@ -5409,8 +5406,8 @@ LEA73
 	sta RES 
 	sty RES+1
 Lea7b
-	ldx $4f
-	ldy $49
+	ldx HRS2
+	ldy HRSX40
 	lda HRS3
 Lea81	
 	sta (RES),y
@@ -5420,7 +5417,7 @@ Lea81
 	lda #$28
 	ldy #0
 	jsr XADRES_ROUTINE 
-	dec $4d
+	dec HRS1
 	bne Lea7b 
 Lea92	
 	rts
@@ -5428,15 +5425,15 @@ Lea92
 XSCHAR_ROUTINE
 	sta HRS3
 	sty HRS3+1
-	stx $4f
+	stx HRS2
 	lda #$40
 	sta $57
 	ldy #$00
 Lea9f
 	sty $50
-	cpy $4f
+	cpy HRS2
 	bcs Lea92 
-	lda ($51),y
+	lda (HRS3),y
 	jsr LEAB5 
 	ldy $50
 	iny
@@ -5445,16 +5442,16 @@ Lea9f
 XCHAR_ROUTINE
 LEAAF
 
-	LDA $4D
+	LDA HRS1
 	ASL
-	LSR $4F
+	LSR HRS2
 	ROR
 LEAB5	
 	PHA
 	LDA HRSX
 	CMP #$EA
 	BCC Lead3
-	LDX $4A
+	LDX HRSX6
 	LDA HRSY
 	ADC #$07
 	TAY
@@ -5474,9 +5471,9 @@ Lead3
 	LDY #$00
 Lead9	
 	STY RES
-	LDA $49
+	LDA HRSX40
 	PHA
-	LDA $4A
+	LDA HRSX6
 	PHA
 	LDA (RESB),Y
 	ASL
@@ -5493,9 +5490,9 @@ Leaed
 Leaf3	
 	JSR XHRSCB_ROUTINE
 	PLA
-	STA $4A
+	STA HRSX6
 	PLA
-	STA $49
+	STA HRSX40
 	LDY RES
 	INY
 	CPY #$08
