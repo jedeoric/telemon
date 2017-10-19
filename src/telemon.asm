@@ -205,7 +205,7 @@ skip
 	lda     #XSCR ; Setup screen !  on channel 0
 	BRK_TELEMON(XOP0) 
 	BRK_TELEMON(XRECLK)  ; Don't know this vector
-	lda     #XMDS
+	lda     #XMDS        ; Open minitel output on channel 1
 	BRK_TELEMON(XOP1)
 
 	lda     #<store_str2 ; Write attributes on first line (status line)
@@ -4741,11 +4741,11 @@ XHRSSE_ROUTINE
 LE792
 display_cursor_in_hires
 	CLC       ;     C=0                                               
-	BIT $56      ;  on fait tourner HRS5+1 sur lui-m?me               
+	BIT HRS5+1      ;  on fait tourner HRS5+1 sur lui-m?me               
 	BPL LE798   ;   afin de conserver le pattern                     
 	SEC 
 LE798	
-	ROL $56                                                          
+	ROL HRS5+1                                                          
 	BCC Le7c0  ;    si b7 de $56   ? 0, on saute <-------------------- 
 LE79C
 	LDY $49     ;   sinon on prend X/6                               I

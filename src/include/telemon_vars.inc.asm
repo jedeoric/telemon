@@ -134,8 +134,17 @@ HRSX
 ; $47
 HRSY
 .dsb 1
+; dont know FIXME
+.dsb 1
+HRSX40
+; $49
+.dsb 1
+HRSX6
+; 4a
+.dsb 1
+ADHRS
+.dsb 2
 ; $48
-.dsb 5 ; FIXME
 HRS1 ; $4d
 .dsb 2
 HRS2 ;$4f
@@ -144,8 +153,10 @@ HRS3; $51
 .dsb 2
 HRS4 ;$53
 .dsb 2
-; $55 FIXME
-.dsb 3
+HRS5
+.dsb 2
+HRSFB ; b7-b6)
+.dsb 1
 
 /// @brief [VALUE_PAGE_0] Used to backup value in buffer routine and joystick and to do some operation
 

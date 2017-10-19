@@ -481,7 +481,9 @@ str
 #define XGOKBD $52 
 
 #define XKBD $80 ; Keyboard
+#define XRSE $83 /* RS232 INPUT  */
 #define XSCR $88 ; Screen window 0
+#define XRSS $90 /* RS232 OUTPUT */
 
 ; others
 #define MALLOC_TABLE $D000 ; RAM OVERLAY Only in telemon 3.0

@@ -1,19 +1,19 @@
 ; jede jede@oric.org 2017-01-22
 
-    .export 	_ch376_set_file_name
-    .export 	_ch376_file_open
-    .export 	_ch376_ic_get_version
-    .export 	_ch376_reset
-    .export 	_ch376_check_exist
-    .export 	_ch376_disk_mount
-    .export		_ch376_set_usb_mode
-    .export		_ch376_file_close
-    .export 	_ch376_seek_file
+    .export   _ch376_set_file_name
+    .export   _ch376_file_open
+    .export   _ch376_ic_get_version
+    .export   _ch376_reset
+    .export   _ch376_check_exist
+    .export   _ch376_disk_mount
+    .export   _ch376_set_usb_mode
+    .export   _ch376_file_close
+    .export   _ch376_seek_file
     .export   _ch376_rd_usb_data0
     .export   _ch376_get_entry
-    .export		_ch376_file_create	
-    .export 	_ch376_fwrite
-    .export 	_ch376_write
+    .export   _ch376_file_create	
+    .export   _ch376_fwrite
+    .export   _ch376_write
     .export   _ch376_dir_create
     .export   _ch376_file_erase
     .export   _ch376_process_next_entry_catalog
