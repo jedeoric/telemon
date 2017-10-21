@@ -6,7 +6,7 @@ LDFILES=
 PROGRAM=telemon30
 SOURCE=src/telemon.asm
 
-ASFLAGS=-C -W -e error.txt -l xa_labels.txt
+ASFLAGS=-C -W -e error.txt -l xa_labels.txt -DWITH_ACIA
 
 $(PROGRAM): $(SOURCE)
 	$(AS) $(SOURCE) $(ASLAGS) -o $(PROGRAM).rom

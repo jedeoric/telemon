@@ -4998,83 +4998,83 @@ Principe:Le principe du trac? des droites est en fait assez complexe. On aurait
 XDRAWR_ROUTINE
 Le885                                                                             
 	LDA HRSPAT  ;    sauve le pattern                                  
-	STA $56    ;    dans HRS1+1                                       
-	JSR Le942  ;    v?rifie la validit? de dX et dY                  
+	STA $56     ;    dans HRS1+1                                       
+	JSR Le942   ;    v?rifie la validit? de dX et dY                  
 	STX HRSX    ;    X et Y contiennent HRSX+dX et HRSY+dY             
-	STY HRSY     ;   dans HRSX et HRSY                                 
-	BIT $4E    ;    dX n?gatif ?                                      
-	BPL LE89D  ;    non ----------------------------------------------
+	STY HRSY    ;   dans HRSX et HRSY                                 
+	BIT HRS1+1  ;    dX n?gatif ?                                      
+	BPL LE89D   ;    non ----------------------------------------------
 	LDA HRS1    ;    oui, on compl?mente                              I
-	EOR #$FF    ;   dX                                               I
+	EOR #$FF    ;    dX                                               I
 	STA HRS1    ;                                                     I
 	INC HRS1    ;    ? 2                                              I
 LE89D
-	BIT $50    ;    dY n?gatif ? <------------------------------------
-	BPL LE8A9  ;    non ---------------------------------------------- 
+	BIT HRS2+1  ;    dY n?gatif ? <------------------------------------
+	BPL LE8A9   ;    non ---------------------------------------------- 
 	LDA HRS2    ;    oui on compl?mente                               I
-	EOR #$FF   ;    dY                                               I
+	EOR #$FF    ;    dY                                               I
 	STA HRS2    ;                                                     I
 	INC HRS2    ;    ? 2                                              I
 LE8A9
 	LDA HRS1    ;    on teste dX et dY <-------------------------------
 	CMP HRS2                                                          
-	BCC LE8ED   ;   dX<dY -------------------------------------------- 
-	PHP         ;   dX>=dY , on trace selon dX                       I
-	LDA HRS1     ;   on prends dX                                     I
-	BEQ LE8EB  ;    dX=0, on sort -------------------------------    I 
+	BCC LE8ED   ;    dX<dY -------------------------------------------- 
+	PHP         ;    dX>=dY , on trace selon dX                       I
+	LDA HRS1    ;    on prends dX                                     I
+	BEQ LE8EB   ;    dX=0, on sort -------------------------------    I 
 	LDX HRS2    ;    X=dY                                        I    I
-	JSR Le921  ;    on calcule dY/dX                            I    I 
-	PLP        ;                                                I    I
-	BNE LE8C0  ;    dX<>dY -----------------------------------  I    I 
-	LDA #$FF   ;    dX=dY, la tangente est 1                 I  I    I
-	STA RES   ;     en fait, -1, mais c'est la m?me chose    I  I    I
+	JSR Le921   ;    on calcule dY/dX                            I    I 
+	PLP         ;                                                I    I
+	BNE LE8C0   ;    dX<>dY -----------------------------------  I    I 
+	LDA #$FF    ;    dX=dY, la tangente est 1                 I  I    I
+	STA RES     ;    en fait, -1, mais c'est la même chose    I  I    I
 LE8C0	
-	BIT $4e ; I
-	BPL LE8CA ; I   dX>0 -------------------------------------  I    I
-	JSR XHRSCG_ROUTINE ; I   dX<0, on d?place le curseur ? gauche     I  I    I 
-	JMP LE8CD ; I---                                         I  I    I  
+	BIT HRS1+1         ; I
+	BPL LE8CA          ; I   dX>0 -------------------------------------  I    I
+	JSR XHRSCG_ROUTINE ; I   dX<0, on dé0place le curseur ? gauche     I  I    I 
+	JMP LE8CD          ; I---                                         I  I    I  
 LE8CA
 	JSR XHRSCD_ROUTINE ; II  on on d?place le curseur ? droite <-------  I    I 
 LE8CD
-	CLC       ; I-->a-t-on parcouru une valeur de la tangente   I    I
-	LDA RES   ; I                                               I    I
-	ADC RESB   ; I   on stocke le r?sultat dans RESB              I    I
-	STA RESB   ; I                                               I    I
-	BCC LE8E3  ;I   non, on continue -------------------------  I    I 
-	BIT $50   ; I   oui, dY<0 ?                              I  I    I
-	BMI LE8E0 ; I   oui -------------------------------      I  I    I
+	CLC                ; I-->a-t-on parcouru une valeur de la tangente   I    I
+	LDA RES            ; I                                               I    I
+	ADC RESB           ; I  on stocke le r?sultat dans RESB              I    I
+	STA RESB           ; I                                               I    I
+	BCC LE8E3          ;I   non, on continue -------------------------  I    I 
+	BIT HRS2+1         ; I   oui, dY<0 ?                              I  I    I
+	BMI LE8E0          ; I   oui -------------------------------      I  I    I
 	JSR XHRSCB_ROUTINE ; I   non, on d?place le curseur        I      I  I    I 
-	JMP LE8E3  ;I---vers le bas                       I      I  I    I 
+	JMP LE8E3          ;I---vers le bas                       I      I  I    I 
 LE8E0
 	JSR XHRSCH_ROUTINE ; II  on d?place vers le haut <----------      I  I    I
 LE8E3
-	JSR XHRSSE_ROUTINE	  ;I-->on affiche le point <---------------------  I    I 
-	DEC HRS1   ; I   on d?cremente dX,                           I    I
-	BNE LE8C0 ; ----on n'a pas parcouru tout l'axe              I    I 
+	JSR XHRSSE_ROUTINE ;I-->on affiche le point <---------------------  I    I 
+	DEC HRS1           ; I   on d?cremente dX,                           I    I
+	BNE LE8C0          ; ----on n'a pas parcouru tout l'axe              I    I 
 LE8EA
-	RTS       ;  -->sinon, on sort                              I    I
+	RTS                ;  -->sinon, on sort                              I    I
 LE8EB
-	PLP      ;   I  <--------------------------------------------    I
-	RTS       ;  I                                                   I
+	PLP                ;   I  <--------------------------------------------    I
+	RTS                ;  I                                                   I
 LE8ED
-	LDA HRS2   ;  I  on trace la droite selon dY <---------------------
-	BEQ LE8EA  ; ---dY=0, on sort                                      
-	LDX HRS1   ;     X=dX                                              
-	JSR Le921 ;     on calcule dX/dY dans RES                          
+	LDA HRS2           ;  I  on trace la droite selon dY <---------------------
+	BEQ LE8EA          ; ---dY=0, on sort                                      
+	LDX HRS1           ;     X=dX                                              
+	JSR Le921          ;     on calcule dX/dY dans RES                          
 LE8F6
-	BIT $50                                                          
-	BPL LE900  ;    dY>0 --------------------------------------------- 
+	BIT HRS2+1                                                         
+	BPL LE900          ;    dY>0 --------------------------------------------- 
 	JSR XHRSCH_ROUTINE ;    dY<0, on d?place vers le haut                    I 
-	JMP LE903  ; ---et on saute                                      I 
+	JMP LE903          ; ---et on saute                                      I 
 LE900
-	JSR XHRSCB_ROUTINE  ; I  on d?place vers le bas <-------------------------- 
+	JSR XHRSCB_ROUTINE ; I  on d?place vers le bas <-------------------------- 
 LE903	
 	CLC       ;  -->a-t-on parcouru la tangente ?                     
 	LDA RES                                                          
 	ADC RESB                                                          
 	STA RESB     ;   (dans RESB)                                        
 	BCC LE919   ;   non ---------------------------------------------- 
-	BIT $4E     ;                                                    I
+	BIT HRS1+1     ;                                                    I
 	BPL LE916   ;   dX>0 ------------------------------------        I
 	JSR XHRSCG_ROUTINE   ;   dX<0, on d?place vers                   I        I 
 	JMP LE919  ; ---la gauche                               I        I 
@@ -5137,7 +5137,7 @@ Principe:Si X>239 ou Y>199 alors on ne retourne pas au programme appelant, mais 
 
 hires_verify_position
 .(
-	CPX #$F0     ;  X>=240 ?                                          
+	CPX #$F0     ;   X>=240 ?                                          
 	BCS skip     ;   oui ---------------------------------------------- 
 	CPY #$C8     ;   Y>=200 ?                                         I
 	BCS skip     ;   oui ---------------------------------------------O
@@ -5400,9 +5400,8 @@ Lea68
 	RTS         
 
 XFILL_ROUTINE
-LEA73
-	lda $4b
-	ldy $4c
+	lda ADHRS
+	ldy ADHRS+1
 	sta RES 
 	sty RES+1
 Lea7b
@@ -5422,22 +5421,7 @@ Lea81
 Lea92	
 	rts
 	
-XSCHAR_ROUTINE
-	sta HRS3
-	sty HRS3+1
-	stx HRS2
-	lda #$40
-	sta $57
-	ldy #$00
-Lea9f
-	sty $50
-	cpy HRS2
-	bcs Lea92 
-	lda (HRS3),y
-	jsr LEAB5 
-	ldy $50
-	iny
-	bne Lea9f
+#include "src/functions/graphics/schar.asm"
 
 XCHAR_ROUTINE
 LEAAF
