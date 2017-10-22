@@ -299,14 +299,14 @@ str
 /// @brief [PRIMITIVE] hard copy of text window
 #define XHCSCR $4a
 
-/// @brief [PRIMITIVE] Set usb mode 
-//#define XCH376_SET_USB_MODE $4b
+/// @brief [PRIMITIVE] 
+#define XMKDIR $4b
 
 /// @brief [PRIMITIVE] hard copy of hires window
 #define XHCHRS $4c
 
 /// @brief [PRIMITIVE] Start disk mount
-//#define XCH376_DISK_MOUNT $4d
+#define XRM    $4d
 
 #define XALLKB $50 ; Get keyboard, --> KBDCOL
 
@@ -463,8 +463,8 @@ str
 
 /// @brief [PRIMITIVE] put a string un Hires
 /// @param A (accumulator)  [in] The desired low adress of the memory 
-/// @param Y (register)  [in] The desired high adress of the memory
-/// @param X (register)  [in] Length of the string
+/// @param Y (register)     [in] The desired high adress of the memory
+/// @param X (register)     [in] Length of the string
 #define XSCHAR $98 ; SCHAR string adress in AY, length in X 
 
 /*PSG working */

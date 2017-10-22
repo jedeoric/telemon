@@ -14,6 +14,8 @@ $(PROGRAM): $(SOURCE)
 test:
 	mkdir -p build/usr/bin/
 	mkdir -p build/usr/share/man
-	mkdir -p build/usr/share/ipkg  
+	mkdir -p build/usr/share/ipkg
+	xa tests/xrm.asm -o xrm
+	xa tests/xmkdir.asm -o xmkdir
 	echo nothing
   

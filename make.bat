@@ -25,7 +25,7 @@ IF "%1"=="NORUN" GOTO End
 copy telemon%RELEASE%.rom %ORICUTRON%\roms\telemon%RELEASE%.rom
 
 cd %ORICUTRON%
-oricutronV4 -mt  --symbols "%ORIGIN_PATH%\xa_labels.txt"
+oricutronV5 -mt  --symbols "%ORIGIN_PATH%\xa_labels.txt"
 
 
 :End

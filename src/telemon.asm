@@ -543,7 +543,7 @@ VIRQ_CODE
 	.byt $00 ; will be stored in $2FF
 display_developper	
 // Garbage fixme
-
+  rts
 
 /**************************** END LOOP ON DEVELOPPR NAME !*/
 
@@ -1504,10 +1504,10 @@ vectors_telemon
 	.byt <XLPRBI_ROUTINE,>XLPRBI_ROUTINE ; $48
 	.byt <XLPCRL_ROUTINE,>XLPCRL_ROUTINE ; $49
 	.byt <XHCSCR_ROUTINE,>XHCSCR_ROUTINE ; $4a
-	.byt $00,$00 ; $4b
+	.byt <XMKDIR_ROUTINE,>XMKDIR_ROUTINE; $4b
 	
 	.byt <XHCHRS_ROUTINE,>XHCHRS_ROUTINE ; $4c
-	.byt $00,$00 ; $4d
+	.byt <XRM_ROUTINE,>XRM_ROUTINE ; $4d
 	.byt $00,$00 ; $4e
 	.byt $00,$00 ; $4f
 	.byt <XALLKB_ROUTINE,>XALLKB_ROUTINE ; $50
@@ -1608,6 +1608,16 @@ XWRITEBYTES_ROUTINE
 XFSEEK_ROUTINE
 #include "src/functions/xfseek.asm"
 
+XMKDIR_ROUTINE
+  ; [IN] AY contains the pointer of the path
+  ; FIXME
+  rts
+
+XRM_ROUTINE
+  ; [IN] AY contains the pointer of the path
+  ; FIXME
+  rts
+  
 
 XMENU_ROUTINE
 menu_deroulant
@@ -4726,10 +4736,10 @@ LE782
 	INY          ;   on ajoute un chiffre lu                      I   I
 	BNE LE753    ;     et on recommence  ----------------------------   I
 LE785
-	TYA       ;     nombre de chiffres lus <--------------------------
-	TAX       ;     dans X                                            
-	LDA RESB   ;     nombre dans AY et RESB                            
-	LDY RESB+1    ;                                                      
+	TYA          ;     nombre de chiffres lus <--------------------------
+	TAX          ;     dans X                                            
+	LDA RESB     ;     nombre dans AY et RESB                            
+	LDY RESB+1   ;                                                      
 	RTS
 	
 data_for_hires_display
@@ -5430,6 +5440,7 @@ LEAAF
 	ASL
 	LSR HRS2
 	ROR
+XCHAR_ROUTINE_PUT
 LEAB5	
 	PHA
 	LDA HRSX
