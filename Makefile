@@ -17,7 +17,7 @@ test:
 	mkdir build  
 	cp $(PROGRAM).rom build/
   cd build
-	tar -c * > $(PROGRAM).tar
+	tar -c * > ../$(PROGRAM).tar
   cd ..
 	filepack  $(PROGRAM).tar $(PROGRAM).pkg
 	gzip $(PROGRAM).tar
