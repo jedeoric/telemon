@@ -37,7 +37,7 @@ copy tests\xrm  %ORICUTRON%\usbdrive\tests\
 copy tests\xfillm  %ORICUTRON%\usbdrive\tests\
 copy tests\xmkdir  %ORICUTRON%\usbdrive\tests\
 cd %ORICUTRON%
-oricutronV5 -mt  --symbols "%ORIGIN_PATH%\xa_labels.txt"
+oricutronV6 -mt  --symbols "%ORIGIN_PATH%\xa_labels.txt"
 
 
 :End
