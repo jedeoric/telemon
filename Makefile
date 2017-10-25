@@ -14,6 +14,7 @@ $(PROGRAM): $(SOURCE)
 test:
 	xa tests/xrm.asm -o xrm
 	xa tests/xmkdir.asm -o xmkdir
+	mkdir build  
 	cp $(PROGRAM).rom build/
 	tar -c build/* > $(PROGRAM).tar
 	filepack  $(PROGRAM).tar $(PROGRAM).pkg
