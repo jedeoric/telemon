@@ -29,6 +29,8 @@
 #define CH376_BYTE_WR_GO		  $3D
 #define CH376_DISK_CAPACITY 	$3E
 #define CH376_DISK_QUERY   		$3F
+#define CH376_DIR_CREATE      $40
+
 #define CH376_DISK_RD_GO 		  $55
 
 /*CODE FOR CH376_SET_USB_MODE **************************************************/

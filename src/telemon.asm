@@ -1609,8 +1609,62 @@ XFSEEK_ROUTINE
 #include "src/functions/xfseek.asm"
 
 XMKDIR_ROUTINE
+.(
   ; [IN] AY contains the pointer of the path
   ; FIXME
+  sta     RES
+  sty     RES+1
+  
+  ; is it an absolute path ?
+  ldy     #$00
+  lda     (RES),y
+  cmp     #"/"
+  beq     isabsolute
+  ; at this step we get PWD
+  rts
+isabsolute  
+  jsr     _open_root_and_enter
+  ldy     #$00                   ; skip /
+next_folder
+  ldx     #$00
+next_char  
+  iny
+  lda     (RES),y
+  beq     end
+  cmp     #"/"
+  beq     create_dir
+  sta     BUFNOM,x
+  sta     $bb80,x
+  inx
+  bne     next_char
+  
+end
+  
+  rts
+create_dir
+  lda     #$00
+  sta     BUFNOM,x
+  sty     TR7   ; save Y
+
+  jsr     _ch376_set_file_name
+  jsr     _ch376_dir_create
+  ldy     TR7
+  rts
+  jmp     next_folder
+.)
+
+_open_root_and_enter
+	lda     #"/"
+	sta     BUFNOM
+
+#ifdef CPU_65C02
+	stz     BUFNOM+1 ; INIT	
+#else	
+	lda     #$00 ; used to write in BUFNOM
+	sta     BUFNOM+1 ; INIT	
+#endif
+	jsr     _ch376_set_file_name
+	jsr     _ch376_file_open
   rts
 
 XRM_ROUTINE
@@ -4487,14 +4541,14 @@ Le62a
 	ORA #$40     ;  on ajoute 40                                      
 	JMP LE656    ;  et on envoie au minitel
 
-	/*
+/*
                    ENVOIE UN CODE SUR LE TERMINAL VIDEO                    
                                                                                 
 Action:envoie un code sur l'?cran et ?ventuellement sur le minitel s'il est     
        actif comme sortie vid?o. Seule la fen?tre 0 est g?r?e, ce qui ote       
        d?finitivement tout espoir de gestion d'entr?e de commande sur une autre 
        fen?tre.                                                                 
-      */                                                                          
+*/                                                                          
 Le648                                                                        
 	BIT FLGTEL    ;  mode minitel ?                                    
 	BVC LE650    ;  non ---------------------------------------------- 
@@ -4804,7 +4858,7 @@ Le7c1
 	RTS     
 /*	
                    DEPLACE LE CURSEUR HIRES VERS LE HAUT                    
-  */
+*/
 XHRSCH_ROUTINE
  Le7cd
 	SEC      ;      on soustrait 40                                   
@@ -6115,13 +6169,7 @@ end
 	AND #O_WRONLY
 	cmp #O_WRONLY
 	beq write_only
-	/*
-		lda #"S"
-	jsr XWR0_ROUTINE
-	PRINT_INTO_TELEMON(BUFNOM)
-		lda #"S"
-	jsr XWR0_ROUTINE	
-	*/
+
 	; In all others keys, readonly read :!
 #ifdef CPU_65C02
 	bra read_only
@@ -6204,12 +6252,14 @@ file_not_found
 	
 .)
 
+; [IN]Nothing
+; [MODIFY] A, BUFNOM
+
 _open_root
 	lda #"/"
 	sta BUFNOM
 
 #ifdef CPU_65C02
-	;ldx #0
 	stz BUFNOM+1 ; INIT	
 #else	
 	lda #0 ; used to write in BUFNOM

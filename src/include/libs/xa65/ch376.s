@@ -6,6 +6,14 @@ _ch376_file_create
 	rts
 .)
 
+_ch376_dir_create
+.(
+  lda     #CH376_DIR_CREATE
+  sta     CH376_COMMAND
+  jsr     _ch376_wait_response
+  rts
+.)
+
 ; A contains 0 if it needs to update length
 _ch376_file_close
 	ldx #CH376_FILE_CLOSE
@@ -34,21 +42,17 @@ _ch376_seek_file
 	rts
 .)
 
-;#define DEBUG_CH376
+
 
 //@set filename, input : A and Y adress of the string, terminated by 0
 // If the set is successful, then A contains 0
+// [IN]
+// [MODIFY] A, X
 _ch376_set_file_name
 .(
-#ifdef DEBUG_CH376
-	lda #<BUFNOM
-	ldy #>BUFNOM
-	jsr XWSTR0_ROUTINE
-#endif
-	
 	lda #CH376_SET_FILE_NAME ;$2f
 	sta CH376_COMMAND
-	ldx #0
+	ldx #$0
 loop	
 	lda BUFNOM,x ; replace by bufnom
 	beq end ; we reached 0 value
@@ -190,18 +194,6 @@ _ch376_wait_response
 loop3
 	ldx #$ff ; merci de laisser une valeur importante car parfois en mode non debug, le controleur ne répond pas tout de suite
 loop
-#ifdef DEBUG_LS
-	tya
-	pha
-	txa
-	pha
-	lda #"."
-	BRK_TELEMON(XWR0)
-	pla
-	tax
-	pla
-	tay
-#endif
 	lda CH376_COMMAND
 	and #%10000000
 	cmp #128
@@ -221,24 +213,9 @@ no_error
 	sta CH376_COMMAND
 	lda CH376_DATA
 
-;	cmp #$1d
-;	beq good_message
-;	cmp #CH376_USB_INT_SUCCESS
-;	beq good_message
-#ifdef DEBUG_LS
-	lda #<str_failed_message
-	ldy #>str_failed_message
-	BRK_TELEMON(XWSTR0)	
-#endif
 	rts
 good_message
-#ifdef DEBUG_LS
-	pha
-	lda #<str_ok_message
-	ldy #>str_ok_message
-	BRK_TELEMON(XWSTR0)
-	pla
-#endif
+
 .)
 	rts
 str_usbdrive_controller_not_found

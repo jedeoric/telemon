@@ -32,6 +32,7 @@
 #define CH376_CMD_BYTE_WRITE    0x3c
 #define CH376_CMD_BYTE_WR_GO    0x3d
 #define CH376_CMD_DISK_QUERY    0x3f
+
 #define CH376_CMD_DISK_RD_GO    0x55
 
 #define CH376_ARG_SET_USB_MODE_INVALID  0x00

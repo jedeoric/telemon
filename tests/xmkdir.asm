@@ -23,13 +23,29 @@ type_of_file
 start_adress
  
 	*=$1000
-  lda   #<file
-  ldy   #>file
-  BRK_TELEMON(XMKDIR)
-	rts
 
-file
-    .asc "/jede",0
+  lda   #<creating
+  ldy   #>creating
+  BRK_TELEMON(XWSTR0)    
+  
+  
+  lda   #<file1
+  ldy   #>file1
+  BRK_TELEMON(XWSTR0)  
+  
+  BRK_TELEMON(XCRLF)
+  
+  lda   #<file1
+  ldy   #>file1
+  BRK_TELEMON(XMKDIR)
+  
+  
+	rts
+creating
+  .asc "Creating ... ",0
+  
+file1
+    .asc "/jede/toulou/pouet",0
   
 EndOfMemory
 

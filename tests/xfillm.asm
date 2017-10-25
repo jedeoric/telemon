@@ -1,5 +1,5 @@
-#include "../src/include/telemon.h"
-#include "../src/include/macro.h"
+#include "src/include/telemon.h"
+#include "src/include/macro.h"
         *=$1000-20
 ; include header
         .byt $01,$00		; non-C64 marker like o65 format
@@ -27,3 +27,4 @@ start_adress
 	sta $bb80
 	rts
 EndOfMemory
+
