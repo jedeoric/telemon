@@ -16,7 +16,9 @@ test:
 	xa tests/xmkdir.asm -o xmkdir
 	mkdir build  
 	cp $(PROGRAM).rom build/
-	tar -c build/* > $(PROGRAM).tar
+  cd build
+	tar -c * > $(PROGRAM).tar
+  cd ..
 	filepack  $(PROGRAM).tar $(PROGRAM).pkg
 	gzip $(PROGRAM).tar
 	mv $(PROGRAM).tar.gz $(PROGRAM).tgz
