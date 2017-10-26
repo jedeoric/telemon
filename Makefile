@@ -15,10 +15,9 @@ test:
 	xa tests/xrm.asm -o xrm
 	xa tests/xmkdir.asm -o xmkdir
 	mkdir build  
-	cp $(PROGRAM).rom build/
-	cd build
-	tar -c * > ../$(PROGRAM).tar
-	cd ..
+  mkdir -p build/usr/share/telemon/3.1/6502/
+	cp $(PROGRAM).rom build/usr/share/telemon/3.1/6502/
+	cd build && tar -c * > ../$(PROGRAM).tar &&	cd ..
 	filepack  $(PROGRAM).tar $(PROGRAM).pkg
 	gzip $(PROGRAM).tar
 	mv $(PROGRAM).tar.gz $(PROGRAM).tgz
