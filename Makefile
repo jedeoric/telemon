@@ -3,7 +3,7 @@ CC=cl65
 CFLAGS=-ttelestrat
 LDFILES=
 
-PROGRAM=telemon30
+PROGRAM=telemon31
 SOURCE=src/telemon.asm
 
 ASFLAGS=-C -W -e error.txt -l xa_labels.txt -DWITH_ACIA
