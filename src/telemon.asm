@@ -1610,10 +1610,10 @@ XFSEEK_ROUTINE
 
 XMKDIR_ROUTINE
 .(
-  ; [IN] AY contains the pointer of the path
+  ; [IN] AX contains the pointer of the path
   ; FIXME
   sta     RES
-  sty     RES+1
+  stx     RES+1
   
   ; is it an absolute path ?
   ldy     #$00
@@ -1621,7 +1621,34 @@ XMKDIR_ROUTINE
   cmp     #"/"
   beq     isabsolute
   ; at this step we get PWD
-  rts
+  //ORIX_PATH_CURRENT
+  ; Copy current PWD
+;  lda     volatile_str
+
+  
+  ldx     #$00
+loop  
+  lda     ORIX_PATH_CURRENT,x
+  beq     end_of_pwd_copy
+  sta     volatile_str,x
+  inx
+  bne      loop
+end_of_pwd_copy  
+  lda     (RES),y
+  beq     end_of_path_copy
+  sta     volatile_str,x
+  iny
+  inx
+  bne     end_of_pwd_copy  
+end_of_path_copy  
+  ; At this step A contains A
+  sta     volatile_str,x
+  lda     #<volatile_str
+  sta     RES
+  lda     #>volatile_str
+  sta     RES+1
+  
+  
 isabsolute  
   jsr     _open_root_and_enter
   ldy     #$00                   ; skip /
@@ -1634,7 +1661,6 @@ next_char
   cmp     #"/"
   beq     create_dir
   sta     BUFNOM,x
-  sta     $bb80,x
   inx
   bne     next_char
   
