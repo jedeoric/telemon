@@ -1639,8 +1639,13 @@ next_char
   bne     next_char
   
 end
-  
+  ; Create last folder
+  ; Store 0
+  sta     BUFNOM,x
+  jsr     _ch376_set_file_name
+  jsr     _ch376_dir_create
   rts
+  
 create_dir
   lda     #$00
   sta     BUFNOM,x
@@ -1649,7 +1654,6 @@ create_dir
   jsr     _ch376_set_file_name
   jsr     _ch376_dir_create
   ldy     TR7
-  rts
   jmp     next_folder
 .)
 
