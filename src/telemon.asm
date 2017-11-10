@@ -1450,7 +1450,7 @@ vectors_telemon
 ; 
 
 	.byt <XDECAL_ROUTINE,>XDECAL_ROUTINE ; $18
-	.byt <XTEXT_ROUTINE,>XTEXT_ROUTINE ; XTEXT ; 19
+	.byt <XTEXT_ROUTINE,>XTEXT_ROUTINE   ; XTEXT ; 19
 	.byt <XHIRES_ROUTINE,>XHIRES_ROUTINE ; XHIRES
 	.byt <XEFFHI_ROUTINE,>XEFFHI_ROUTINE ; XEFFHI ; 1b
 	.byt <XFILLM_ROUTINE,>XFILLM_ROUTINE ; XFILLM
@@ -1461,21 +1461,20 @@ vectors_telemon
 	.byt <XMULT_ROUTINE,>XMULT_ROUTINE
 	.byt <XADRES_ROUTINE,>XADRES_ROUTINE ; XADRES
 	.byt <XDIVIS_ROUTINE,>XDIVIS_ROUTINE ; 
-	.byt <XVARS_ROUTINE,>XVARS_ROUTINE ; XNOMFI  should be deleted because it's not needed
-	.byt <XCRLF_ROUTINE,>XCRLF_ROUTINE ; $25
+	.byt <XVARS_ROUTINE,>XVARS_ROUTINE   ; XNOMFI  should be deleted because it's not needed
+	.byt <XCRLF_ROUTINE,>XCRLF_ROUTINE   ; $25
 	.byt <XDECAY_ROUTINE,>XDECAY_ROUTINE ; XDECAY  $26
 	.byt <XREADBYTES_ROUTINE,>XREADBYTES_ROUTINE ; $27  Fread
 	.byt <XBINDX_ROUTINE,>XBINDX_ROUTINE ; XBINDX $28
 	.byt <XDECIM_ROUTINE,>XDECIM_ROUTINE ; $29
-	.byt <XHEXA_ROUTINE,>XHEXA_ROUTINE ; 2a
+	.byt <XHEXA_ROUTINE,>XHEXA_ROUTINE   ; 2a
 	.byt <XA1AFF_ROUTINE,>XA1AFF_ROUTINE ; XA1AFF  $2b
-	.byt <XMENU_ROUTINE,>XMENU_ROUTINE ; XMENU $2c
-	.byt <XEDT_ROUTINE,>XEDT_ROUTINE ; XEDT  $2d
+	.byt <XMENU_ROUTINE,>XMENU_ROUTINE   ; XMENU $2c
+	.byt <XEDT_ROUTINE,>XEDT_ROUTINE     ; XEDT  $2d
 	.byt <XINSER_ROUTINE,>XINSER_ROUTINE ; XINSER  $2e should be deleted because it's not needed
 	.byt <XSCELG_ROUTINE,>XSCELG_ROUTINE ; XSCELG $2f
-	.byt <XOPEN_ROUTINE,>XOPEN_ROUTINE ; $30
-    ; XOPENRELATIVE
-	.byt <XOPEN_ABSOLUTE_PATH_CURRENT_ROUTINE,>XOPEN_ABSOLUTE_PATH_CURRENT_ROUTINE ; Open from current path $31
+	.byt <XOPEN_ROUTINE,>XOPEN_ROUTINE   ; $30
+	.byt <XOPEN_RELATIVE_ROUTINE,>XOPEN_RELATIVE_ROUTINE ; Open from current path $31
 
 	.byt <XEDTIN_ROUTINE,>XEDTIN_ROUTINE; XEDTIN $32
 	.byt <XECRPR_ROUTINE,>XECRPR_ROUTINE; XECRPR $33 $ece6
@@ -6026,7 +6025,7 @@ LEE9D
 
 _strcpy
 .(
-	ldy #$00
+	ldy #0
 loop
 	lda (RES),y
 	beq end
@@ -6039,23 +6038,22 @@ end
 	rts
 .)
 	
-XOPEN_ABSOLUTE_PATH_CURRENT_ROUTINE
-; use case : if the path contains a file in anyparent
-
-
-_cd_to_current_realpath_new
+    
+XOPEN_RELATIVE_ROUTINE    
 .(
+
+
     jsr _open_root_and_enter
-
-	ldx #$01                ; skip "/"
-	ldy ORIX_PATH_CURRENT,x ; 
-	beq end                 ; Because ORIX_PATH_CURRENT= /,0 no need to continue
-
-    restart	
+	
+	ldx #$01
+	ldy ORIX_PATH_CURRENT,x
+	beq end ; Because ORIX_PATH_CURRENT= /,0 no need to continue
+restart	
 	ldy #$00
 loop	
+	
 	lda ORIX_PATH_CURRENT,x
-	beq send_set_filename_and_fileopen_quick ; FIXME 
+	beq send_set_filename_and_fileopen
 	cmp #"/"
 	beq send_set_filename_and_fileopen
 	sta BUFNOM,y
@@ -6071,11 +6069,9 @@ loop
 send_set_filename_and_fileopen
 
 #ifdef CPU_65C02
-send_set_filename_and_fileopen_quick
 	stz BUFNOM,y
 #else
 	lda #$00
-send_set_filename_and_fileopen_quick    
 	sta BUFNOM,y
 #endif	
 
@@ -6089,14 +6085,13 @@ send_set_filename_and_fileopen_quick
 
 	jsr _ch376_set_file_name
 	jsr _ch376_file_open
-    ;cmp #CH376_ERR_OPEN_DIR
-    ;beq end_open_folder
-    ; ERR_OPEN_DIR
 	cmp #CH376_ERR_MISS_FILE
-    ;cmp #CH376_ERR_FOUND_NAME 
-	bne next
+	beq end_open_folder    
+    sta ERRNO      ; Return ch376 code into ERRNO
+    jmp next
 end_open_folder    
-	;lda #$01
+    ; if we are here, we did not found the file
+	lda #ENOENT
 	rts
 next	
 #ifdef CPU_65C02
@@ -6113,6 +6108,9 @@ next
 	jmp restart
 #endif	
 end
+    ;lda #$12
+    ;sta $bb80+80
+    
     lda #$00  ; no error
 	rts
 .)
@@ -6147,11 +6145,14 @@ next
 	beq it_is_absolute
 	
 	; here it's relative
-	jsr XOPEN_ABSOLUTE_PATH_CURRENT_ROUTINE ; Read current path (and open)
+	jsr XOPEN_RELATIVE_ROUTINE ; Read current path (and open)
+    
+    
+    
 	ldy #$00
 	ldx #$00
-	jmp read_file
-;	rts
+	jmp read_file              ; now we are reading the path, because current path is open
+
 	
 it_is_absolute
 
@@ -6177,7 +6178,7 @@ loop
 	
 	cmp #CH376_ERR_MISS_FILE
 	beq file_not_found 	
-    
+    sta ERRNO
 #ifdef CPU_65C02	
 	bra loop
 #else
@@ -6234,8 +6235,9 @@ read_only
 	jsr _ch376_set_file_name
 	jsr _ch376_file_open	
 	cmp #CH376_ERR_MISS_FILE
-	beq file_not_found 	
-
+	beq file_not_found
+	
+    sta ERRNO
 
 	; register filehandle call_routine_in_another_bank	
 	;call_routine_in_another_bank	
@@ -6297,20 +6299,7 @@ file_not_found
 
 ; [IN]Nothing
 ; [MODIFY] A, BUFNOM
-/*
-_open_root
-	lda #"/"
-	sta BUFNOM
 
-#ifdef CPU_65C02
-	stz BUFNOM+1 ; INIT	
-#else	
-	lda #0 ; used to write in BUFNOM
-	sta BUFNOM+1 ; INIT	
-#endif
-
-	rts
-*/
 _getEnv
 .(
     lda #ORIX_GETENV
@@ -6324,7 +6313,7 @@ _call_orix_routine
     ldy #>ORIX_ROUTINES
     ldx #ORIX_ID_BANK  ; id of Orix bank
     jsr call_routine_in_another_bank
-    rts
+rts
   
   
 XLIGNE_ROUTINE

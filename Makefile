@@ -16,6 +16,8 @@ test:
 	xa tests/xmkdir.asm -o xmkdir
 	mkdir build  
 	mkdir -p build/usr/share/telemon/3.1/6502/
+	mkdir -p build/usr/share/telemon/3.1/65c02/
+	mkdir -p build/usr/share/telemon/3.1/65c816/
 	mkdir -p build/usr/share/doc/telemon/
 	cp $(PROGRAM).rom build/usr/share/telemon/3.1/6502/
 	cp README.md build/usr/share/doc/telemon/
