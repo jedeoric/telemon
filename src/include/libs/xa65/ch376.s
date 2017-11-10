@@ -14,6 +14,14 @@ _ch376_dir_create
   rts
 .)
 
+_ch376_file_erase
+.(
+    lda     #CH376_FILE_ERASE
+    sta     CH376_COMMAND
+    jsr     _ch376_wait_response
+    rts
+.)
+
 ; A contains 0 if it needs to update length
 _ch376_file_close
 	ldx #CH376_FILE_CLOSE

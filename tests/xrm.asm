@@ -25,7 +25,7 @@ start_adress
  
 	*=$1000
   lda   #<file
-  ldy   #>file
+  ldx   #>file
   BRK_TELEMON(XRM)
 	rts
 file

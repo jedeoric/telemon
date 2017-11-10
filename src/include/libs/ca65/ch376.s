@@ -399,14 +399,11 @@ don_t_inc:
     cmp     #CH376_USB_INT_SUCCESS ; finished
     bne     start_write
     rts
-    ;jmp continue
 finished:
     lda     tmp1
     ldx     tmp1+1
     rts	
 .endproc	
-
-
 
 .proc _ch376_file_create
     lda     #CH376_FILE_CREATE

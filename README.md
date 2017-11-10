@@ -16,6 +16,10 @@ CPU : 6502
 
 ## Timeline
 
+### 2017-10-27
+
+* Now XMKDIR is available
+
 ### 2017-09-24
 
 * corrections de 2 bugs sur la lecture du fichier (l'un pour dans le cas d'une lecture d'une taille vide et donc dépassement de buffer : acceleration de la lecture) (bugs trouvés par Assinie)

@@ -36,7 +36,7 @@ start_adress
   BRK_TELEMON(XCRLF)
   
   lda   #<file1
-  ldy   #>file1
+  ldx   #>file1
   BRK_TELEMON(XMKDIR)
   
   

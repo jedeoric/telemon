@@ -1474,7 +1474,7 @@ vectors_telemon
 	.byt <XINSER_ROUTINE,>XINSER_ROUTINE ; XINSER  $2e should be deleted because it's not needed
 	.byt <XSCELG_ROUTINE,>XSCELG_ROUTINE ; XSCELG $2f
 	.byt <XOPEN_ROUTINE,>XOPEN_ROUTINE ; $30
-
+    ; XOPENRELATIVE
 	.byt <XOPEN_ABSOLUTE_PATH_CURRENT_ROUTINE,>XOPEN_ABSOLUTE_PATH_CURRENT_ROUTINE ; Open from current path $31
 
 	.byt <XEDTIN_ROUTINE,>XEDTIN_ROUTINE; XEDTIN $32
@@ -1612,11 +1612,15 @@ XMKDIR_ROUTINE
 .(
   ; [IN] AX contains the pointer of the path
   ; FIXME
+ 
   sta     RES
   stx     RES+1
+
   
+
   ; is it an absolute path ?
   ldy     #$00
+  sta     BUFNOM
   lda     (RES),y
   cmp     #"/"
   beq     isabsolute
@@ -1631,12 +1635,14 @@ loop
   lda     ORIX_PATH_CURRENT,x
   beq     end_of_pwd_copy
   sta     volatile_str,x
+  sta     $bb80,x
   inx
   bne      loop
 end_of_pwd_copy  
   lda     (RES),y
   beq     end_of_path_copy
   sta     volatile_str,x
+ ; sta     $bb80,x
   iny
   inx
   bne     end_of_pwd_copy  
@@ -1647,7 +1653,7 @@ end_of_path_copy
   sta     RES
   lda     #>volatile_str
   sta     RES+1
-  
+
   
 isabsolute  
   jsr     _open_root_and_enter
@@ -1661,12 +1667,13 @@ next_char
   cmp     #"/"
   beq     create_dir
   sta     BUFNOM,x
+
   inx
   bne     next_char
-  
 end
   ; Create last folder
   ; Store 0
+
   sta     BUFNOM,x
   jsr     _ch376_set_file_name
   jsr     _ch376_dir_create
@@ -1684,22 +1691,28 @@ create_dir
 .)
 
 _open_root_and_enter
-	lda     #"/"
-	sta     BUFNOM
+    lda     #"/"
+    sta     BUFNOM
 
 #ifdef CPU_65C02
 	stz     BUFNOM+1 ; INIT	
 #else	
-	lda     #$00 ; used to write in BUFNOM
-	sta     BUFNOM+1 ; INIT	
+    lda     #$00 ; used to write in BUFNOM
+    sta     BUFNOM+1 ; INIT	
 #endif
-	jsr     _ch376_set_file_name
-	jsr     _ch376_file_open
-  rts
+    jsr     _ch376_set_file_name
+    jsr     _ch376_file_open
+    rts
 
 XRM_ROUTINE
-  ; [IN] AY contains the pointer of the path
+  ; [IN] AX contains the pointer of the path
   ; FIXME
+  ldy #O_WRONLY
+  jsr XOPEN_ROUTINE
+  cmp #$ff
+  beq dont_remove
+  jsr _ch376_file_erase   ; Should be replaced by jmp
+dont_remove  
   rts
   
 
@@ -2040,7 +2053,7 @@ XTEXT_ROUTINE
 	
 wait_0_3_seconds ; Wait 0,3333 seconds 
 .(	
-	ldy #$1f
+	ldy #$1F
 	ldx #$00
 loop
 	dex
@@ -2052,18 +2065,17 @@ loop
 	
 
 test_if_all_buffers_are_empty
-
 	sec
 	.byt $24 ; jump
 XBUSY_ROUTINE	
 	clc
 	ror ADDRESS_READ_BETWEEN_BANK
-	ldx #0
+	ldx #$00
 Lcfb6	
 	jsr XTSTBU_ROUTINE 
 	bcc Lcfc3 
 	txa
-	adc #$0b
+	adc #$0B
 	tax
 	cpx #$30
 	bne Lcfb6 
@@ -6014,7 +6026,7 @@ LEE9D
 
 _strcpy
 .(
-	ldy #0
+	ldy #$00
 loop
 	lda (RES),y
 	beq end
@@ -6028,45 +6040,42 @@ end
 .)
 	
 XOPEN_ABSOLUTE_PATH_CURRENT_ROUTINE
+; use case : if the path contains a file in anyparent
+
 
 _cd_to_current_realpath_new
 .(
+    jsr _open_root_and_enter
 
-	lda #"/"
-	sta BUFNOM
-#ifdef CPU_65C02	
-	stz BUFNOM+1
-#else
-	lda #0
-	sta BUFNOM+1
-#endif	
+	ldx #$01                ; skip "/"
+	ldy ORIX_PATH_CURRENT,x ; 
+	beq end                 ; Because ORIX_PATH_CURRENT= /,0 no need to continue
 
-	jsr _ch376_set_file_name    ; send / to chip
-	jsr _ch376_file_open
-
-	
-	ldx #1
-	lda ORIX_PATH_CURRENT,x
-	beq end ; Because ORIX_PATH_CURRENT= /,0 no need to continue
-restart	
-	ldy #0
+    restart	
+	ldy #$00
 loop	
-	
 	lda ORIX_PATH_CURRENT,x
-	beq send_set_filename_and_fileopen
+	beq send_set_filename_and_fileopen_quick ; FIXME 
 	cmp #"/"
 	beq send_set_filename_and_fileopen
 	sta BUFNOM,y
 	iny
 	inx
+    
+#ifdef CPU_65C02
+    bra loop
+#else
 	jmp loop
+#endif    
 	
 send_set_filename_and_fileopen
 
 #ifdef CPU_65C02
+send_set_filename_and_fileopen_quick
 	stz BUFNOM,y
 #else
 	lda #$00
+send_set_filename_and_fileopen_quick    
 	sta BUFNOM,y
 #endif	
 
@@ -6080,9 +6089,14 @@ send_set_filename_and_fileopen
 
 	jsr _ch376_set_file_name
 	jsr _ch376_file_open
+    ;cmp #CH376_ERR_OPEN_DIR
+    ;beq end_open_folder
+    ; ERR_OPEN_DIR
 	cmp #CH376_ERR_MISS_FILE
+    ;cmp #CH376_ERR_FOUND_NAME 
 	bne next
-	lda #1
+end_open_folder    
+	lda #$01
 	rts
 next	
 #ifdef CPU_65C02
@@ -6098,7 +6112,8 @@ next
 	inx
 	jmp restart
 #endif	
-end	
+end
+    lda #$00  ; no error
 	rts
 .)
 	
@@ -6116,16 +6131,16 @@ XOPEN_ROUTINE
 	
 	; check if usbkey is available
 	jsr _ch376_verify_SetUsbPort_Mount
-	cmp #1
+	cmp #$01
 	bne next
 	; impossible to mount
-	ldx #00
+	ldx #$00
 	txa
 	rts
 
 next
 	
-	ldy #0
+	ldy #$00
 	lda (RES),y
 	;
 	cmp #"/"
@@ -6133,17 +6148,16 @@ next
 	
 	; here it's relative
 	jsr XOPEN_ABSOLUTE_PATH_CURRENT_ROUTINE ; Read current path (and open)
-	ldy #0
-	ldx #0
+	ldy #$00
+	ldx #$00
 	jmp read_file
 ;	rts
 	
 it_is_absolute
 
 init_and_go
-	jsr _open_root
-	ldx #0
-	jsr open_and_read_go
+
+    jsr _open_root_and_enter
 
 read_file
 
@@ -6155,17 +6169,21 @@ loop
 #ifdef CPU_65C02
 	stz BUFNOM,x
 #else
-	lda #0
+	lda #$00
 	sta BUFNOM,x
 #endif	
 
-	;PRINT_INTO_TELEMON(BUFNOM)
-	;RETURN_LINE_INTO_TELEMON
 	jsr open_and_read_go
 	
 	cmp #CH376_ERR_MISS_FILE
 	beq file_not_found 	
+    
+#ifdef CPU_65C02	
+	bra loop
+#else
 	jmp loop
+#endif    
+
 next_char		
 
 	sta BUFNOM,x
@@ -6179,13 +6197,13 @@ next_char
 #endif
 	
 not_slash_first_param
-	; Call here setfilename
-	ldx #0 ; Flush param in order to send parameter
-	iny
-	bne loop
+    ; Call here setfilename
+    ldx #$00 ; Flush param in order to send parameter
+    iny
+    bne loop
 end
-  sta BUFNOM,x
-	cpy #$00
+    sta BUFNOM,x
+    cpy #$00
 .(	
 	beq skip
 	
@@ -6205,7 +6223,8 @@ end
 	bra read_only
 #else	
 	jmp read_only ; FIXME : replace jmp by bne to earn one byte
-#endif	
+#endif
+	
 write_only
 	jsr _ch376_set_file_name
 	jsr _ch376_file_create
@@ -6239,13 +6258,13 @@ skip
 	ldx #$ff
 	txa
 	rts
+    
+; [in]
+; [out] A contains the return code of the CH376
+    
+    
 open_and_read_go
-/******DEBUG ********/
-	;lda RES
-	;pha
-;	lda RES+1
-	;pha
-/****** END DEBUG ********/
+
 #ifdef CPU_65C02
 	phy
 #else
@@ -6255,9 +6274,8 @@ open_and_read_go
 	jsr _ch376_file_open
 
 	sta TR6 ; store return 
-
 	
-	ldx #0
+	ldx #$00
 #ifdef CPU_65C02
 	ply
 #else
@@ -6265,12 +6283,7 @@ open_and_read_go
 #endif		
 	
 	iny
-/******DEBUG ********/	
-	;pla
-	;sta RES+1
-	;pla 
-	;sta RES
-/****** END DEBUG ********/	
+
 	lda TR6 ; GET error of _ch376_file_open return
 	rts
 file_not_found 
@@ -6284,7 +6297,7 @@ file_not_found
 
 ; [IN]Nothing
 ; [MODIFY] A, BUFNOM
-
+/*
 _open_root
 	lda #"/"
 	sta BUFNOM
@@ -6297,21 +6310,21 @@ _open_root
 #endif
 
 	rts
-
+*/
 _getEnv
 .(
-	lda #ORIX_GETENV
-  jsr _call_orix_routine
-  rts
+    lda #ORIX_GETENV
+    jsr _call_orix_routine
+    rts
 .)  
 
 _call_orix_routine
-	sta TR0
-	lda #<ORIX_ROUTINES
-	ldy #>ORIX_ROUTINES
-	ldx #ORIX_ID_BANK  ; id of Orix bank
-	jsr call_routine_in_another_bank
-  rts
+    sta TR0
+    lda #<ORIX_ROUTINES
+    ldy #>ORIX_ROUTINES
+    ldx #ORIX_ID_BANK  ; id of Orix bank
+    jsr call_routine_in_another_bank
+    rts
   
   
 XLIGNE_ROUTINE
