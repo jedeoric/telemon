@@ -1,22 +1,22 @@
 /********************************************************************** VECTORS used with brk */
 
 /// @brief [VECTOR] open device on channel 0
-#define XOP0 $00
+#define XOP0        $00
 /// @brief [VECTOR] open device on channel 1
-#define XOP1 $01
+#define XOP1        $01
 /// @brief [VECTOR] open device on channel 2
-#define XOP2 $02
+#define XOP2        $02
 /// @brief [VECTOR] open device on channel 3
-#define XOP3 $03
+#define XOP3        $03
 
 /// @brief [VECTOR] close an I/O on a channel. If we try to close an I/O which is not open in the channel 0, the command is ignored 
-#define XCL0 $04
+#define XCL0        $04
 /// @brief [VECTOR] close an I/O on a channel. If we try to close an I/O which is not open in the channel 1, the command is ignored 
-#define XCL1 $05
+#define XCL1        $05
 /// @brief [VECTOR] close an I/O on a channel. If we try to close an I/O which is not open in the channel 2, the command is ignored 
-#define XCL2 $06
+#define XCL2        $06
 /// @brief [VECTOR] close an I/O on a channel. If we try to close an I/O which is not open in the channel 3, the command is ignored 
-#define XCL3 $07
+#define XCL3        $07
 
 
 /// @brief [VECTOR] test a char on channel 0 : if C=1 then no char detecxted, if C=0 then A accumulator contains ASCII char (X and Y not changed)
@@ -24,14 +24,14 @@
 /// @brief [VECTOR] test a char on channel 1 : if C=1 then no char detecxted, if C=0 then A accumulator contains ASCII char (X and Y not changed)
 #define XRD1 $09
 /// @brief [VECTOR] test a char on channel 2 : if C=1 then no char detecxted, if C=0 then A accumulator contains ASCII char (X and Y not changed)
-#define XRD2 $0a
+#define XRD2 $0A
 /// @brief [VECTOR] test a char on channel 3 : if C=1 then no char detecxted, if C=0 then A accumulator contains ASCII char (X and Y not changed)
-#define XRD3 $0b
+#define XRD3 $0B
 
-#define XRDW0 $0c
-#define XRDW1 $0d
-#define XRDW2 $0e
-#define XRDW3 $0f
+#define XRDW0 $0C
+#define XRDW1 $0D
+#define XRDW2 $0E
+#define XRDW3 $0F
 
 /// @brief [VECTOR] display a char on text mode on channel 0
 /// This vector move memory 
@@ -265,7 +265,7 @@ str
 ; [IN] AX position 
 ; [IN] RES fd
 */
-#define XFSEEK $3f
+#define XFSEEK $3F
 
 /// @brief [PRIMITIVE] Open file which is send to the chip
 //#define XCH376_FILE_OPEN $3f

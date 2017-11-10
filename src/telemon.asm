@@ -6096,7 +6096,7 @@ send_set_filename_and_fileopen_quick
     ;cmp #CH376_ERR_FOUND_NAME 
 	bne next
 end_open_folder    
-	lda #$01
+	;lda #$01
 	rts
 next	
 #ifdef CPU_65C02
