@@ -1,17 +1,17 @@
 _ch376_file_create
 .(
-	lda #CH376_CMD_FILE_CREATE
-	sta CH376_COMMAND
-	jsr _ch376_wait_response
-	rts
+    lda #CH376_CMD_FILE_CREATE
+    sta CH376_COMMAND
+    jsr _ch376_wait_response
+    rts
 .)
 
 _ch376_dir_create
 .(
-  lda     #CH376_DIR_CREATE
-  sta     CH376_COMMAND
-  jsr     _ch376_wait_response
-  rts
+    lda     #CH376_DIR_CREATE
+    sta     CH376_COMMAND
+    jsr     _ch376_wait_response
+    rts
 .)
 
 _ch376_file_erase
@@ -24,23 +24,30 @@ _ch376_file_erase
 
 ; A contains 0 if it needs to update length
 _ch376_file_close
-	ldx #CH376_FILE_CLOSE
-	stx CH376_COMMAND
-  lda #$00
-  sta CH376_DATA
-	jsr _ch376_wait_response
-	rts
+.(
+    nop
+    nop
+    nop
+    nop
+    nop
+    ldx     #CH376_FILE_CLOSE
+    stx     CH376_COMMAND
+    lda     #$00
+    sta     CH376_DATA
+    jsr     _ch376_wait_response
+    rts
+.)
 	
 // [IN] AY : ptr
 _ch376_seek_file
 .(
-	ldx #CH376_BYTE_LOCATE
-	stx CH376_COMMAND
-	sta CH376_DATA
-	sty CH376_DATA
+    ldx #CH376_BYTE_LOCATE
+    stx CH376_COMMAND
+    sta CH376_DATA
+    sty CH376_DATA
 #ifdef CPU_65C02
-	stz CH376_DATA
-	stz CH376_DATA
+    stz CH376_DATA
+    stz CH376_DATA
 #else	
 	lda #$00
 	sta CH376_DATA
@@ -60,9 +67,10 @@ _ch376_set_file_name
 .(
 	lda #CH376_SET_FILE_NAME ;$2f
 	sta CH376_COMMAND
-	ldx #$0
+	ldx #$00
 loop	
 	lda BUFNOM,x ; replace by bufnom
+
 	beq end ; we reached 0 value
 	cmp #"a" ; 'a'
 	bcc skip
@@ -81,22 +89,12 @@ end
 	rts
 
 _ch376_file_open
-	.(
-#ifdef DEBUG_CH376
-	lda #<str_fileopen
-	ldy #>str_fileopen
-	BRK_TELEMON(XWSTR0)
-	
-	lda #<str_ok_message
-	ldy #>str_ok_message
-	BRK_TELEMON(XWSTR0)	
-#endif
-	
-	lda #CH376_FILE_OPEN ; $32
-	sta CH376_COMMAND
-	jsr _ch376_wait_response
-	.)
-	rts
+.(
+    lda #CH376_FILE_OPEN ; $32
+    sta CH376_COMMAND
+    jsr _ch376_wait_response
+.)
+    rts
 
 	;CMD_GET_FILE_SIZE
 	
@@ -123,8 +121,8 @@ _ch376_reset_all:
 	lda #CH376_RESET_ALL ; 5 
 	sta CH376_COMMAND
 	; waiting
-	ldy #0
-	ldx #0
+	ldy #$00
+	ldx #$00
 loop
 	nop
 	inx
@@ -191,12 +189,6 @@ _ch376_wait_response
 .(
 ; 1 return 1 if usb controller does not respond
 ; else A contains answer of the controller
-
-#ifdef DEBUG_CH376
-	lda #<str_waiting
-	ldy #>str_waiting
-	BRK_TELEMON(XWSTR0)
-#endif
 
 	ldy #$ff
 loop3

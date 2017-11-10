@@ -45,7 +45,7 @@ telemon
 	jsr     init_via 
 	jsr     init_printer 
 	jsr     XALLKB_ROUTINE
-   
+
 	; init channels loading 15
 
 	LDX     #$0F
@@ -247,6 +247,10 @@ next32
 	LDY #>str_KOROM
 	BRK_TELEMON(XWSTR0)
 
+   
+
+       
+    
 	
 ; adress : $c146
 telemon_hot_reset
@@ -261,14 +265,14 @@ next34
 	BPL     next35 ; jumps if Negative flag is ok
 	; display printer
 	LDA     #<str_printer
-	LDY #>str_printer
+	LDY     #>str_printer
 	BRK_TELEMON(XWSTR0)
 #endif
   
 next35	
 
 	nop ; keep theses nops, because hot reset won't work (still don't know why)
-  nop ; keep theses nops, because hot reset won't work (still don't know why)
+    nop ; keep theses nops, because hot reset won't work (still don't know why)
 
 next58	
 	lda SCRX
@@ -292,6 +296,8 @@ don_t_display_telemon_signature
 	lda #<str_tofix
 	ldy #>str_tofix
 	BRK_TELEMON(XWSTR0)
+
+    
  
 	JSR $0600 ; CORRECTME
 don_t_display_signature
@@ -299,14 +305,21 @@ don_t_display_signature
   ;nop
 	nop 
 	nop
-		
+    
+
 	
 	JSR routine_to_define_19
 
-  BIT FLGRST          ; Fix me remove me
-  BPL display_cursor ; Fix me remove me
+    BIT FLGRST          ; Fix me remove me
+    BPL display_cursor ; Fix me remove me
 
 display_cursor	
+
+    jsr     XCRLF_ROUTINE
+    lda     #<pid_os_folder_process
+    ldx     #>pid_os_folder_process
+
+    jsr     XMKDIR_ROUTINE		
 
 
 	LDX #$00
@@ -1611,22 +1624,22 @@ XMKDIR_ROUTINE
 .(
   ; [IN] AX contains the pointer of the path
   ; FIXME
- 
-  sta     RES
-  stx     RES+1
+    sta     RES
+    stx     RES+1
 
-  
-
+    jsr     _ch376_verify_SetUsbPort_Mount
+	cmp     #$01
+	bne     next  
+    lda     #ENODEV 
+    rts
+next  
   ; is it an absolute path ?
   ldy     #$00
-  sta     BUFNOM
+
   lda     (RES),y
+  
   cmp     #"/"
   beq     isabsolute
-  ; at this step we get PWD
-  //ORIX_PATH_CURRENT
-  ; Copy current PWD
-;  lda     volatile_str
 
   
   ldx     #$00
@@ -1634,14 +1647,13 @@ loop
   lda     ORIX_PATH_CURRENT,x
   beq     end_of_pwd_copy
   sta     volatile_str,x
-  sta     $bb80,x
   inx
   bne      loop
 end_of_pwd_copy  
   lda     (RES),y
   beq     end_of_path_copy
   sta     volatile_str,x
- ; sta     $bb80,x
+
   iny
   inx
   bne     end_of_pwd_copy  
@@ -1655,6 +1667,7 @@ end_of_path_copy
 
   
 isabsolute  
+
   jsr     _open_root_and_enter
   ldy     #$00                   ; skip /
 next_folder
@@ -1676,14 +1689,20 @@ end
   sta     BUFNOM,x
   jsr     _ch376_set_file_name
   jsr     _ch376_dir_create
+  lda     #$00
   rts
   
 create_dir
+
+
+
   lda     #$00
   sta     BUFNOM,x
   sty     TR7   ; save Y
 
+  
   jsr     _ch376_set_file_name
+  sta     ERRNO
   jsr     _ch376_dir_create
   ldy     TR7
   jmp     next_folder
@@ -6041,8 +6060,6 @@ end
     
 XOPEN_RELATIVE_ROUTINE    
 .(
-
-
     jsr _open_root_and_enter
 	
 	ldx #$01
@@ -6132,6 +6149,7 @@ XOPEN_ROUTINE
 	cmp #$01
 	bne next
 	; impossible to mount
+    ; ENODEV ?
 	ldx #$00
 	txa
 	rts
@@ -8343,7 +8361,8 @@ e_accent_circonflexe
 	.byt $7e
 	.byt $1c,$22,$1c,$22,$3e,$20,$1c,$00
 
-  
+pid_os_folder_process
+  .asc "/proc/1",0
   
 free_bytes ; 26 bytes
 	.dsb $ffff-free_bytes-5,0 ; 5 because we have 5 bytes after

@@ -20,20 +20,20 @@
     
     .export   _ch376_set_bytes_write
 
-    .import 	  popax
-    .include    "zeropage.inc"
-    .include    "telestrat.inc"
+    .import   popax
+    .include  "zeropage.inc"
+    .include  "telestrat.inc"
 
 CH376_SET_USB_MODE_CODE_USB_HOST_SOF_PACKAGE_AUTOMATICALLY = $06
 
 CH376_USB_INT_SUCCESS	 	    = $14
 CH376_USB_INT_CONNECT	 	    = $15
-CH376_USB_INT_DISCONNECT	  = $16
-CH376_USB_INT_BUF_OVER	 	  = $17
-CH376_USB_INT_USB_READY     = $18
-CH376_USB_INT_DISK_READ     = $1D
-CH376_USB_INT_DISK_WRITE	  = $1E
-CH376_USB_INT_DISK_ERR		  = $1F
+CH376_USB_INT_DISCONNECT	    = $16
+CH376_USB_INT_BUF_OVER	 	    = $17
+CH376_USB_INT_USB_READY         = $18
+CH376_USB_INT_DISK_READ         = $1D
+CH376_USB_INT_DISK_WRITE	    = $1E
+CH376_USB_INT_DISK_ERR		    = $1F
 
 
 CH376_ERR_OPEN_DIR          = $41
