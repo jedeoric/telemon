@@ -23,13 +23,23 @@ type_of_file
  
 start_adress
  
-	*=$1000
-  lda   #<file
-  ldx   #>file
-  BRK_TELEMON(XRM)
-	rts
+    *=$1000
+      
+    lda   #<str
+    ldy   #>str
+    BRK_TELEMON(XWSTR0)  
+
+    lda   #<file
+    ldy   #>file
+    BRK_TELEMON(XWSTR0)      
+    
+    lda   #<file
+    ldx   #>file
+    BRK_TELEMON(XRM)
+    rts
 file
-    .asc "/ch376d",0  
-  
+    .asc "/tests/xrm",0  
+str  
+    .asc "Removing myself :) ",0  
 EndOfMemory
 

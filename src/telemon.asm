@@ -1609,7 +1609,7 @@ XCHECK_VERIFY_USBDRIVE_READY_ROUTINE
 #include "src/include/libs/xa65/ch376_verify.s"
 
 XCLOSE_ROUTINE
-	jmp _ch376_file_close
+	jmp     _ch376_file_close
 
 
 XFREAD_ROUTINE	
@@ -1633,82 +1633,74 @@ XMKDIR_ROUTINE
     lda     #ENODEV 
     rts
 next  
-  ; is it an absolute path ?
-  ldy     #$00
-
-  lda     (RES),y
-  
-  cmp     #"/"
-  beq     isabsolute
-
-  
-  ldx     #$00
+    ; is it an absolute path ?
+    ldy     #$00
+    lda     (RES),y
+    cmp     #"/"
+    beq     isabsolute
+    ldx     #$00
 loop  
-  lda     ORIX_PATH_CURRENT,x
-  beq     end_of_pwd_copy
-  sta     volatile_str,x
-  inx
-  bne      loop
+    lda     ORIX_PATH_CURRENT,x
+    beq     end_of_pwd_copy
+    sta     volatile_str,x
+    inx
+    bne      loop
 end_of_pwd_copy  
-  lda     (RES),y
-  beq     end_of_path_copy
-  sta     volatile_str,x
+    lda     (RES),y
+    beq     end_of_path_copy
+    sta     volatile_str,x
 
-  iny
-  inx
-  bne     end_of_pwd_copy  
+    iny
+    inx
+    bne     end_of_pwd_copy  
 end_of_path_copy  
-  ; At this step A contains A
-  sta     volatile_str,x
-  lda     #<volatile_str
-  sta     RES
-  lda     #>volatile_str
-  sta     RES+1
+    ; At this step A contains A
+    sta     volatile_str,x
+    lda     #<volatile_str
+    sta     RES
+    lda     #>volatile_str
+    sta     RES+1
 
   
 isabsolute  
 
-  jsr     _open_root_and_enter
-  ldy     #$00                   ; skip /
+    jsr     _open_root_and_enter
+    ldy     #$00                   ; skip /
 next_folder
-  ldx     #$00
+    ldx     #$00
 next_char  
-  iny
-  lda     (RES),y
-  beq     end
-  cmp     #"/"
-  beq     create_dir
-  sta     BUFNOM,x
+    iny
+    lda     (RES),y
+    beq     end
+    cmp     #"/"
+    beq     create_dir
+    sta     BUFNOM,x
 
-  inx
-  bne     next_char
+    inx
+    bne     next_char
 end
   ; Create last folder
   ; Store 0
 
-  sta     BUFNOM,x
-  jsr     _ch376_set_file_name
-  jsr     _ch376_dir_create
-  lda     #$00
-  rts
+    sta     BUFNOM,x
+    jsr     _ch376_set_file_name
+    jsr     _ch376_dir_create
+    lda     #$00
+    rts
   
 create_dir
-
-
-
-  lda     #$00
-  sta     BUFNOM,x
-  sty     TR7   ; save Y
-
-  
-  jsr     _ch376_set_file_name
-  sta     ERRNO
-  jsr     _ch376_dir_create
-  ldy     TR7
-  jmp     next_folder
+    lda     #$00
+    sta     BUFNOM,x
+    sty     TR7   ; save Y
+    jsr     _ch376_set_file_name
+    sta     ERRNO
+    jsr     _ch376_dir_create
+    ldy     TR7
+    jmp     next_folder
 .)
 
 _open_root_and_enter
+.(
     lda     #"/"
     sta     BUFNOM
 
@@ -1721,18 +1713,26 @@ _open_root_and_enter
     jsr     _ch376_set_file_name
     jsr     _ch376_file_open
     rts
+.)
 
 XRM_ROUTINE
-  ; [IN] AX contains the pointer of the path
-  ; FIXME
-  ldy #O_WRONLY
-  jsr XOPEN_ROUTINE
-  cmp #$ff
-  beq dont_remove
-  jsr _ch376_file_erase   ; Should be replaced by jmp
+.(
+    ; [IN] AX contains the pointer of the path
+    ; FIXME
+    ldy     #O_WRONLY
+    jsr     XOPEN_ROUTINE
+    cmp     #$ff
+    beq     dont_remove
+    jsr     _ch376_file_erase   ; Should be replaced by jmp
+    lda #$14
+    sta $BB80
+    rts
+    
 dont_remove  
-  rts
-  
+;    lda #$13
+    ;sta $BB80
+    rts
+.) 
 
 XMENU_ROUTINE
 menu_deroulant

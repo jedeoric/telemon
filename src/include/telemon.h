@@ -305,8 +305,8 @@ str
 /// @brief [PRIMITIVE] hard copy of hires window
 #define XHCHRS $4c
 
-/// @brief [PRIMITIVE] Start disk mount
-#define XRM    $4d
+/// @brief [PRIMITIVE] remove file
+#define XRM    $4D
 
 #define XALLKB $50 ; Get keyboard, --> KBDCOL
 
