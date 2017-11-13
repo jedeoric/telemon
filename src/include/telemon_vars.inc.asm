@@ -162,9 +162,10 @@ HRSFB ; b7-b6)
 
 VABKP1 ; $58
 .dsb 1
-RS232T ;$59
+
+RS232T ;$59 used in C code by orixcfg
 .dsb 1
-RS232C ; $5A
+RS232C ; $5A used in C code by orixcfg
 .dsb 1
 ; $5b
 /// @brief [VALUE_PAGE_0] RS indicator b7=1 if minitel mode. 0= rs232

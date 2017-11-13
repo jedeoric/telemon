@@ -205,8 +205,8 @@ skip
 	lda     #XSCR ; Setup screen !  on channel 0
 	BRK_TELEMON(XOP0) 
 	BRK_TELEMON(XRECLK)  ; Don't know this vector
-	lda     #XMDS        ; Open minitel output on channel 1
-	BRK_TELEMON(XOP1)
+	;lda     #XMDS        ; Open minitel output on channel 1
+	;BRK_TELEMON(XOP1)
 
 	lda     #<store_str2 ; Write attributes on first line (status line)
 	ldy     #>store_str2	
@@ -2166,12 +2166,13 @@ Ld10f
 	rts
 
 CTRL_G_KEYBOARD ; Send oups
-	jmp XOUPS_ROUTINE 
+	;jmp XOUPS_ROUTINE 
+    rts
 
 CTRL_O_KEYBOARD
-	lda $34  ; CORRECTME
-	and #$0f
-	sta $34  ; CORRECTME
+	;lda $34  ; CORRECTME
+	;and #$0f
+	;sta $34  ; CORRECTME
 	rts
 
 init_minitel
@@ -2788,7 +2789,7 @@ init_rs232
                ;          GESTION DE L'ENTREE RS232                          
 LDB5D
 	BPL LDAF7    ;  lecture, voir MINITEL (pourquoi pas $DAF9 ?)       
-	BCS Ldb09   ;   C=1, on ferme                                    
+	BCS Ldb09    ;   C=1, on ferme                                    
 
 #ifdef WITH_ACIA
 	LDA ACIACR   ;   on ouvre                                          
@@ -2797,12 +2798,12 @@ LDB5D
 
 LDB66	
 #ifdef WITH_ACIA
-	ORA $5A     ;   de la RS232                                       
+	ORA $5A      ;   de la RS232                                       
 	STA ACIACR                                                        
 	LDA V2DRA                                                        
 	ORA #$10     ;  %00010000 on force RS232                          
 	STA V2DRA                                                        
-	LDA $59     ;   et on fixe le mode de transmission                
+	LDA RS232T   ;   et on fixe le mode de transmission        FIXME         
 	STA ACIACT   ;   dans ACIACR               
 #endif
 	RTS                                                              
@@ -2908,7 +2909,7 @@ Ldbeb
 LDBED	
 	.byt <CTRL_A_START-1,>CTRL_A_START-1 ; CTRL A tabulation 
 	.byt <KEYBOARD_NO_SHORTCUT-1,>KEYBOARD_NO_SHORTCUT-1 
-	.byt <KEYBOARD_NO_SHORTCUT-1,>KEYBOARD_NO_SHORTCUT-1; Already managed  
+	.byt <CTRL_C_START-1,>CTRL_C_START-1 ; 
 	.byt <CTRL_D_START-1,>CTRL_D_START-1 
 	.byt <KEYBOARD_NO_SHORTCUT-1,>KEYBOARD_NO_SHORTCUT-1; E
 	.byt <KEYBOARD_NO_SHORTCUT-1,>KEYBOARD_NO_SHORTCUT-1 ; F Already managed 
@@ -3067,6 +3068,7 @@ Action:Place le curseur sur une tabulation, colonne multiple de 8.
   
 CTRL_A_START
 .(
+    /*
 	LDA SCRX,X ; ->on lit ala colonne                                
 	AND #$F8     ;I on la met ? 0                                     
 	ADC #$07     ;I on place sur une tabulation 8 (C=1)               
@@ -3085,43 +3087,57 @@ CTRL_A_START
 	RTS       ;                                                      I
 LDD09
 	STA SCRX,X ;   on sauve la colonne <-----------------------------
+    */
 	RTS         ;   et on sort codes A                               I
 .)	
+CTRL_C_START
+    ;lda #$11
+    ;sta $bb80
+    ;sta $bb80
+    rts
 	
 ;                             CODE 4 - CTRL D                               
 CTRL_D_START
+    rts
 LDD0D                                                                                
 	ROR          ;  on pr?pare masque %00000010                       
                                                                                 
  ;                               CODE 31 - US                                
 CTRL_US_START
                               ;on pr?pare masque %00000100                       
+    rts
 LDD0E							  
 	ROR                                                              
 ;                               CODE 27 - ESC                                
 CTRL_ESC_START
  ;                             on pr?pare masque %00001000                       
+    rts
 LDD0F
 	ROR                                                              
  ;                             CODE 29 - CTRL ]                              
 
   ;                            on pr?pare masque %00010000   
-CTRL_CROCHET_START  
+CTRL_CROCHET_START
+rts
 LDD10  
-	ROR                                                              
+	ROR
+    
                                                                                 
     ;                          CODE 22 - CTRL V                              
 CTRL_V_START
+rts
 LDD11
 	ROR           ; on pr?pare masque %00100000                       
                                                                                 
      ;                         CODE 16 - CTRL P                              
 CTRL_P_START
+rts
 LDD12
 	ROR  ;           on pr?pare masque %01000000                       
                                                                                 
           ;                    CODE 17 - CTRL Q                              
 CTRL_Q_START
+rts
   
 LDD13
 
@@ -3166,6 +3182,8 @@ LDD43
  ;                                                                              I
 ;Action:d?place le curseur vers la gauche                                       I
 CTRL_H_START
+    rts
+    
 LDD47  
 	LDA SCRX,X   ; est-on d?ja au d?but de la fen?tre ?             I
 	CMP SCRDX,X  ;                                                   I
@@ -3179,6 +3197,7 @@ LDD47
                                                                                 
 ;Action:d?place le curseur vers le haut                                          
 CTRL_K_START
+    rts
 LDD55                                                                                
 	LDA SCRY,X ;   et si on est pas                                  
 	CMP SCRDY,X    ;au sommet de la fen?tre,                          
@@ -3193,8 +3212,9 @@ LDD67
 	STA SCRX,X  ;                                                   I
 	RTS          ;                                                   I
 LDD6E
-	DEC SCRY,X   ; on remontre le curseur <--------------------------
-	JMP LDE07    ;  et on ajuste ADSCR     	
+	;DEC SCRY,X   ; on remontre le curseur <--------------------------
+	;JMP LDE07    ;  et on ajuste ADSCR     	
+    rts
 	
 	
 	
@@ -3205,6 +3225,7 @@ CTRL_N_START
 LDD74                                                                              
 	LDY SCRDX,X ;    on prend la premi?re colonne de la fenetre        
 	JMP LDD7D   ;    et on efface ce qui suit (BPL aurait ?t? mieux...)
+    rts
                        
                                                                           
  ;                             CODE 24 - CTRL X                              
@@ -3268,6 +3289,7 @@ LDDB2
                                                                                 
 ;Action:Efface la fen?tre                                                     
 CTRL_L_START
+  ;  rts
 LDDB8                                                                               
 	JSR LDDFB    ;  on remet le curseur en haut de la fen?tre         
 LDDBB
@@ -3275,8 +3297,8 @@ LDDBB
 	LDA SCRY,X   ; on est ? la fin de la fen?tre ?                   
 	CMP SCRFY,X  ;                                                     
 	BEQ LDDFB    ;  oui, on sort en repla?ant le curseur en haut     
-	JSR LDD9D    ;  non, on d?place le curseur vers le bas            
-	JMP LDDBB     ; et on boucle  (Et BPL, non ?!?!)                  
+	JSR LDD9D    ;  non, on déplace le curseur vers le bas            
+	JMP LDDBB    ; et on boucle  (Et BPL, non ?!?!)                  
 		
 	
 	
@@ -3324,32 +3346,29 @@ LDDF0
 LDDF6
 	.byt  00,$3E,$0F,00,00  ;  canal 1, volume 15 musical  
 /*
-
                            INITIALISE UNE FENETRE                           
-                                                                                
 Action:on place le curseur en (0,0) et on calcule son adresse                   
-  */
+*/
 CTRL_HOME_START  
 LDDFB
-	LDA SCRDX,X  ;  on prend la premi?re colonne                      
-	STA SCRX,X  ;  dans SCRX                                         
-	LDA SCRDY,X  ;  la premi?re ligne dans                            
-	STA SCRY,X  ;  SCRY                                              
+	LDA SCRDX,X   ;  on prend la premi?re colonne                      
+	STA SCRX,X    ;  dans SCRX                                         
+	LDA SCRDY,X   ;  la premi?re ligne dans                            
+	STA SCRY,X    ;  SCRY                                              
 LDE07
-	LDA SCRY,X  ;  et on calcule l'adresse                           
-	JSR LDE12    ;  de la ligne                                       
-	STA ADSCR      ;  dans ADSCR                                        
-	STY ADSCR+1      ;                                                    
+	LDA SCRY,X    ;  et on calcule l'adresse                           
+	JSR LDE12     ;  de la ligne                                       
+	STA ADSCR     ;  dans ADSCR                                        
+	STY ADSCR+1   ;                                                    
 
 	RTS    	
 
 /*
 	CALCULE L'ADRESSE DE LA LIGNE A                       
-                                                                                
-                                                                                
+
 Action:En entr?e, A contient le num?ro de la ligne et en sortie, RES contient   
        l'adresse ? l'?cran de cette ligne.                                      
-  */                                                                              
+*/                                                                              
 LDE12
 	JSR XMUL40_ROUTINE    ;  RES=A*40                                          
 	LDA SCRBAL,X  ;  AY=adresse de la fen?tre                          
@@ -3397,28 +3416,19 @@ lde53
 
 Lde54
 XSCROH_ROUTINE
-  /*                                                                             
+/*                                                                             
                       SCROLLE UNE FENETRE VERS LE BAS                       
-                                                                                
-                                                                                
 Action:scrolle vers le bas de la ligne X ? la ligne Y la fen?tre courante.      
-                                                                                
-    */                                                                            
+*/                                                                            
 	LDA #$00     ;  on prend $0028, soit 40                           
 	STA DECFIN+1                                                          
 	LDA #$28                                                         
 	BNE LDE62    ;  inconditionnel                                    
  /*                                                                               
-                                                                              
                       SCROLLE UNE FENETRE VERS LE HAUT                      
-                                                                                
-                                                                                
+
 Action:scrolle vers le haut de la ligne X ? la ligne Y la fen?tre courante.     
-                                                                                
-                                                                                */
-
-
-
+*/
 																				
 LDE5C																				
 XSCROB_ROUTINE
@@ -3451,24 +3461,24 @@ LDE7D
 	STA $04                                                          
 	TYA                                                              
 	ADC DECFIN+1                                                          
-	STA $05     ;   dans $04-05                                       
-	PLA         ;   on sort le nombre de lignes                       
-	STA RES     ;   dans RES                                          
-	BEQ LDEC4   ;   si nul on fait n'importe quoi ! on devrait sortir!
+	STA $05      ;   dans $04-05                                       
+	PLA          ;   on sort le nombre de lignes                       
+	STA RES      ;   dans RES                                          
+	BEQ LDEC4    ;   si nul on fait n'importe quoi ! on devrait sortir!
 	BMI LDECD    ;  si n?gatif, on sort ------------------------------
 	SEC          ;  on calcule                                       I
-	LDX SCRNB     ;                                                    I
-	LDA SCRFX,X   ; la largeur de la fen?tre                         I
+	LDX SCRNB    ;                                                    I
+	LDA SCRFX,X  ; la largeur de la fen?tre                         I
 	SBC SCRDX,X  ;                                                   I
-	STA RES+1      ;  dans RES+1                                       I
+	STA RES+1    ;  dans RES+1                                       I
 LDE9D
 	LDY RES+1 
 LDE9F ;                                                  I
-	LDA ($04),Y ;   on transf?re une ligne                           I
+	LDA ($04),Y    ;   on transf?re une ligne                           I
 	STA (DECCIB),Y ;                                                    I
-	DEY         ;                                                    I
-	BPL LDE9F    ;                                                    I
-	CLC        ;                                                     I
+	DEY            ;                                                    I
+	BPL LDE9F      ;                                                    I
+	CLC            ;                                                     I
 	LDA $04     ;   on ajoute le d?placement                         I
 	ADC DECFIN     ;   ? l'adresse de base                              I
 	STA $04     ;                                                    I
@@ -4580,7 +4590,7 @@ Le624
 
 /*
 POSITIONNE LE CURSEUR EN X,Y                        
-                                                                                
+
 Action:positionne le curseur ? l'?cran et sur le minitel s'il est actif en tant 
        que sortie vid?o.                           
 */
@@ -4619,7 +4629,7 @@ LE650
                                                                                 
 /*
                  ENVOIE UN CODE AU BUFFER SERIE SORTIE                    
-  */
+*/
 LE656
 	STA TR0    ;    on sauve le code <--------------------------------
 	TYA        ;    on sauve Y                                       I
@@ -4648,8 +4658,7 @@ XECRPR_ROUTINE
 /*
 
                    CHERCHE UNE LIGNE D'APRES SON NUMERO                    
-                                                                                
-                                                                                
+
 Action:Recherche la ligne num?ro RES ? partir de l'adresse SCEDEB.              
        Une ligne de programme est compos?e de l'ent?te de 3 octets suivants:    
        1er octet    :longeur de la ligne, ou 0 si derni?re ligne                
@@ -4729,11 +4738,11 @@ Le6b0
 	INY
          ;                                                    I
 LE6D6
-	STA $04     ;   dans DECDEB                                      I
-	STY $05    ;                                                     I
+    STA $04              ;   dans DECDEB                                      I
+	STY $05              ;                                                    I
 	JSR XDECAL_ROUTINE   ;   et on ram?ne la fin du listing (efface la ligne) I 
-	LDA #$FF   ;    on met -1                                        I
-	STA $10     ;   dans TR4                                         I
+	LDA #$FF             ;    on met -1                                        I
+	STA $10              ;   dans TR4                                         I
 	EOR $0F    ;    on compl?mente TR3 ? 2                           I
 	STA $0F     ;   donc on remet dans TR3-4                         I
 	INC $0F     ;   l'oppos? de TR3-4                                I
@@ -5753,7 +5762,7 @@ LECC9
 	clc
 	lda #$80
 
-	jmp LDB79 
+	jmp LDB79
 LECCF
 	sec
 	.byt $24
@@ -6344,7 +6353,7 @@ XLIGNE_ROUTINE
 XSOUT_ROUTINE
 ; RS232 
 	pha 
-	jsr LECC9
+	jsr LECC9                      ; configure ACIA
 	pla
 	jsr write_caracter_in_output_serial_buffer
 	jmp LECC7 
