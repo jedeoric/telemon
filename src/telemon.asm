@@ -212,8 +212,8 @@ skip
 	ldy     #>store_str2	
 	bit     FLGTEL ;
 	bvc     next32
-	lda     #XMDS
-	BRK_TELEMON(XOP0)
+	;lda     #XMDS
+	;BRK_TELEMON(XOP0)
 	lda     #<store_str1
 	ldy     #>store_str1
 next32

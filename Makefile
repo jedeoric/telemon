@@ -6,7 +6,7 @@ LDFILES=
 PROGRAM=telemon31
 SOURCE=src/telemon.asm
 
-ASFLAGS=-C -W -e error.txt -l xa_labels.txt -DWITH_ACIA
+ASFLAGS=-C -W -e error.txt -l xa_labels.txt -DWITH_ACIA -DWITH_RAMOVERLAY
 
 $(PROGRAM): $(SOURCE)
 	$(AS) $(SOURCE) $(ASLAGS) -o $(PROGRAM).rom
@@ -25,6 +25,6 @@ test:
 	filepack  $(PROGRAM).tar $(PROGRAM).pkg
 	gzip $(PROGRAM).tar
 	mv $(PROGRAM).tar.gz $(PROGRAM).tgz
-	php buildTestAndRelease/publish/publish2repo.php $(PROGRAM).pkg ${hash} 6502 pkg beta
-	php buildTestAndRelease/publish/publish2repo.php $(PROGRAM).tgz ${hash} 6502 tgz beta
+	php buildTestAndRelease/publish/publish2repo.php $(PROGRAM).pkg ${hash} 6502 pkg official
+	php buildTestAndRelease/publish/publish2repo.php $(PROGRAM).tgz ${hash} 6502 tgz official
 	echo nothing
