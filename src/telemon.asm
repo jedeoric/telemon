@@ -42,6 +42,10 @@ telemon
 	inx
 	stx     $0418               ; Store in BNKCIB ?? ok but already init with label data_adress_418, when loading_vectors_telemon is executed
 #endif
+
+  lda     #$00
+  sta     ERRNO
+
 	jsr     init_via 
 	jsr     init_printer 
 	jsr     XALLKB_ROUTINE
@@ -185,6 +189,8 @@ skip
 	JSR     init_screens 
 	JSR     routine_to_define_8	
 
+
+  
 #ifdef WITH_MINITEL	
 	JSR init_minitel ; 
 #endif	
@@ -303,12 +309,13 @@ don_t_display_telemon_signature
 don_t_display_signature
 	; Don't remove these 3 nops
   ;nop
-	nop 
-	nop
+	;nop 
+	;nop
+	;nop
     
 
 	
-	JSR routine_to_define_19
+    JSR routine_to_define_19
 
     BIT FLGRST          ; Fix me remove me
     BPL display_cursor ; Fix me remove me
@@ -318,7 +325,7 @@ display_cursor
     jsr     XCRLF_ROUTINE
     lda     #<pid_os_folder_process
     ldx     #>pid_os_folder_process
-
+   
     jsr     XMKDIR_ROUTINE		
 
 
@@ -1628,8 +1635,8 @@ XMKDIR_ROUTINE
     stx     RES+1
 
     jsr     _ch376_verify_SetUsbPort_Mount
-	cmp     #$01
-	bne     next  
+    cmp     #$01
+    bne     next  
     lda     #ENODEV 
     rts
 next  
@@ -1705,7 +1712,7 @@ _open_root_and_enter
     sta     BUFNOM
 
 #ifdef CPU_65C02
-	stz     BUFNOM+1 ; INIT	
+    stz     BUFNOM+1 ; INIT	
 #else	
     lda     #$00 ; used to write in BUFNOM
     sta     BUFNOM+1 ; INIT	
@@ -6069,124 +6076,115 @@ end
     
 XOPEN_RELATIVE_ROUTINE    
 .(
-    jsr _open_root_and_enter
+    jsr     _open_root_and_enter
 	
-	ldx #$01
-	ldy ORIX_PATH_CURRENT,x
-	beq end ; Because ORIX_PATH_CURRENT= /,0 no need to continue
+    ldx     #$01                            ; Read the first char
+    ldy     ORIX_PATH_CURRENT,x             ;  ORIX_PATH_CURRENT is string which contains PWS. If it's "/", 0 then skip it means
+    beq     end                             ; Because ORIX_PATH_CURRENT= /,0 no need to continue
 restart	
-	ldy #$00
+    ldy     #$00
 loop	
-	
-	lda ORIX_PATH_CURRENT,x
-	beq send_set_filename_and_fileopen
-	cmp #"/"
-	beq send_set_filename_and_fileopen
-	sta BUFNOM,y
-	iny
-	inx
+    lda     ORIX_PATH_CURRENT,x    
+    beq     send_set_filename_and_fileopen
+    cmp     #"/"                            ; is it "/"
+    beq     send_set_filename_and_fileopen  ; Yes we open directory
+    sta     BUFNOM,y                        ; It's not a / then we concat char with others char stores in BUFNOM
+    iny
+    inx
     
 #ifdef CPU_65C02
-    bra loop
+    bra     loop
 #else
-	jmp loop
+    jmp     loop
 #endif    
 	
 send_set_filename_and_fileopen
 
 #ifdef CPU_65C02
-	stz BUFNOM,y
+    stz     BUFNOM,y
 #else
-	lda #$00
-	sta BUFNOM,y
+    lda     #$00
+    sta     BUFNOM,y
 #endif	
 
-
-
 #ifdef CPU_65C02
-	phx
+    phx
 #else	
-	stx TR6
+    stx     TR6
 #endif
 
-	jsr _ch376_set_file_name
-	jsr _ch376_file_open
-	cmp #CH376_ERR_MISS_FILE
-	beq end_open_folder    
-    sta ERRNO      ; Return ch376 code into ERRNO
-    jmp next
+    jsr     _ch376_set_file_name
+    jsr     _ch376_file_open
+    cmp     #CH376_ERR_MISS_FILE
+    beq     end_open_folder    
+    sta     ERRNO      ; Return ch376 code into ERRNO
+    jmp     next
 end_open_folder    
     ; if we are here, we did not found the file
-	lda #ENOENT
-	rts
+    lda #ENOENT
+    rts
 next	
 #ifdef CPU_65C02
-	plx
-	lda ORIX_PATH_CURRENT,x
-	beq end
-	inx
-	bra restart
+    plx
+    lda ORIX_PATH_CURRENT,x
+    beq end
+    inx
+    bra restart
 #else
-	ldx TR6
-	lda ORIX_PATH_CURRENT,x
-	beq end
-	inx
-	jmp restart
+    ldx TR6
+    lda ORIX_PATH_CURRENT,x
+    beq end
+    inx
+    jmp restart
 #endif	
 end
-    ;lda #$12
-    ;sta $bb80+80
-    
-    lda #$00  ; no error
-	rts
+    return0
+    rts
 .)
 	
-//#include "functions/XOPEN.asm"
 
 ; Use RES, A X Y TR4 cd 	
 XOPEN_ROUTINE
 .(
-	// A and X contains char * pointer ex /usr/bin/toto.txt but it does not manage the full path yet
-	sta RES
-	sta RESB
-	stx RES+1
-	stx RESB+1
-	sty TR4 ; save flags
+    // A and X contains char * pointer ex /usr/bin/toto.txt but it does not manage the full path yet
+    sta RES
+    sta RESB
+    stx RES+1
+    stx RESB+1
+    sty TR4 ; save flags
 	
-	; check if usbkey is available
-	jsr _ch376_verify_SetUsbPort_Mount
-	cmp #$01
-	bne next
-	; impossible to mount
+    ; check if usbkey is available
+    jsr _ch376_verify_SetUsbPort_Mount
+    cmp #$01
+    bne next
+    ; impossible to mount
     ; ENODEV ?
-	ldx #$00
-	txa
-	rts
+    ldx #$00
+    txa
+    rts
 
 next
 	
-	ldy #$00
-	lda (RES),y
-	;
-	cmp #"/"
-	beq it_is_absolute
+    ldy #$00
+    lda (RES),y
+    ;
+    cmp #"/"
+    beq it_is_absolute
 	
-	; here it's relative
-	jsr XOPEN_RELATIVE_ROUTINE ; Read current path (and open)
-    
-    
-    
-	ldy #$00
-	ldx #$00
-	jmp read_file              ; now we are reading the path, because current path is open
+    ; here it's relative
+    jsr XOPEN_RELATIVE_ROUTINE ; Read current path (and open)
+        
+    ldy #$00
+    ldx #$00
+    jmp read_file              ; now we are reading the path, because current path is open
 
 	
 it_is_absolute
-
+    ldy #$01
 init_and_go
 
     jsr _open_root_and_enter
-
+  ;  
 read_file
 
 loop

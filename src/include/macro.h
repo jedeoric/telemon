@@ -2,6 +2,13 @@
 #define BRK_TELEMON(value)\
 	.byt 00,value;
 
+#define RETURN(value)\
+	lda #value:\
+  sta ERRNO
+  
+#define RETURN0\
+	lda #$00:\
+  sta ERRNO  
 	
 	
 #define PRINT_CHAR(str)\

@@ -6,7 +6,7 @@
 
 #define ORIX_MAX_PATH_LENGTH MAX_LENGTH_OF_FILES*PATH_CURRENT_MAX_LEVEL+PATH_CURRENT_MAX_LEVEL
 
-#define MAX_LENGTH_BUFEDT 110
+
 
 
 
@@ -543,18 +543,21 @@ ORIX_FILE_OPEN_STRUCT
 ; OFFSET (16 bits)
 .dsb 2*ORIX_MAX_OPEN_FILES
 ; flag (r or w)
-.dsb 1*ORIX_MAX_OPEN_FILES 
-.dsb (ORIX_MAX_PATH_LENGTH+12)*ORIX_MAX_OPEN_FILES 
-
-
+;.dsb 1*ORIX_MAX_OPEN_FILES 
+;.dsb (ORIX_MAX_PATH_LENGTH+12)*ORIX_MAX_OPEN_FILES 
+ERRNO
+  .dsb 1
+BUFEDT_LENGTH
+  .dsb 1
 
 /// @brief [VALUE_PAGE_5]  edition buffer (length : 110 bytes)
 *=$590
 BUFEDT ; $590
 .dsb MAX_LENGTH_BUFEDT
+;BUFEDT_LENGTH
+;.dsb 1 ; strlen of  BUFEDT_LENGTH
 ; send the errno
-ERRNO
-  .dsb 1
+
 volatile_str
 .dsb 50
 TELEMON_end_variables

@@ -68,3 +68,21 @@ Read books released in 1986 on the telestrat :) !
  
 
 Goal : trying to change some features
+
+Commands
+
+* ls
+* man man
+* 4kkong
+* meminfo
+* rm
+* vi 
+* help
+* pwd
+
+
+ 
+
+
+
+Sending bytes to RS232
